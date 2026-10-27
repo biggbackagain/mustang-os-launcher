@@ -20,6 +20,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.mustangos.launcher.media.MediaAccessService
+import com.mustangos.launcher.diagnostics.DiagnosticReporter
 import com.mustangos.launcher.ui.LauncherViewModel
 import com.mustangos.launcher.ui.MainActivity
 import org.junit.Assert.*
@@ -131,6 +132,26 @@ class DashboardInteractionTest {
         shadowOf(Looper.getMainLooper()).idle()
         assertEquals("— / —", activity.findViewById<TextView>(R.id.songTime).text.toString())
         assertEquals("Reproducir o pausar", activity.findViewById<View>(R.id.playPause).contentDescription.toString())
+        controller.pause().stop().destroy()
+    }
+
+    @Test fun displayOnlyMetadataReachesDashboardAndExportWithoutExportingSongContents() {
+        install("com.zjinnova.zlink")
+        val mediaController = session("com.zjinnova.zlink")
+        shadowOf(mediaController).setMetadata(MediaMetadata.Builder()
+            .putString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE, "Private display song")
+            .putString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, "Private display subtitle").build())
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup().visible()
+        val activity = controller.get()
+        val model = ViewModelProvider(activity)[LauncherViewModel::class.java]
+        model.media.refresh(); shadowOf(Looper.getMainLooper()).idle()
+        assertEquals("Private display song", activity.findViewById<TextView>(R.id.songTitle).text.toString())
+        assertEquals("Private display subtitle", activity.findViewById<TextView>(R.id.songArtist).text.toString())
+        assertNull(model.media.state.value.facts.artist)
+        val report = DiagnosticReporter(activity, model).create()
+        assertTrue(report.contains("DISPLAY_TITLE{clave=true,valor=true}"))
+        assertTrue(report.contains("texto_secundario_origen=DISPLAY_SUBTITLE"))
+        assertFalse(report.contains("Private display"))
         controller.pause().stop().destroy()
     }
 

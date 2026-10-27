@@ -193,14 +193,14 @@ class MainActivity : ComponentActivity() {
 
     private fun renderMedia(ui: MediaUiState) {
         val m = ui.facts
-        binding.songTitle.text = m.title ?: if (m.source == null) "Sin datos de reproducción" else "Título no disponible"
-        binding.songArtist.text = m.artist ?: "Artista no disponible"
+        binding.songTitle.text = ui.displayTitle ?: if (m.source == null) "Sin datos de reproducción" else "Título no disponible"
+        binding.songArtist.text = ui.displaySubtitle ?: "Artista no disponible"
         binding.songAlbum.text = m.album
         binding.songAlbum.visibility = if (m.album == null) View.GONE else View.VISIBLE
         binding.albumArt.setImageBitmap(ui.artwork)
         binding.albumArt.visibility = if (ui.artwork == null) View.GONE else View.VISIBLE
         binding.artPlaceholder.visibility = if (ui.artwork == null) View.VISIBLE else View.GONE
-        binding.artHint.text = if (m.source == null) "Apple Music vía CarPlay" else "Sin portada disponible"
+        binding.artHint.text = if (m.source == null) "Multimedia de CarPlay" else "Sin portada disponible"
         binding.mediaStatus.text = ui.status
         binding.playPause.setImageResource(when {
             !ui.playbackStateKnown -> R.drawable.ic_play_pause

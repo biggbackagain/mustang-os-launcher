@@ -137,6 +137,8 @@ class LauncherTest {
         media.stop()
     }
     @Test fun diagnosticsExcludeContentAndIdentifiers() {
+        // The default Robolectric fingerprint is also its model/brand; use a distinct private fixture.
+        ReflectionHelpers.setStaticField(android.os.Build::class.java, "FINGERPRINT", "private-device-build-fingerprint-fixture")
         val model = com.mustangos.launcher.ui.LauncherViewModel(app)
         val text = com.mustangos.launcher.diagnostics.DiagnosticReporter(app, model).create()
         assertTrue(text.contains("SDK real: 32"))

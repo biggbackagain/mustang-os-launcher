@@ -8,6 +8,7 @@ import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.view.KeyEvent
@@ -25,8 +26,16 @@ data class MediaUiState(
     val facts: MediaFacts = MediaFacts(),
     val artwork: Bitmap? = null,
     val status: String = "Acceso multimedia sin conceder",
-    val playbackStateKnown: Boolean = false
-)
+    val playbackStateKnown: Boolean = false,
+    val fallbackDisplayTitle: String? = null,
+    val fallbackDisplaySubtitle: String? = null
+) {
+    // Presentation fields do not turn a display subtitle or generic description into artist metadata.
+    val displayTitle: String? get() = facts.title ?: fallbackDisplayTitle
+    val displaySubtitle: String? get() = facts.artist ?: fallbackDisplaySubtitle
+    val titleOrigin: String? get() = when { facts.title != null -> "TITLE"; fallbackDisplayTitle != null -> "DISPLAY_TITLE"; else -> null }
+    val subtitleOrigin: String? get() = when { facts.artist != null -> "ARTIST"; fallbackDisplaySubtitle != null -> "DISPLAY_SUBTITLE"; else -> null }
+}
 class MediaIntegrationManager(private val context: Context, private val settings: LauncherSettings) {
     private val manager = context.getSystemService(MediaSessionManager::class.java)
     private val component = ComponentName(context, MediaAccessService::class.java)
@@ -107,8 +116,46 @@ class MediaIntegrationManager(private val context: Context, private val settings
                 p?.position?.coerceAtLeast(0) ?: 0, p?.lastPositionUpdateTime ?: 0,
                 p?.state == PlaybackState.STATE_PLAYING, p?.playbackSpeed ?: 0f, rawActions), art,
                 if (p?.state == PlaybackState.STATE_ERROR) "La fuente reportó un error" else "Sesión Android · ${controller.packageName}",
-                p?.state in listOf(PlaybackState.STATE_PLAYING, PlaybackState.STATE_PAUSED, PlaybackState.STATE_STOPPED))
+                p?.state in listOf(PlaybackState.STATE_PLAYING, PlaybackState.STATE_PAUSED, PlaybackState.STATE_STOPPED),
+                m?.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE)?.takeIf { it.isNotBlank() },
+                m?.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE)?.takeIf { it.isNotBlank() })
         } catch (_: RuntimeException) { mutable.value = MediaUiState(status = "Fuente multimedia no disponible"); ErrorJournal.record(context, "MEDIA_READ_FAILED") }
+    }
+    /** Standard-field presence only. Never prints song contents, custom keys, URI values or notification data. */
+    fun sessionDiagnostics(): String = buildString {
+        appendLine("SESIONES MULTIMEDIA · campos crudos sin contenido privado")
+        if (!runCatching { hasAccess() }.getOrDefault(false)) { append("Acceso multimedia no disponible"); return@buildString }
+        val currentSessions = sessions.take(12)
+        if (currentSessions.isEmpty()) { append("Sin sesiones visibles"); return@buildString }
+        for (controller in currentSessions) {
+            val metadata = runCatching { controller.metadata }
+            val m = metadata.getOrNull()
+            val playback = runCatching { controller.playbackState }.getOrNull()
+            val chosen = selected?.sessionToken == controller.sessionToken
+            val pkg = runCatching { controller.packageName }.getOrDefault("paquete no legible")
+            val known = playback?.state in listOf(PlaybackState.STATE_PLAYING, PlaybackState.STATE_PAUSED, PlaybackState.STATE_STOPPED)
+            appendLine("$pkg; seleccionada=$chosen; metadata=${m != null}; metadata_legible=${metadata.isSuccess}; estado=${playback?.state ?: "no publicado"}; estado_conocido=$known; acciones=${playback?.actions ?: 0L}")
+            fun text(short: String, key: String) = "$short{clave=${m?.containsKey(key) == true},valor=${runCatching { m?.getText(key)?.isNotBlank() == true }.getOrDefault(false)}}"
+            fun bitmap(short: String, key: String) = "$short{clave=${m?.containsKey(key) == true},bitmap=${runCatching { m?.getBitmap(key) != null }.getOrDefault(false)}}"
+            fun uri(short: String, key: String): String {
+                val value = runCatching { m?.getString(key)?.takeIf { it.isNotBlank() } }.getOrNull()
+                val content = runCatching { value?.let(Uri::parse)?.scheme == "content" }.getOrDefault(false)
+                return "$short{clave=${m?.containsKey(key) == true},valor=${value != null},content=$content}"
+            }
+            appendLine(listOf(text("TITLE", MediaMetadata.METADATA_KEY_TITLE), text("ARTIST", MediaMetadata.METADATA_KEY_ARTIST),
+                text("ALBUM", MediaMetadata.METADATA_KEY_ALBUM), "DURATION{clave=${m?.containsKey(MediaMetadata.METADATA_KEY_DURATION) == true},positiva=${runCatching { (m?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L) > 0L }.getOrDefault(false)}}").joinToString("; "))
+            appendLine(listOf(text("DISPLAY_TITLE", MediaMetadata.METADATA_KEY_DISPLAY_TITLE), text("DISPLAY_SUBTITLE", MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE),
+                text("DISPLAY_DESCRIPTION", MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION)).joinToString("; "))
+            appendLine(listOf(bitmap("ALBUM_ART", MediaMetadata.METADATA_KEY_ALBUM_ART), bitmap("ART", MediaMetadata.METADATA_KEY_ART),
+                bitmap("DISPLAY_ICON", MediaMetadata.METADATA_KEY_DISPLAY_ICON)).joinToString("; "))
+            appendLine(listOf(uri("ALBUM_ART_URI", MediaMetadata.METADATA_KEY_ALBUM_ART_URI), uri("ART_URI", MediaMetadata.METADATA_KEY_ART_URI),
+                uri("DISPLAY_ICON_URI", MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI)).joinToString("; "))
+            val description = runCatching { m?.description }.getOrNull()
+            appendLine("description.title=${description?.title?.isNotBlank() == true}; description.subtitle=${description?.subtitle?.isNotBlank() == true}; description.description=${description?.description?.isNotBlank() == true}; description.bitmap=${description?.iconBitmap != null}; description.uri=${description?.iconUri != null}; description.content=${description?.iconUri?.scheme == "content"}")
+            if (chosen) appendLine("Presentación seleccionada: título_origen=${mutable.value.titleOrigin ?: "ninguno"}; texto_secundario_origen=${mutable.value.subtitleOrigin ?: "ninguno"}")
+        }
+        if (sessions.size > currentSessions.size) appendLine("Sesiones adicionales omitidas: ${sessions.size - currentSessions.size}")
+        append("Los datos de una sesión no se combinan con los de otra; las URI no se abren ni se exportan.")
     }
     fun poll() {
         // Some OEM sessions omit callbacks; refresh still respects an explicit source selection.

@@ -6,8 +6,8 @@ android {
         applicationId = "com.mustangos.launcher"
         minSdk = 26
         targetSdk = 35
-        versionCode = 7
-        versionName = "0.3.6"
+        versionCode = 8
+        versionName = "0.3.7"
     }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     buildFeatures { viewBinding = true }

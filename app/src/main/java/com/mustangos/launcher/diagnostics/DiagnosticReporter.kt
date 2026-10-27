@@ -12,8 +12,9 @@ class DiagnosticReporter(private val context: Context, private val model: Launch
         val mem = ActivityManager.MemoryInfo().also { context.getSystemService(ActivityManager::class.java).getMemoryInfo(it) }
         val d = context.resources.displayMetrics
         return buildString {
-            appendLine("MUSTANG OS 0.3.6 · diagnóstico básico")
+            appendLine("MUSTANG OS 0.3.7 · diagnóstico básico")
             appendLine("SDK real: ${Build.VERSION.SDK_INT}; etiqueta RELEASE: ${Build.VERSION.RELEASE}")
+            appendLine("Identificación declarada del equipo: fabricante=${Build.MANUFACTURER}; marca=${Build.BRAND}; modelo=${Build.MODEL}; placa=${Build.BOARD}; hardware=${Build.HARDWARE}")
             appendLine("API 29 corresponde a Android 10; API 32 a Android 12L; API 33 a Android 13. La etiqueta del fabricante puede diferir.")
             appendLine("Ventana/densidad: ${d.widthPixels}x${d.heightPixels}px; ${d.densityDpi}dpi")
             appendLine("RAM total: ${mem.totalMem / 1_048_576} MiB; disponible: ${mem.availMem / 1_048_576} MiB")
@@ -27,7 +28,8 @@ class DiagnosticReporter(private val context: Context, private val model: Launch
             appendLine("CarPlay: ${model.carplay.connectionStatus}")
             appendLine("Servicio ZLink: ${model.zlinkProbe.state.value}")
             val mediaFacts = model.media.state.value.facts
-            appendLine("Campos multimedia publicados: título=${mediaFacts.title != null}; artista=${mediaFacts.artist != null}; álbum=${mediaFacts.album != null}; duración=${mediaFacts.durationMs > 0}; portada=${model.media.state.value.artwork != null}")
+            appendLine("Campos multimedia principales extraídos: título=${mediaFacts.title != null}; artista=${mediaFacts.artist != null}; álbum=${mediaFacts.album != null}; duración=${mediaFacts.durationMs > 0}; portada=${model.media.state.value.artwork != null}")
+            appendLine(model.media.sessionDiagnostics())
             appendLine("Navegación: ${model.navigation.status}")
             appendLine("Datos del vehículo: ${model.vehicle.status}")
             val oem = model.oem.state.value
