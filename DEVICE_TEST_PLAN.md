@@ -1,5 +1,7 @@
 # Pruebas en el equipo · vehículo estacionado
 
+La **0.3.6** requiere la nueva comprobación descrita en [docs/UPDATE_036.md](docs/UPDATE_036.md): pausa/reanudar del iPhone, apertura de portada/Música hacia CarPlay, datos OEM retenidos con edad, estado de GPS y bienvenida/avisos ACC. Sus tests locales no marcan como superadas las filas de hardware. El usuario confirmó que siguiente ya funcionaba en su 0.3.5; debe comprobarse que conserve ese comportamiento con un solo envío por pulsación.
+
 Todas las filas comienzan **PENDIENTES**. Ninguna prueba automatizada sustituye esta tabla. Registra fecha, SDK, versión APK, resultado y observaciones, sin datos personales.
 
 Evidencia parcial del usuario: instaló 0.1.0 por Wi-Fi, abrió ZLink y envió fotos del selector; confirmó puertas, temperatura y voltaje en el OEM. Esto no marca como superados los casos completos siguientes. Para 0.2.0, comprobar primero autodetección de CarPlay/radio/teléfono/música, ausencia de apps ajenas en Mapas, exportación del ZIP de compatibilidad y envío desde el navegador. Los datos MCU en Mustang OS y el panel CarPlay siguen pendientes; consulta NATIVE_INTEGRATION.md.

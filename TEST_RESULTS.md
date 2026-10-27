@@ -1,6 +1,26 @@
-# Registro de verificación · Mustang OS 0.3.2
+# Registro de verificación · Mustang OS 0.3.6
 
-## Resultado actual 0.3.2
+## Resultado actual 0.3.6
+
+**99 pruebas de app/núcleo y seis del servidor pasadas; cero fallos.** Verificación completa con `scripts/verify.ps1`: tests JVM/Robolectric, lint y APK debug; `BUILD SUCCESSFUL` en 38 segundos en este PC. Lint: **cero errores y 75 advertencias**, frente a 88 en la base 0.3.5 del usuario; no se añadió baseline para ocultar errores. Los avisos pendientes incluyen textos del tablero, versiones de dependencias, APIs OEM por reflexión y sugerencias de layout/KTX.
+
+- APK: `output/MustangOS-0.3.6-debug.apk`, alias `output/MustangOS-debug.apk`.
+- Paquete `com.mustangos.launcher`, versión 0.3.6 / código 7.
+- Tamaño: 2 540 849 bytes.
+- SHA-256: `57C5A8D95130B103CFB775C776785C3E0492C3C921C541624607657B46BA257E`.
+- Firma APK v2 verificada; certificado idéntico a las entregas anteriores. Permisos sin cambios; se añade solo visibilidad MAIN/APP_MAPS.
+
+Distribución local comprobada: `http://192.168.100.2:8766/` devuelve HTTP 200 y anuncia 0.3.6. La APK descargada por ese enlace coincide por SHA-256 con el archivo firmado. Esta comprobación desde el PC no demuestra conectividad ni instalación desde la pantalla del coche.
+
+La base del usuario se conservó en `8c31274` después de pasar su verificación. La revisión añade pruebas de controles dirigidos sin duplicación, play/pause con estado desconocido, selección/apertura de la fuente, enrutamiento del botón de mapa, datos Android separados del coche, retención y edad OEM, consultas fijas, corte normal de energía, GPS sin velocidad por jitter de red, ACC en API 29/35 y gráficos nativos de Apps/faros. Las cuatro regresiones de interfaz se reprodujeron antes del wiring.
+
+Se corrigió el aislamiento de Application en los fixtures: AndroidViewModelFactory de AndroidX conservaba su singleton entre métodos de Robolectric y registraba intents en una Application anterior. Se restablece solo en pruebas, con una comprobación de identidad del contexto. La producción usa una única Application y no necesita ese cambio. El receptor ACC usa ContextCompat con el flag de exportación explícito, sin suprimir el error de lint.
+
+Renders nativos: dashboard 1280×720, compacto 853×480, Apps con etiquetas de muestra y Mustang con faros activados explícitamente. Los últimos dos son fixtures visuales, no pruebas de apps instaladas ni de encendido físico. Capota/ruedas permanecen completas en compacto y la unidad km/h es legible.
+
+**Pendiente en hardware:** pausa/reanudar con iPhone, comportamiento de consultas OEM 0.3.6, señal GPS y velocidad en recorrido, recepción de avisos ACC. El mapa CarPlay dentro del panel sigue sin contrato verificado. [Cambios y protocolo de comprobación](docs/UPDATE_036.md).
+
+## Historial 0.3.2
 
 **61 pruebas de app/núcleo y seis del servidor pasadas; cero fallos.** `scripts/verify.ps1` completó pruebas JVM/Robolectric, lint y APK debug en 31 segundos en este PC. Lint: cero errores, 24 advertencias. La firma APK v2 conserva el mismo certificado y los permisos son idénticos a 0.3.1.
 

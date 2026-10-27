@@ -12,61 +12,29 @@ import uuid
 
 PAGE = """<!doctype html><html lang="es"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Descargar Mustang OS 0.3.5</title>
+<title>Descargar Mustang OS 0.3.6</title>
 <style>body{background:#090b0f;color:#f4f5f7;font:20px system-ui;margin:0;padding:32px}
 main{max-width:760px;margin:24px auto;padding:32px;border:1px solid #303540;border-radius:24px;background:#11141a}
 h1{font-size:36px;margin:0 0 12px}span{color:#ff354a}p,li{line-height:1.6}small{color:#b0b5c0}
 a{display:block;background:#d9253b;color:white;text-decoration:none;padding:22px;text-align:center;border-radius:16px;font-weight:bold;margin:28px 0;font-size:22px}li{margin:12px 0}
 .badge{background:#1f2530;padding:4px 10px;border-radius:8px;font-size:14px;color:#ff354a;font-weight:bold}</style>
-<main><h1>MUSTANG <span>OS</span> <span class="badge">v0.3.5</span></h1>
-<small>Actualización completa · Fondo Mustang, Voltaje real MCU, Música Bluetooth, Puertas y Tablero de Sensores Dinámicos</small>
-<p>Instálala directamente en la pantalla de tu Ford Mustang 2010:</p>
-<a href="/MustangOS.apk" download="MustangOS-debug.apk">Descargar Mustang OS 0.3.5</a>
-<ol><li>Toca el botón rojo para descargar <b>MustangOS-debug.apk</b>.</li>
-<li>Abre el archivo descargado y presiona <b>Instalar / Actualizar</b>.</li>
-<li>Abre <b>MUSTANG OS</b>.</li></ol>
-<h2>Mejoras y Correcciones en 0.3.5</h2>
-<ol>
-<li><b>Fondo Mustang Oficial:</b> Emblema del caballo salvaje de Mustang en marca de agua integrado elegantemente en el fondo de la pantalla principal y en el menú de todas las aplicaciones.</li>
-<li><b>Voltaje Real del Coche (12.3V / 14.2V):</b>
-    <ul>
-        <li>Activación del bucle nativo <code>TWUtil.start()</code> y consulta periódica MCU (código 1292).</li>
-        <li>Eliminación del voltaje de 5.0V (riel USB interno del procesador) que confundía la lectura.</li>
-        <li>Identificación automática de estado: <b>Batería en reposo</b> (11.8V - 12.8V) o <b>Alternador cargando</b> (13.8V - 14.5V).</li>
-    </ul>
-</li>
-<li><b>Música Bluetooth (com.tw.bt) y Controles:</b>
-    <ul>
-        <li>Selección automática inteligente de la música del teléfono sin quedarse en "selecciona fuente".</li>
-        <li>Controles de <b>Siguiente canción, Canción anterior, Play y Pausa</b> completamente funcionales mediante despacho cuádruple de eventos multimedia y AVRCP.</li>
-        <li>Contador de tiempo en vivo y estado <code>1:24 · Bluetooth Audio</code> en lugar de <code>— / —</code>.</li>
-        <li>Actualización inmediata del título al cambiar de canción.</li>
-    </ul>
-</li>
-<li><b>CarPlay / ZLink:</b>
-    <ul>
-        <li>Lanzamiento directo e instantáneo a pantalla completa mediante Intent nativo del sistema.</li>
-        <li>Sustitución de textos técnicos de Binder por avisos claros listos para conectar tu iPhone.</li>
-    </ul>
-</li>
-<li><b>Detección de Puertas:</b>
-    <ul>
-        <li>Monitoreo activo del bus CAN con decodificación de puertas (Conductor, Copiloto, Cajuela, etc.) e indicador de alerta en la barra superior.</li>
-    </ul>
-</li>
-<li><b>Nuevo Tablero Completo de Telemetría y Sensores ("Motor"):</b>
-    <ul>
-        <li>Al tocar <b>Motor</b> en el dock se despliega el nuevo panel automotriz en tiempo real:</li>
-        <li><b>Velocímetro GPS Digital:</b> Velocidad exacta, altitud sobre nivel del mar, rumbo y satélites.</li>
-        <li><b>Medidor de Fuerza G (Acelerómetro en vivo):</b> Medición de fuerzas G laterales en curvas y longitudinales en aceleración/frenado.</li>
-        <li><b>Giroscopio en 3 ejes:</b> Velocidades angulares de cabeceo, balanceo y guiñada.</li>
-        <li><b>Estado de Batería y Puertas en vivo:</b> Indicador visual en verde/rojo.</li>
-        <li><b>Accesos Directos OEM:</b> Botones directos para abrir <i>OriginalCar</i>, <i>CarMate</i> y <i>Ajustes Ford</i>.</li>
-    </ul>
-</li>
-</ol>
-<h2>Enviar Diagnóstico al PC (opcional)</h2>
-<p>Si deseas guardar un reporte para análisis: en Mustang OS ve a <b>Ajustes → Diagnóstico y exportación → Compatibilidad OEM → Guardar ZIP</b> y súbelo aquí:</p>
+<main><h1>MUSTANG <span>OS</span> <span class="badge">v0.3.6</span></h1>
+<small>Actualización de prueba sobre tus cambios de 0.3.5</small>
+<a href="/MustangOS.apk" download="MustangOS-debug.apk">Descargar Mustang OS 0.3.6</a>
+<ol><li>Descarga <b>MustangOS-debug.apk</b>.</li>
+<li>Abre el archivo y pulsa <b>Instalar / Actualizar</b>, conservando la aplicación anterior.</li>
+<li>Abre <b>MUSTANG OS</b> con el vehículo estacionado.</li></ol>
+<h2>Qué comprobar</h2>
+<ul>
+<li><b>Música:</b> una sola orden por pulsación. La portada y Música abren CarPlay cuando usas el iPhone; una fuente Android elegida explícitamente conserva su reproductor.</li>
+<li><b>Mapas:</b> el botón del panel abre CarPlay/ZLink. Los mapas del iPhone siguen dentro de ZLink; no hay una superficie de mapa incrustada verificada en este launcher.</li>
+<li><b>Motor:</b> conserva la última lectura con su antigüedad y distingue datos OEM de datos Android. No convierte un dato ausente en cero ni afirma motor encendido a partir del voltaje.</li>
+<li><b>GPS:</b> muestra estado de proveedores y señal; la velocidad requiere una lectura GNSS válida. Una posición de red no se usa como velocidad.</li>
+<li><b>Diseño:</b> foto del Mustang en Apps, caballo junto al nombre y faros con bienvenida visual y avisos ACC compatibles.</li>
+</ul>
+<p><small>La compilación y las pruebas locales no sustituyen la comprobación de pausa, GPS y lecturas en tu pantalla. La integración CarPlay dentro del miniwidget sigue pendiente del contrato del proveedor.</small></p>
+<h2>Enviar diagnóstico al PC</h2>
+<p>En Mustang OS abre <b>Ajustes → Diagnóstico y exportación → Compatibilidad OEM → Guardar ZIP</b>. Guarda el informe con la lectura OEM activa y selecciónalo aquí:</p>
 <input id="report" type="file" accept=".zip,application/zip" style="font-size:18px;max-width:100%">
 <button id="send" style="font-size:20px;background:#1d222b;color:white;padding:20px;border:1px solid #4b5260;border-radius:12px;margin-top:16px">Enviar diagnóstico al PC</button>
 <p id="result" role="status"></p>
@@ -77,10 +45,11 @@ if(!file){result.textContent='Selecciona primero el ZIP de compatibilidad.';retu
 if(file.size>134217728){result.textContent='El archivo supera 128 MiB.';return;}
 button.disabled=true;result.textContent='Enviando por la red local…';
 try{const response=await fetch('/upload',{method:'POST',headers:{'Content-Type':'application/zip','X-Mustang-Upload-Token':'UPLOAD_TOKEN'},body:file});
-if(!response.ok)throw Error();result.textContent='Recibido en el PC con éxito.';
+if(!response.ok)throw Error();result.textContent='Recibido en el PC.';
 }catch(error){result.textContent='No se pudo enviar. Comprueba que el PC y la pantalla siguen en la misma red Wi-Fi.';}finally{button.disabled=false;}
 };
 </script>
+<p><small>El enlace requiere el PC encendido y la misma red; caduca dos horas después de iniciar el servidor.</small></p>
 </main></html>"""
 
 
@@ -88,18 +57,11 @@ def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--host", required=True, help="IPv4 local del PC")
     parser.add_argument("--port", type=int, default=8765)
-    parser.add_argument("--apk", type=Path, default=Path(__file__).resolve().parents[1] / "output" / "MustangOS-0.3.5-debug.apk")
+    parser.add_argument("--apk", type=Path, default=Path(__file__).resolve().parents[1] / "output" / "MustangOS-debug.apk")
     parser.add_argument("--uploads", type=Path, default=Path(__file__).resolve().parents[1] / "output" / "device-reports")
     args = parser.parse_args()
 
-    # Fallback to MustangOS-debug.apk if 0.3.5 is not found
-    apk = args.apk.resolve()
-    if not apk.exists():
-        fallback = Path(__file__).resolve().parents[1] / "output" / "MustangOS-debug.apk"
-        if fallback.exists():
-            apk = fallback.resolve()
-        else:
-            raise FileNotFoundError(f"No se encontró APK en {apk} ni en {fallback}")
+    apk = args.apk.resolve(strict=True)
 
     token = secrets.token_urlsafe(24)
     page = PAGE.replace("UPLOAD_TOKEN", token).encode("utf-8")

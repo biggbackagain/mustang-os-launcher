@@ -1,4 +1,6 @@
-# Datos nativos y CarPlay integrado · investigación 0.3.2
+# Datos nativos y CarPlay integrado · investigación 0.3.6
+
+La revisión actual corrige el despacho de controles del iPhone, enrutamiento de Música/mapas, conservación de lecturas y diagnóstico GPS sobre la base 0.3.5 del usuario. Solicita lecturas fijas de voltaje/temperatura con límites de frecuencia y conserva valores anteriores con su antigüedad. [Detalle actual y pruebas físicas pendientes](docs/UPDATE_036.md). Lo que sigue resume también la evidencia de versiones previas; no es una afirmación de funcionamiento físico de 0.3.6.
 
 Los tres ZIP de la pantalla confirman **SDK 29 / etiqueta RELEASE 13** y permiten identificar formatos OEM. Las fotos de 0.3.0 confirman **14.1 V** en Mustang OS y barra original. La captura activa 0.3.1 confirma **12.52 V, cinco eventos de aperturas y el descriptor del servicio ZLink**. La temperatura aún no llegó por escucha pasiva; la 0.3.2 permite solicitarla manualmente con la misma petición fija que usa la barra original. Los detalles comprobados están en [docs/DEVICE_FINDINGS.md](docs/DEVICE_FINDINGS.md).
 
@@ -33,7 +35,7 @@ No se requiere comprar ni conectar OBD. Tampoco se modifica Bluetooth, Wi-Fi, CA
 
 ## CarPlay real dentro del panel
 
-El requisito es mostrar una superficie real e interactiva de CarPlay. **La 0.3.2 todavía no cumple ese requisito.** El manifiesto real de ZLink deshabilita redimensionamiento/PiP y no exporta el servicio de pantalla secundaria. No se sustituye ese objetivo por una imagen del mapa ni por una captura automatizada.
+El requisito es mostrar una superficie real e interactiva de CarPlay. **La 0.3.6 todavía no cumple ese requisito.** El botón del panel abre ZLink sin exigir una app de mapas Android. El manifiesto real de ZLink deshabilita redimensionamiento/PiP y no exporta el servicio de pantalla secundaria. No se sustituye ese objetivo por una imagen del mapa ni por una captura automatizada.
 
 La incrustación estándar entre apps de Android está documentada desde API 33 y exige autorización en el manifest de la app incrustada, además del soporte de ventanas del dispositivo. No puede concedérsela Mustang OS unilateralmente. El SDK 29 confirmado en esta unidad no dispone de esa vía estándar. [Activity embedding, Android](https://developer.android.com/develop/ui/views/layout/activity-embedding).
 

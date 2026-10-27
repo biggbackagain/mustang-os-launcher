@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.mustangos.launcher.VehiclePowerTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-27T20:07:20.809Z" hostname="DESKTOP-3IU4CK5" time="0.09">
+  <properties/>
+  <testcase name="androidBatteryIsEquipmentDataAndNeverBecomesVehicleTelemetry[29]" classname="com.mustangos.launcher.VehiclePowerTest" time="0.016"/>
+  <testcase name="androidBatteryIsEquipmentDataAndNeverBecomesVehicleTelemetry" classname="com.mustangos.launcher.VehiclePowerTest" time="0.022"/>
+  <testcase name="accessoryStateRequiresNativeEventAndStopUnregistersListener[29]" classname="com.mustangos.launcher.VehiclePowerTest" time="0.025"/>
+  <testcase name="accessoryStateRequiresNativeEventAndStopUnregistersListener" classname="com.mustangos.launcher.VehiclePowerTest" time="0.027"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Intent = Intent { act=android.intent.action.BATTERY_CHANGED (has extras) }; Matching wrappers: []
+Intent = Intent { act=android.intent.action.BATTERY_CHANGED (has extras) }; Matching wrappers: []
+Intent = Intent { act=android.intent.action.BATTERY_CHANGED (has extras) }; Matching wrappers: []
+Intent = Intent { act=android.intent.action.BATTERY_CHANGED (has extras) }; Matching wrappers: []
+Intent = Intent { act=com.unisound.intent.action.ACC_ON }; Matching wrappers: [Wrapper[receiver=[com.mustangos.launcher.vehicle.VehicleTelemetryManager$accessoryReceiver$1@26288c8d], context=[android.app.ContextImpl@47671488], intentFilter=[android.content.IntentFilter@7fc9b955]]]
+Intent = Intent { act=com.unisound.intent.action.ACC_OFF }; Matching wrappers: [Wrapper[receiver=[com.mustangos.launcher.vehicle.VehicleTelemetryManager$accessoryReceiver$1@26288c8d], context=[android.app.ContextImpl@47671488], intentFilter=[android.content.IntentFilter@7fc9b955]]]
+Intent = Intent { act=com.unisound.intent.action.ACC_ON }; Matching wrappers: []
+Intent = Intent { act=com.unisound.intent.action.ACC_ON }; Matching wrappers: [Wrapper[receiver=[com.mustangos.launcher.vehicle.VehicleTelemetryManager$accessoryReceiver$1@dca42ae], context=[android.app.ContextImpl@f047c6f], intentFilter=[android.content.IntentFilter@3c81ec88]]]
+Intent = Intent { act=com.unisound.intent.action.ACC_OFF }; Matching wrappers: [Wrapper[receiver=[com.mustangos.launcher.vehicle.VehicleTelemetryManager$accessoryReceiver$1@dca42ae], context=[android.app.ContextImpl@f047c6f], intentFilter=[android.content.IntentFilter@3c81ec88]]]
+Intent = Intent { act=com.unisound.intent.action.ACC_ON }; Matching wrappers: []
+]]></system-err>
+</testsuite>

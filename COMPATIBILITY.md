@@ -2,7 +2,7 @@
 
 ## Equipo objetivo
 
-Estado 0.3.2: [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md) y [los hallazgos reales](docs/DEVICE_FINDINGS.md) registran SDK 29 / RELEASE 13, voltaje OEM y recepción del canal estándar de puertas comprobados en Mustang OS. Temperatura, correlación de puertas y superficie CarPlay siguen pendientes. La consulta manual de temperatura reproduce la solicitud fija de lectura de la barra original y solo se ejecuta al pulsar su botón, una vez por escucha. El servicio ZLink fue vinculable con permiso normal; el descriptor no proporciona su contrato de integración. El voltaje BatteryManager conserva su origen Android.
+Estado 0.3.6: [correcciones actuales](docs/UPDATE_036.md) sobre los cambios del usuario, conservados en `8c31274`. Los datos OEM anteriores se retienen con su antigüedad, sin convertir BatteryManager en voltaje del coche o temperatura exterior. Las consultas usan formatos fijos observados en la unidad. Multimedia evita envíos duplicados y abre CarPlay para la fuente del teléfono. GPS distingue red/GNSS y ACC se observa sin controles de potencia. La verificación física de esta revisión sigue pendiente. La superficie CarPlay dentro del panel continúa sin contrato disponible.
 
 T10S / T100, Allwinner A133 / sun50iw10p1, Cortex-A53, 2 GB RAM, 1280×720, sin root. Los datos de firmware, MCU, CAN y PT2313/QN8035 provienen del usuario, no de una inspección de hardware realizada aquí.
 
@@ -14,7 +14,7 @@ La app consulta `Build.VERSION.SDK_INT` y muestra también `Build.VERSION.RELEAS
 - Actividad principal horizontal y Home opcional. El firmware conserva control del arranque, multitarea, cámara, radio y controles OEM.
 - GPS precisa necesita permiso `ACCESS_FINE_LOCATION` y proveedor GPS real. Se solicitan FINE y COARSE juntas; una concesión aproximada no habilita el velocímetro. No se pide ubicación en segundo plano.
 - Descubrimiento multimedia: acceso opcional del usuario a `NotificationListenerService`, MediaSessionManager y callbacks de MediaController. En Android 8.0 se consulta la lista de listeners autorizados; desde API 27 se usa NotificationManager.
-- Visibilidad de aplicaciones limitada a los intents MAIN/LAUNCHER, MAIN/HOME y VIEW/geo declarados mediante `<queries>`. No se usa `QUERY_ALL_PACKAGES`. Una aplicación OEM sin actividad visible o exportada puede no ser abrible desde una APK normal. [Visibilidad de paquetes](https://developer.android.com/training/package-visibility/declaring).
+- Visibilidad de aplicaciones limitada a MAIN/LAUNCHER, MAIN/HOME, MAIN/APP_MAPS y VIEW/geo declarados mediante `<queries>`. No se usa `QUERY_ALL_PACKAGES`. Una aplicación OEM sin actividad visible o exportada puede no ser abrible desde una APK normal. [Visibilidad de paquetes](https://developer.android.com/training/package-visibility/declaring).
 
 ## Diseño y rendimiento
 

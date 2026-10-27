@@ -1,34 +1,29 @@
-# MUSTANG OS · 0.3.2
+# MUSTANG OS · 0.3.6
 
 Launcher Android nativo para Ford Mustang 2010 V6 4.0L convertible rojo con capota negra. Kotlin, Views/XML, MVVM y StateFlow. La referencia visual se traduce en tres paneles, superficies grafito, rojo moderado e iconos vectoriales de trazo uniforme.
 
 ![Interfaz Android renderizada en pruebas, sin datos CarPlay simulados](docs/dashboard-1280x720.png)
 
-El usuario instaló versiones de prueba y envió tres ZIP de la unidad. Se confirmó SDK 29 pese a la etiqueta Android 13. Las fotos de 0.3.0 confirman voltaje OEM de 14.1 V coincidente con la barra original. El informe activo de 0.3.1 confirma 12.52 V y cinco eventos del canal estándar de puertas, con última máscara 0. La temperatura y las posiciones/transiciones de puertas aún necesitan comprobarse.
+La 0.3.6 conserva las modificaciones del usuario de 0.3.5 y corrige el despacho de pausa, la apertura de portada/Música hacia CarPlay, la pérdida de lecturas OEM y la distinción entre ubicación de red y velocidad GPS. Apps muestra la foto del Mustang; el caballo acompaña al nombre y los faros tienen bienvenida visual y respuesta a avisos ACC. [Detalle de las correcciones y pruebas físicas pendientes](docs/UPDATE_036.md).
 
-La 0.2.0 corrigió el selector de mapas y detectó las apps OEM confirmadas. La 0.3.0 permite activar **Motor → Activar lectura OEM → Activar escucha** para intentar recibir voltaje, temperatura y aperturas con los formatos encontrados en la unidad, sin órdenes ni consultas a la MCU. No muestra valores antes de recibirlos. **La superficie CarPlay dentro del widget sigue sin integración verificada.** El estado exacto está en [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md) y [los hallazgos del equipo](docs/DEVICE_FINDINGS.md).
+Los informes del equipo confirmaron SDK 29 pese a la etiqueta Android 13, voltaje OEM y recepción de aperturas. Los números de las capturas no se fijan como valores del widget. La revisión actual distingue lectura recibida, dato anterior y dato ausente. Temperatura, controles CarPlay y GPS de 0.3.6 requieren comprobación en la pantalla.
 
-La 0.3.1 escucha también el canal alternativo de aperturas y el perfil MCU. Solo interpreta la rama de puertas verificada si recibe el perfil correspondiente del equipo; no lo deduce del modelo de coche. **Motor** y el informe exportado muestran eventos recibidos/interpretados por canal y hasta 24 cabeceras CAN, sin guardar el contenido de las tramas.
+**La superficie CarPlay dentro del widget sigue sin integración verificada.** El botón de mapa abre ZLink. El estado exacto está en [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md) y [los hallazgos del equipo](docs/DEVICE_FINDINGS.md).
 
-La 0.3.2 añade **Motor → Solicitar temperatura OEM**, una consulta manual fija usada por la barra original, limitada a una llamada por escucha activa. El inicio sigue siendo pasivo; solo un evento válido se convierte en temperatura. También cuenta máscaras de puertas cero/no cero y usa **Cerrar** como botón principal de Motor para conservar la escucha al salir del diálogo. El servicio ZLink es vinculable y su descriptor está confirmado; su contrato de superficie sigue sin estar disponible. [Datos que solicitar al proveedor](docs/ZLINK_VENDOR_QUESTIONS.md).
+**Motor** conserva lecturas con antigüedad y usa únicamente solicitudes fijas de lectura identificadas en el OEM para voltaje y temperatura. No modifica CANBUS, MCU o ZLink. [Datos que solicitar al proveedor para el mapa interno](docs/ZLINK_VENDOR_QUESTIONS.md).
 
 ## Instalar y empezar
 
 Para instalar **por enlace, sin memoria USB ni ADB**, sirve la APK desde un PC conectado a la misma red Wi-Fi. Se incluye `scripts/serve-apk.py`; consulta [la guía de descarga local](docs/LOCAL_DOWNLOAD.md). Abre su dirección en el navegador de la pantalla, descarga la APK y permite a ese navegador instalar aplicaciones cuando Android lo solicite. La autorización de instalación es independiente de las opciones de depuración protegidas por contraseña.
 
-1. Con el coche estacionado, descarga y abre `MustangOS-debug.apk` desde el enlace local. Como alternativa, el archivo de `output/` también puede copiarse desde una USB y abrirse con el gestor de archivos. Si ADB está disponible:
-
-   ```powershell
-   adb install -r .\output\MustangOS-debug.apk
-   adb shell am start -n com.mustangos.launcher/.ui.MainActivity
-   ```
+1. Con el coche estacionado, descarga y abre `MustangOS-debug.apk` desde el enlace local. Instala sobre la versión anterior conservando los datos.
 
 2. Abre Mustang OS como una aplicación normal. No cambia automáticamente el Home predeterminado.
 3. En **Ajustes → Elegir launcher original**, selecciona la interfaz del fabricante. Prueba **Abrir launcher original** antes de elegir Mustang OS como Home.
 4. Pulsa **CarPlay**. Se detecta el ZLink confirmado si está instalado; cuando hay varios candidatos se permite elegir. Se guarda el componente resuelto. No se instala, actualiza ni reinicia ZLink, ni se borran datos o activación.
-5. Los accesos a radio, teléfono y música detectan las apps del firmware confirmadas. Puedes cambiarlas en **Ajustes**. El selector de mapas solo muestra apps de mapas Android; si no hay ninguna, explica la alternativa CarPlay. Un permiso OEM denegado se muestra como tal.
+5. Portada y Música abren CarPlay para la fuente del teléfono; una fuente Android elegida en **Elegir fuente** conserva su reproductor. Radio/teléfono detectan las apps OEM. **Ver mapa en CarPlay** abre ZLink; el dock Navegación conserva la opción Android.
 6. Pulsa el estado GPS para conceder ubicación **precisa**. El velocímetro pasa de `—` a una lectura real cuando el receptor entrega una velocidad válida. Sin señal o después de cinco segundos sin lectura válida vuelve a `—`.
-7. En **Elegir fuente**, puedes autorizar acceso a notificaciones para descubrir MediaSessions. Reproduce Apple Music en CarPlay, vuelve al launcher y comprueba las sesiones. Si ZLink no publica una, la tarjeta muestra que no hay datos y los controles permanecen deshabilitados. La autorización no garantiza acceso al iPhone.
+7. En **Elegir fuente**, puedes autorizar acceso multimedia para descubrir MediaSessions. Los perfiles OEM conocidos sin capacidades declaradas admiten un intento de control estándar dirigido; las demás fuentes respetan sus acciones publicadas. Sin estado no se afirma pausa ni se inventa progreso. La autorización y el envío del control no garantizan respuesta del iPhone.
 
 La APK usa una firma de depuración y el paquete propio `com.mustangos.launcher`. Las futuras actualizaciones deben conservar la misma firma para instalarse con `-r`; este paquete es independiente de ZLink.
 

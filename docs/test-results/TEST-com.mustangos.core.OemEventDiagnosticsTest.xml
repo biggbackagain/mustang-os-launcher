@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.mustangos.core.OemEventDiagnosticsTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-27T05:49:11.605Z" hostname="DESKTOP-3IU4CK5" time="0.013">
+<testsuite name="com.mustangos.core.OemEventDiagnosticsTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-27T09:44:07.431Z" hostname="DESKTOP-3IU4CK5" time="0.014">
   <properties/>
-  <testcase name="separatesReceivedFramesFromDecodedReadingsWithoutKeepingPayloads" classname="com.mustangos.core.OemEventDiagnosticsTest" time="0.011"/>
+  <testcase name="separatesReceivedFramesFromDecodedReadingsWithoutKeepingPayloads" classname="com.mustangos.core.OemEventDiagnosticsTest" time="0.012"/>
   <testcase name="unknownCanHeadersHaveFixedMemoryAndNeverBecomeMeasurements" classname="com.mustangos.core.OemEventDiagnosticsTest" time="0.002"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>

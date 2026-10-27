@@ -1,6 +1,8 @@
 # ZLink / CarPlay: investigación y contrato de Mustang OS
 
-Fecha de investigación: 26 de octubre de 2026. Sin conexión física confirmada al T100 ni copia del manifiesto de su ZLink 6.1.06. No se ha determinado todavía su paquete o actividad; no se presupone `com.zjinnova.zlink`.
+La 0.3.6 corrige controles y accesos sobre los cambios del usuario: una sola entrega dirigida por pulsación, toggle cuando el estado OEM es desconocido, portada/Música hacia el CarPlay configurado y mapa del panel que abre ZLink. Esto no integra la superficie de CarPlay en el launcher ni demuestra el cambio efectivo de reproducción en el iPhone. [Detalles y comprobación](docs/UPDATE_036.md).
+
+Los informes posteriores confirmaron paquete `com.zjinnova.zlink`, actividad de entrada, versión 6.1.06 y descriptor Binder del servicio. Las notas siguientes conservan el historial de investigación y sus límites, no el estado inicial previo al primer informe.
 
 Actualización 0.2.0: las fotos enviadas por el usuario confirman el paquete `com.zjinnova.zlink`. Su actividad y contrato aún deben inspeccionarse en el ZIP de compatibilidad. La app ahora resuelve el paquete confirmado cuando está instalado. Consulta [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md) para la investigación del panel interactivo y datos OEM sin OBD.
 

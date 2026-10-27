@@ -6,6 +6,6 @@ test_upload_requires_page_token (__main__.DownloadServerTest.test_upload_require
 test_zip_stored_without_extracting_or_executing (__main__.DownloadServerTest.test_zip_stored_without_extracting_or_executing) ... ok
 
 ----------------------------------------------------------------------
-Ran 6 tests in 0.652s
+Ran 6 tests in 0.665s
 
 OK
