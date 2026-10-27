@@ -94,7 +94,8 @@ class LauncherTest {
         assertTrue(text.contains("Conexión CarPlay no verificable"))
         assertFalse(text.contains(android.os.Build.FINGERPRINT))
     }
-    @Test fun dashboardLaysOutAtTargetResolutionWithLargeControls() {
+    @Test @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    fun dashboardLaysOutAtTargetResolutionWithLargeControls() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup().visible()
         val root = controller.get().findViewById<View>(R.id.root)
         root.measure(View.MeasureSpec.makeMeasureSpec(1280, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(720, View.MeasureSpec.EXACTLY))
@@ -104,6 +105,27 @@ class LauncherTest {
             assertTrue("Control $id has a large touch target", view.height >= 48)
             assertTrue(view.width >= 48)
         }
+        controller.pause().stop().destroy()
+    }
+    @Test @Config(qualifiers = "w853dp-h480dp-land-mdpi")
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    fun compactDensityKeepsMediaControlsInsideCard() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup().visible()
+        val root = controller.get().findViewById<View>(R.id.root)
+        root.measure(View.MeasureSpec.makeMeasureSpec(853, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY))
+        root.layout(0, 0, 853, 480)
+        val button = root.findViewById<View>(R.id.mediaSource)
+        val card = button.parent as View
+        assertTrue("Media source must fit inside its card at 240dpi on a 1280x720 display", button.bottom <= card.height)
+        val dock = root.findViewById<TextView>(R.id.dockCarplay)
+        assertTrue("Icon and label must fit: top=${dock.compoundPaddingTop}, bottom=${dock.compoundPaddingBottom}, text=${dock.layout.height}, height=${dock.height}, lines=${dock.lineCount}", dock.compoundPaddingTop + dock.compoundPaddingBottom + dock.layout.height <= dock.height)
+        val navigationStatus = root.findViewById<View>(R.id.carplayStatus)
+        assertTrue("Connection state must fit", navigationStatus.bottom <= (navigationStatus.parent as View).height)
+        controller.pause().stop().destroy()
+    }
+    @Test @Config(sdk = [26, 35]) fun startsAtMinimumAndModernApiWithoutPermissions() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup().visible()
+        assertFalse(controller.get().findViewById<ImageButton>(R.id.playPause).isEnabled)
         controller.pause().stop().destroy()
     }
 }

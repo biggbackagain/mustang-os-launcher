@@ -45,6 +45,10 @@ class MainActivity : ComponentActivity() {
         WindowInsetsControllerCompat(window, window.decorView).apply { hide(WindowInsetsCompat.Type.systemBars()); systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE }
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        if (resources.getBoolean(R.bool.compact_dashboard)) {
+            binding.navigationDescription.visibility = View.GONE
+            binding.artHint.visibility = View.GONE
+        }
         binding.topSettings.setOnClickListener { showSettings() }
         binding.dockSettings.setOnClickListener { showSettings() }
         binding.openCarplay.setOnClickListener { openRole("zlink") }
