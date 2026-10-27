@@ -8,7 +8,9 @@ APK de depuración generada; 29 pruebas automatizadas pasadas. La instalación y
 
 ## Instalar y empezar
 
-1. Con el coche estacionado, copia `output/MustangOS-debug.apk` a una USB. Abre el archivo desde el gestor de archivos de la pantalla y autoriza a ese gestor a instalar APK cuando Android lo solicite. También puedes usar ADB:
+Para instalar **por enlace, sin memoria USB ni ADB**, sirve la APK desde un PC conectado a la misma red Wi-Fi. Se incluye `scripts/serve-apk.py`; consulta [la guía de descarga local](docs/LOCAL_DOWNLOAD.md). Abre su dirección en el navegador de la pantalla, descarga la APK y permite a ese navegador instalar aplicaciones cuando Android lo solicite. La autorización de instalación es independiente de las opciones de depuración protegidas por contraseña.
+
+1. Con el coche estacionado, descarga y abre `MustangOS-debug.apk` desde el enlace local. Como alternativa, el archivo de `output/` también puede copiarse desde una USB y abrirse con el gestor de archivos. Si ADB está disponible:
 
    ```powershell
    adb install -r .\output\MustangOS-debug.apk
