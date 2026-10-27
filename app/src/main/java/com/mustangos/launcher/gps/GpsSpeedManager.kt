@@ -3,10 +3,10 @@ package com.mustangos.launcher.gps
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.GnssStatus
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
-import android.location.GnssStatus
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -17,26 +17,41 @@ import com.mustangos.launcher.diagnostics.ErrorJournal
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-data class GpsState(val kmh: Float? = null, val status: String = "Ubicación precisa sin permiso", val accuracyMeters: Float? = null, val altitudeMeters: Double? = null, val bearingDegrees: Float? = null, val satellitesUsed: Int? = null)
+data class GpsState(
+    val kmh: Float? = null,
+    val status: String = "Ubicación precisa sin permiso",
+    val accuracyMeters: Float? = null,
+    val altitudeMeters: Double? = null,
+    val bearingDegrees: Float? = null,
+    val satellitesUsed: Int? = null,
+    val satellitesVisible: Int? = null,
+    val provider: String? = null,
+    val fixAgeMs: Long? = null
+)
+
 class GpsSpeedManager(private val context: Context) : LocationListener {
+    private data class FixDetails(val provider: String, val timeMs: Long, val accuracy: Float,
+        val altitude: Double?, val bearing: Float?)
     private val manager = context.getSystemService(LocationManager::class.java)
     private val filter = SpeedFilter()
     private val handler = Handler(Looper.getMainLooper())
     private var running = false
-    private var detailTime = 0L
-    private var accuracy: Float? = null
-    private var altitude: Double? = null
-    private var bearing: Float? = null
+    private var gpsFix: FixDetails? = null
+    private var networkFix: FixDetails? = null
     private var satellites: Int? = null
+    private var visibleSatellites: Int? = null
+    private var gpsRegistrationFailed = false
+    private var registeredProviders = emptySet<String>()
+    private val mutable = MutableStateFlow(GpsState())
+    val state = mutable.asStateFlow()
     private val gnss = object : GnssStatus.Callback() {
         override fun onSatelliteStatusChanged(status: GnssStatus) {
             if (!running) return
             satellites = (0 until status.satelliteCount).count(status::usedInFix)
+            visibleSatellites = status.satelliteCount
             publish()
         }
     }
-    private val mutable = MutableStateFlow(GpsState())
-    val state = mutable.asStateFlow()
     fun hasPermission() = context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
     private val expiry = object : Runnable {
         override fun run() {
@@ -46,81 +61,117 @@ class GpsSpeedManager(private val context: Context) : LocationListener {
             handler.postDelayed(this, 1000)
         }
     }
-    private var lastLocation: Location? = null
-    private var lastLocationTime: Long = 0L
 
     fun start() {
         stop()
         if (!hasPermission()) { mutable.value = GpsState(); return }
         running = true
         try {
-            val providers = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)
-            for (provider in providers) {
-                if (manager.allProviders.contains(provider)) {
-                    runCatching { manager.requestLocationUpdates(provider, 1000L, 0f, this, Looper.getMainLooper()) }
+            val available = manager.allProviders.toSet()
+            val registered = mutableSetOf<String>()
+            for (provider in listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)) {
+                if (provider !in available) continue
+                try {
+                    manager.requestLocationUpdates(provider, 1000L, 0f, this, Looper.getMainLooper())
+                    registered += provider
+                } catch (_: SecurityException) { throw SecurityException() }
+                  catch (_: RuntimeException) {
+                    if (provider == LocationManager.GPS_PROVIDER) gpsRegistrationFailed = true
+                    ErrorJournal.record(context, if (provider == LocationManager.GPS_PROVIDER) "GPS_REGISTRATION_FAILED" else "NETWORK_LOCATION_REGISTRATION_FAILED")
                 }
             }
-            if (manager.allProviders.contains(LocationManager.GPS_PROVIDER)) {
-                runCatching { manager.registerGnssStatusCallback(gnss, handler) }
+            registeredProviders = registered
+            if (registered.isEmpty()) {
+                running = false
+                mutable.value = GpsState(status = if (available.isEmpty()) "El equipo no publica proveedores de ubicación" else "No se pudo iniciar ningún proveedor de ubicación")
+                return
             }
+            if (LocationManager.GPS_PROVIDER in registered) runCatching { manager.registerGnssStatusCallback(gnss, handler) }
+            // Only a recent, timestamped cache is useful after resuming; old fixes never become current.
+            registered.forEach { provider -> runCatching { manager.getLastKnownLocation(provider) }.getOrNull()?.let(::onLocationChanged) }
             expiry.run()
-        } catch (_: SecurityException) { running = false; mutable.value = GpsState(); ErrorJournal.record(context, "GPS_PERMISSION_REVOKED") }
-          catch (_: RuntimeException) { running = false; mutable.value = GpsState(status = "GPS no disponible"); ErrorJournal.record(context, "GPS_START_FAILED") }
+        } catch (_: SecurityException) {
+            stop(); mutable.value = GpsState(); ErrorJournal.record(context, "GPS_PERMISSION_REVOKED")
+        } catch (_: RuntimeException) {
+            stop(); mutable.value = GpsState(status = "GPS no disponible"); ErrorJournal.record(context, "GPS_START_FAILED")
+        }
     }
+
     fun stop() {
         running = false
         handler.removeCallbacks(expiry)
         runCatching { manager.removeUpdates(this) }
         runCatching { manager.unregisterGnssStatusCallback(gnss) }
-        accuracy = null; altitude = null; bearing = null; satellites = null; detailTime = 0
-        lastLocation = null; lastLocationTime = 0L
+        gpsFix = null; networkFix = null; satellites = null; visibleSatellites = null
+        registeredProviders = emptySet(); gpsRegistrationFailed = false
         filter.reset()
         mutable.value = GpsState(status = "GPS detenido")
     }
+
+    private fun enabled(provider: String) = runCatching { manager.isProviderEnabled(provider) }.getOrDefault(false)
     private fun publish() {
-        val enabled = runCatching { manager.isProviderEnabled(LocationManager.GPS_PROVIDER) }.getOrDefault(false)
-        val reading = filter.current(SystemClock.elapsedRealtime())
-        val fresh = accuracy != null && SystemClock.elapsedRealtime() - detailTime <= 8000
-        val kmh = reading.kmh
-        val statusText = when {
-            !enabled -> "GPS desactivado en ajustes"
-            kmh != null -> "GPS · ${kmh.toInt()} km/h"
-            satellites != null && satellites!! > 0 -> "Satélites: $satellites · esperando señal"
+        val now = SystemClock.elapsedRealtime()
+        val gpsEnabled = enabled(LocationManager.GPS_PROVIDER)
+        if (!gpsEnabled) filter.reset()
+        val speed = filter.current(now).kmh
+        val gpsDetails = gpsFix?.takeIf { gpsEnabled && now - it.timeMs in 0..8_000 }
+        val networkDetails = networkFix?.takeIf { enabled(LocationManager.NETWORK_PROVIDER) && now - it.timeMs in 0..8_000 }
+        val details = gpsDetails ?: networkDetails
+        val status = when {
+            gpsRegistrationFailed -> if (networkDetails != null) "Registro GPS no disponible · ubicación por red" else "No se pudo registrar el GPS del equipo"
+            LocationManager.GPS_PROVIDER !in registeredProviders -> if (networkDetails != null)
+                "El equipo no publica GPS · ubicación por red" else "El equipo no publica un proveedor GPS utilizable"
+            !gpsEnabled -> if (networkDetails != null) "GPS desactivado · ubicación por red" else "GPS desactivado en ajustes"
+            speed != null -> "GPS · lectura real"
+            gpsDetails != null -> "GPS con posición · velocidad no publicada o sin precisión suficiente"
+            networkDetails != null -> "Ubicación por red · esperando posición GPS"
+            visibleSatellites != null && visibleSatellites!! > 0 -> "GPS: $visibleSatellites satélites visibles, ${satellites ?: 0} usados · esperando posición"
             else -> "Buscando señal GPS…"
         }
-        mutable.value = GpsState(kmh, statusText, if (fresh) accuracy else null, if (fresh) altitude else null, if (fresh) bearing else null, satellites)
+        mutable.value = GpsState(speed, status, details?.accuracy, details?.altitude, details?.bearing,
+            if (gpsEnabled) satellites else null, if (gpsEnabled) visibleSatellites else null,
+            details?.provider, details?.let { now - it.timeMs })
     }
+
+    private fun fixTime(location: Location, now: Long): Long? {
+        if (location.elapsedRealtimeNanos > 0) {
+            val time = location.elapsedRealtimeNanos / 1_000_000
+            return time.takeIf { now - it in 0..5_000 }
+        }
+        // Some vendor providers omit monotonic time. A recent wall-clock timestamp is still required.
+        if (location.time <= 0) return null
+        val age = System.currentTimeMillis() - location.time
+        return (now - age).takeIf { age in 0..5_000 }
+    }
+
     override fun onLocationChanged(location: Location) {
         if (!running) return
         val now = SystemClock.elapsedRealtime()
-        val fixTimeMs = if (location.elapsedRealtimeNanos > 0) location.elapsedRealtimeNanos / 1_000_000 else now
-        val age = now - fixTimeMs
-
-        if (location.hasAccuracy() && location.accuracy in 0f..100f && (age in 0..10000 || location.elapsedRealtimeNanos <= 0)) {
-            accuracy = location.accuracy
-            detailTime = now
-            if (location.hasAltitude() && location.altitude.isFinite()) altitude = location.altitude
-            if (location.hasBearing() && location.bearing.isFinite()) bearing = location.bearing
-        }
-
-        var speedMps: Float? = if (location.hasSpeed() && location.speed >= 0f) location.speed else null
-        if (speedMps == null && lastLocation != null && lastLocationTime > 0) {
-            val dt = (now - lastLocationTime) / 1000f
-            if (dt in 0.5f..5f) {
-                val dist = lastLocation!!.distanceTo(location)
-                speedMps = (dist / dt).coerceIn(0f, 80f)
+        val time = fixTime(location, now) ?: run { publish(); return }
+        if (!location.hasAccuracy() || !location.accuracy.isFinite() || location.accuracy !in 0f..100f ||
+            !location.latitude.isFinite() || location.latitude !in -90.0..90.0 ||
+            !location.longitude.isFinite() || location.longitude !in -180.0..180.0) { publish(); return }
+        val details = FixDetails(location.provider ?: "", time, location.accuracy,
+            location.altitude.takeIf { location.hasAltitude() && it.isFinite() },
+            location.bearing.takeIf { location.hasBearing() && it.isFinite() })
+        when (location.provider) {
+            LocationManager.GPS_PROVIDER -> {
+                if (!enabled(LocationManager.GPS_PROVIDER)) { publish(); return }
+                gpsFix = details
+                if (location.hasSpeed()) filter.update(SpeedSample(location.speed, location.accuracy,
+                    if (location.hasSpeedAccuracy()) location.speedAccuracyMetersPerSecond else null, time), now)
             }
-        }
-        lastLocation = location
-        lastLocationTime = now
-
-        if (speedMps != null && (accuracy ?: 99f) <= 60f) {
-            val speedAcc = if (location.hasSpeedAccuracy()) location.speedAccuracyMetersPerSecond else null
-            filter.update(SpeedSample(speedMps, accuracy ?: 15f, speedAcc, now), now)
+            LocationManager.NETWORK_PROVIDER -> networkFix = details
+            else -> { publish(); return }
         }
         publish()
     }
-    override fun onProviderEnabled(provider: String) = publish()
-    override fun onProviderDisabled(provider: String) = publish()
+    override fun onProviderEnabled(provider: String) { if (running) publish() }
+    override fun onProviderDisabled(provider: String) {
+        if (!running) return
+        if (provider == LocationManager.GPS_PROVIDER) { filter.reset(); gpsFix = null; satellites = null; visibleSatellites = null }
+        if (provider == LocationManager.NETWORK_PROVIDER) networkFix = null
+        publish()
+    }
     @Deprecated("Legacy provider callback") override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) = Unit
 }

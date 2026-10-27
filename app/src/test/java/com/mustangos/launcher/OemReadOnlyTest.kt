@@ -4,6 +4,7 @@ import android.app.Application
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
+import android.provider.Settings
 import com.mustangos.launcher.settings.LauncherSettings
 import com.mustangos.launcher.vehicle.OemReadOnlyManager
 import com.mustangos.launcher.vehicle.OemSubscription
@@ -27,7 +28,9 @@ class OemReadOnlyTest {
     private class Feed(val allowed: Boolean = true) : OemSubscription {
         var calls = 0; var closed = false; var handler: Handler? = null
         var temperatureQueries = 0
+        var voltageQueries = 0
         override fun requestAmbientTemperature(): Int { temperatureQueries++; return 0 }
+        override fun pollMcu() { voltageQueries++ }
         override fun open(codes: ShortArray, handler: Handler): Boolean {
             calls++; this.handler = handler
             assertArrayEquals(shortArrayOf(266,514,1281,1285,1288,1292), codes)
@@ -54,19 +57,37 @@ class OemReadOnlyTest {
         val feed = Feed(); val reader = OemReadOnlyManager(app, settings) { feed }
         reader.start(); assertNull(reader.state.value.voltage)
         feed.voltage(); assertEquals(12.1f, reader.state.value.voltage!!, 0.001f)
-        reader.stop(); assertTrue(feed.closed); assertNull(reader.state.value.voltage); assertFalse(settings.oemInterrupted)
+        reader.stop(); assertTrue(feed.closed); assertEquals(12.1f, reader.state.value.voltage!!, 0.001f)
+        assertFalse(reader.state.value.sourceActive); assertTrue(reader.state.value.stale); assertFalse(settings.oemInterrupted)
     }
-    @Test fun feedTimeoutClearsOldValues() {
+    @Test fun feedTimeoutKeepsLastReadingWithItsAge() {
         settings.oemReadEnabled = true
         val feed = Feed(); val reader = OemReadOnlyManager(app, settings) { feed }
         reader.start(); feed.voltage()
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(17))
-        assertNull(reader.state.value.voltage); reader.stop()
+        assertEquals(12.1f, reader.state.value.voltage!!, 0.001f)
+        assertTrue(reader.state.value.stale)
+        assertTrue(reader.state.value.ageSummary.contains("17 s"))
+        assertTrue(feed.voltageQueries in 4..5)
+        reader.stop()
     }
     @Test fun interruptedNativeAttemptCannotCauseStartupLoop() {
         settings.oemReadEnabled = true; settings.oemInterrupted = true
         val feed = Feed(); val reader = OemReadOnlyManager(app, settings) { feed }
         reader.start(); assertEquals(0, feed.calls); assertFalse(settings.oemReadEnabled)
+    }
+    @Test fun completedInitializationDoesNotDisableNextInstanceAfterPowerCutWithoutStop() {
+        settings.oemReadEnabled = true
+        val first = OemReadOnlyManager(app, settings) { Feed() }
+        first.start()
+        assertFalse(settings.oemInterrupted)
+        val afterPowerCut = Feed()
+        val second = OemReadOnlyManager(app, LauncherSettings(app)) { afterPowerCut }
+        second.start()
+        assertEquals(1, afterPowerCut.calls)
+        assertTrue(settings.oemReadEnabled)
+        assertTrue(second.state.value.sourceActive)
+        second.stop(); first.stop()
     }
     @Test fun canHeadersAreCountedButDoorsRequireAnObservedMatchingProtocol() {
         settings.oemReadEnabled = true
@@ -83,9 +104,12 @@ class OemReadOnlyTest {
         assertEquals(0, reader.state.value.doorMask)
         assertEquals(1, reader.state.value.doorOpenEvents)
         assertEquals(1, reader.state.value.doorZeroEvents)
+        val lastDoorTime = reader.state.value.lastDoorMs
         reader.stop(); reader.start()
         feed.send(1281, 56, byteArrayOf(0x80.toByte()))
-        assertNull(reader.state.value.doorMask)
+        assertEquals(0, reader.state.value.doorMask)
+        assertEquals(lastDoorTime, reader.state.value.lastDoorMs)
+        assertTrue(reader.state.value.eventReport.contains("1281: recibidos=1; interpretados=0"))
         reader.stop()
     }
     @Test fun shortAndInvalidTemperatureFramesRemainVisibleInDiagnostics() {
@@ -126,11 +150,11 @@ class OemReadOnlyTest {
         assertNull(reader.state.value.doorMask)
         reader.stop()
     }
-    @Test fun temperatureQueryIsManualOncePerSubscriptionAndCannotInventReading() {
+    @Test fun automaticAndManualTemperatureReadsHaveCooldownAndCannotInventReading() {
         val feed = Feed(); val reader = OemReadOnlyManager(app, settings) { feed }
         reader.requestAmbientTemperature(); assertEquals(0, feed.temperatureQueries)
         reader.setEnabled(true)
-        assertEquals(0, feed.temperatureQueries)
+        assertEquals(1, feed.temperatureQueries)
         reader.requestAmbientTemperature(); reader.requestAmbientTemperature()
         assertEquals(1, feed.temperatureQueries)
         assertNull(reader.state.value.temperatureC)
@@ -139,6 +163,8 @@ class OemReadOnlyTest {
         feed.send(1288, data = byteArrayOf(0,24))
         assertEquals(24f, reader.state.value.temperatureC!!, 0.001f)
         assertTrue(reader.state.value.temperatureRequestStatus.contains("recibida"))
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(25))
+        reader.requestAmbientTemperature(); assertEquals(2, feed.temperatureQueries)
         reader.stop(); reader.start()
         reader.requestAmbientTemperature(); assertEquals(2, feed.temperatureQueries)
         reader.stop()
@@ -190,8 +216,9 @@ class OemReadOnlyTest {
         fun close() { calls.add("close") }
         fun write(code: Int): Int { fail("Write must never be used"); return 0 }
         fun write(code: Int, argument: Int): Int {
-            assertEquals(1288, code); assertEquals(255, argument)
-            calls.add("temperature-query"); return 0
+            assertEquals(255, argument)
+            calls.add(when (code) { 1288 -> "temperature-query"; 1292 -> "voltage-query"; else -> error("Unverified OEM query $code") })
+            return 0
         }
     }
     @Test fun reflectiveAdapterUsesOnlySubscriptionLifecycle() {
@@ -210,5 +237,33 @@ class OemReadOnlyTest {
         subscription.close()
         assertNull(subscription.requestAmbientTemperature())
         assertEquals(listOf("open","add","temperature-query","remove","stop","close"), PublicVendorApi.calls)
+    }
+    @Test fun reflectiveVoltagePollUsesOnlyFixedReadRequestAndOwnedClient() {
+        PublicVendorApi.calls.clear()
+        val subscription = TwReadOnlySubscription { PublicVendorApi::class.java }
+        subscription.pollMcu(); assertTrue(PublicVendorApi.calls.isEmpty())
+        subscription.open(shortArrayOf(1292), Handler(Looper.getMainLooper()))
+        subscription.pollMcu(); subscription.close(); subscription.pollMcu()
+        assertEquals(listOf("open","add","voltage-query","remove","stop","close"), PublicVendorApi.calls)
+    }
+    @Test fun doorConfigurationIsNeverReadAsDoorState() {
+        Settings.System.putInt(app.contentResolver, "SYSTEM_DOOR", 128)
+        settings.oemReadEnabled = true
+        val reader = OemReadOnlyManager(app, settings) { Feed() }
+        reader.start(); shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2))
+        assertNull(reader.state.value.doorMask); assertNull(reader.doorDescription())
+        reader.stop()
+    }
+    @Test fun retainedReadingsDoNotGainFreshTimestampsOnResume() {
+        settings.oemReadEnabled = true
+        val feed = Feed(); val reader = OemReadOnlyManager(app, settings) { feed }
+        reader.start(); feed.voltage()
+        val received = reader.state.value.lastVoltageMs
+        reader.stop(); shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(20)); reader.start()
+        assertEquals(received, reader.state.value.lastVoltageMs)
+        assertEquals(12.1f, reader.state.value.voltage!!, 0.001f)
+        assertTrue(reader.state.value.stale); assertTrue(reader.state.value.sourceActive)
+        feed.voltage(); assertFalse(reader.state.value.stale)
+        reader.stop()
     }
 }

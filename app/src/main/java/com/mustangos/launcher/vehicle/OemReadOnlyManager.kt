@@ -22,7 +22,7 @@ interface OemSubscription {
     fun close()
 }
 
-/** Public OEM lifecycle; queries the real voltage and ambient temperature used by the installed SystemUI. */
+/** Uses the factory already verified on this unit and fixed OEM read requests only. */
 class TwReadOnlySubscription(private val loadClass: () -> Class<*> = { Class.forName("android.tw.john.TWUtil") }) : OemSubscription {
     private var instance: Any? = null
     private var type: Class<*>? = null
@@ -38,18 +38,7 @@ class TwReadOnlySubscription(private val loadClass: () -> Class<*> = { Class.for
         instance = factory.invoke(null, 0, codes, 0) ?: return false
         try { add.invoke(instance, HANDLER_KEY, handler) }
         catch (failure: Exception) { close(); throw failure }
-        // Crucial: Start the native loop if start() method exists
-        runCatching { found.getMethod("start").invoke(instance) }
-        // Send initial telemetry requests on real TWUtil hardware
-        if (found.name.contains("TWUtil", ignoreCase = true)) {
-            runCatching {
-                val write = found.getMethod("write", Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
-                write.invoke(instance, 1292, 255) // Query voltage (code 1292)
-                write.invoke(instance, 1288, 255) // Query ambient temp (code 1288)
-                write.invoke(instance, 258, 255)  // Query MCU status
-                write.invoke(instance, 516, 255)  // Query MCU power
-            }
-        }
+        // The static factory starts its own client; calling start() again is not part of this route.
         return true
     }
     override fun requestAmbientTemperature(): Int? {
@@ -60,12 +49,8 @@ class TwReadOnlySubscription(private val loadClass: () -> Class<*> = { Class.for
     }
     override fun pollMcu() {
         val value = instance ?: return
-        if (type?.name?.contains("TWUtil", ignoreCase = true) == true) {
-            runCatching {
-                val write = type?.getMethod("write", Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
-                write?.invoke(value, 1292, 255)
-            }
-        }
+        type?.getMethod("write", Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
+            ?.invoke(value, 1292, 255)
     }
     override fun close() {
         val value = instance ?: return
@@ -91,7 +76,15 @@ data class OemReadings(
     val eventReport: String = "",
     val temperatureRequestStatus: String = "Consulta manual de temperatura no solicitada",
     val doorOpenEvents: Int = 0,
-    val doorZeroEvents: Int = 0
+    val doorZeroEvents: Int = 0,
+    val sourceActive: Boolean = false,
+    val stale: Boolean = false,
+    val lastVoltageMs: Long? = null,
+    val lastTemperatureMs: Long? = null,
+    val lastDoorMs: Long? = null,
+    val ageSummary: String = "Sin lecturas OEM recibidas",
+    val voltageRequestStatus: String = "Voltaje OEM sin solicitar",
+    val temperatureQueryAvailable: Boolean = false
 )
 
 class OemReadOnlyManager(
@@ -104,7 +97,10 @@ class OemReadOnlyManager(
     private var running = false
     private var temperatureRequested = false
     private var temperatureReceivedAfterRequest = false
-    val canRequestAmbientTemperature: Boolean get() = running && !temperatureRequested
+    private var lastTemperatureQueryMs: Long? = null
+    private var nextVoltageQueryMs = Long.MAX_VALUE
+    val canRequestAmbientTemperature: Boolean get() = running &&
+        lastTemperatureQueryMs?.let { SystemClock.elapsedRealtime() - it >= TEMPERATURE_QUERY_INTERVAL_MS } != false
     private val diagnostics = OemEventDiagnostics()
     private val mutable = MutableStateFlow(OemReadings())
     val state = mutable.asStateFlow()
@@ -116,44 +112,41 @@ class OemReadOnlyManager(
                 ?: OemEventParser.parse(msg.what, msg.arg1, payload,
                     Settings.System.getInt(context.contentResolver, "TEMP_CONVERT", 0) == 1, mutable.value.protocol)
             diagnostics.record(msg.what, msg.arg1, msg.arg2, payload?.size, event != null)
+            val now = SystemClock.elapsedRealtime()
             val current = mutable.value.copy(status = "OEM · recepción real", frames = mutable.value.frames + 1,
-                lastEventMs = SystemClock.elapsedRealtime(), eventReport = diagnostics.report())
+                lastEventMs = now, eventReport = diagnostics.report())
             if (event is OemEvent.Temperature && temperatureRequested) temperatureReceivedAfterRequest = true
-            mutable.value = when (event) {
-                is OemEvent.Voltage -> current.copy(voltage = event.volts)
+            publish(when (event) {
+                is OemEvent.Voltage -> current.copy(voltage = event.volts, lastVoltageMs = now,
+                    voltageRequestStatus = "Voltaje OEM recibido")
                 is OemEvent.Temperature -> current.copy(temperatureC = event.celsius,
+                    lastTemperatureMs = now,
                     temperatureRequestStatus = if (temperatureRequested) "Temperatura recibida durante la escucha" else current.temperatureRequestStatus)
                 is OemEvent.Doors -> current.copy(doorMask = event.mask,
+                    lastDoorMs = now,
                     doorOpenEvents = current.doorOpenEvents + if (event.mask != 0) 1 else 0,
                     doorZeroEvents = current.doorZeroEvents + if (event.mask == 0) 1 else 0)
                 is OemEvent.Protocol -> current.copy(protocol = event.profile,
-                    doorMask = if (current.protocol == event.profile) current.doorMask else null)
+                    doorMask = if (current.protocol == event.profile) current.doorMask else null,
+                    lastDoorMs = if (current.protocol == event.profile) current.lastDoorMs else null)
                 OemEvent.Heartbeat, null -> current
-            }
+            })
         }
     }
     private val expiry = object : Runnable {
         override fun run() {
             if (!running) return
-            subscription?.pollMcu()
-            val current = mutable.value
-            val sysDoor = runCatching { Settings.System.getInt(context.contentResolver, "SYSTEM_DOOR", 0) }.getOrDefault(0)
-            if (sysDoor != 0 && current.doorMask == null) {
-                mutable.value = current.copy(doorMask = sysDoor)
-            }
-            if (current.lastEventMs > 0 && SystemClock.elapsedRealtime() - current.lastEventMs > 15_000 &&
-                (current.voltage != null || current.temperatureC != null || current.doorMask != null)) {
-                mutable.value = current.copy(status = "OEM · datos caducados, esperando eventos", voltage = null, temperatureC = null, doorMask = null)
-            }
+            if (SystemClock.elapsedRealtime() >= nextVoltageQueryMs) pollVoltage()
+            publish(mutable.value)
             handler.postDelayed(this, 1000)
         }
     }
     fun start() {
         if (running) return
-        if (!settings.oemReadEnabled) { mutable.value = OemReadings(); return }
+        if (!settings.oemReadEnabled) { publish(mutable.value.copy(status = "Lectura OEM desactivada", sourceActive = false)); return }
         if (settings.oemInterrupted) {
             settings.oemReadEnabled = false; settings.oemInterrupted = false
-            mutable.value = OemReadings(status = "Lectura OEM desactivada tras una interrupción; puede reactivarse manualmente")
+            publish(mutable.value.copy(status = "Lectura OEM desactivada tras una interrupción; puede reactivarse manualmente", sourceActive = false))
             return
         }
         settings.oemInterrupted = true
@@ -163,8 +156,9 @@ class OemReadOnlyManager(
             temperatureRequested = false
             temperatureReceivedAfterRequest = false
             diagnostics.clear()
-            mutable.value = OemReadings(status = "OEM suscrito · esperando datos reales", eventReport = diagnostics.report())
             running = true
+            publish(mutable.value.copy(status = "OEM suscrito · esperando datos reales", sourceActive = true,
+                frames = 0, protocol = null, eventReport = diagnostics.report(), doorOpenEvents = 0, doorZeroEvents = 0))
             val ownedHandler = object : Handler(Looper.getMainLooper()) {
                 override fun handleMessage(msg: Message) {
                     if (running && subscriptionHandler === this) handler.handleMessage(msg)
@@ -172,20 +166,25 @@ class OemReadOnlyManager(
             }
             subscriptionHandler = ownedHandler
             if (!candidate.open(OemEventDiagnostics.CODES.map(Int::toShort).toShortArray(), ownedHandler)) {
-                stop(); mutable.value = OemReadings(status = "El firmware rechazó la suscripción de lectura OEM"); return
+                stop(); publish(mutable.value.copy(status = "El firmware rechazó la suscripción de lectura OEM")); return
             }
+            pollVoltage()
+            requestAmbientTemperature()
+            // Guard only initialization. A normal power cut after success must not disable the next ignition.
+            settings.oemInterrupted = false
             handler.postDelayed(expiry, 1000)
         } catch (failure: Exception) {
             val cause = (failure as? java.lang.reflect.InvocationTargetException)?.cause ?: failure
-            stop(); mutable.value = OemReadings(status = "Interfaz OEM no permitida o incompatible (${cause.javaClass.simpleName}); sin elevar permisos")
+            stop(); publish(mutable.value.copy(status = "Interfaz OEM no permitida o incompatible (${cause.javaClass.simpleName}); sin elevar permisos"))
         } catch (_: LinkageError) {
-            stop(); mutable.value = OemReadings(status = "Biblioteca OEM no disponible para esta APK")
+            stop(); publish(mutable.value.copy(status = "Biblioteca OEM no disponible para esta APK"))
         }
     }
     fun stop() {
         running = false
         temperatureRequested = false
         temperatureReceivedAfterRequest = false
+        nextVoltageQueryMs = Long.MAX_VALUE
         subscriptionHandler?.removeCallbacksAndMessages(null)
         subscriptionHandler = null
         handler.removeCallbacksAndMessages(null)
@@ -193,7 +192,7 @@ class OemReadOnlyManager(
         subscription = null
         diagnostics.clear()
         owned?.let { runCatching { it.close() }; settings.oemInterrupted = false }
-        mutable.value = OemReadings(status = if (settings.oemReadEnabled) "Lectura OEM detenida" else "Lectura OEM desactivada")
+        publish(mutable.value.copy(status = if (settings.oemReadEnabled) "Lectura OEM detenida · últimas lecturas" else "Lectura OEM desactivada · últimas lecturas", sourceActive = false))
     }
     fun setEnabled(enabled: Boolean) {
         stop(); settings.oemReadEnabled = enabled; settings.oemInterrupted = false
@@ -203,32 +202,26 @@ class OemReadOnlyManager(
         if (!canRequestAmbientTemperature) return
         temperatureRequested = true
         temperatureReceivedAfterRequest = false
+        lastTemperatureQueryMs = SystemClock.elapsedRealtime()
         try {
             val result = subscription?.requestAmbientTemperature()
-            mutable.value = mutable.value.copy(temperatureRequestStatus = when {
+            publish(mutable.value.copy(temperatureRequestStatus = when {
                 temperatureReceivedAfterRequest -> "Temperatura recibida durante la escucha"
                 result == null -> "Consulta de temperatura no disponible en esta interfaz"
                 else -> "Temperatura solicitada; esperando evento (retorno OEM $result)"
-            })
+            }))
             if (result != null) handler.postDelayed({
-                if (running && !temperatureReceivedAfterRequest) mutable.value = mutable.value.copy(
-                    temperatureRequestStatus = "Consulta de temperatura sin respuesta en 5 s (retorno OEM $result)")
+                if (running && !temperatureReceivedAfterRequest) publish(mutable.value.copy(
+                    temperatureRequestStatus = "Consulta de temperatura sin respuesta en 5 s (retorno OEM $result)"))
             }, 5000)
         } catch (failure: Exception) {
             val cause = (failure as? java.lang.reflect.InvocationTargetException)?.cause ?: failure
-            mutable.value = mutable.value.copy(temperatureRequestStatus = "Consulta de temperatura rechazada (${cause.javaClass.simpleName})")
+            publish(mutable.value.copy(temperatureRequestStatus = "Consulta de temperatura rechazada (${cause.javaClass.simpleName})"))
         }
     }
     fun doorDescription(): String? {
         val mask = mutable.value.doorMask ?: return null
-        if (mask == 0) return "Puertas cerradas"
-        val open = mutableListOf<String>()
-        if (mask and 0x80 != 0 || mask and 0x01 != 0) open.add("Conductor")
-        if (mask and 0x40 != 0 || mask and 0x02 != 0) open.add("Copiloto")
-        if (mask and 0x20 != 0 || mask and 0x04 != 0) open.add("Trasera Izq")
-        if (mask and 0x10 != 0 || mask and 0x08 != 0) open.add("Trasera Der")
-        if (mask and 0x08 != 0) open.add("Cajuela")
-        return if (open.isEmpty()) "Puerta abierta" else "Abierta: " + open.distinct().joinToString(", ")
+        return if (mask == 0) "Sin aperturas publicadas" else "Apertura OEM detectada"
     }
 
     fun summary(): String {
@@ -239,5 +232,34 @@ class OemReadOnlyManager(
             doorDescription()
         )
         return fields.joinToString(" · ").ifEmpty { s.status }
+    }
+
+    private fun pollVoltage() {
+        if (!running) return
+        nextVoltageQueryMs = SystemClock.elapsedRealtime() + VOLTAGE_QUERY_INTERVAL_MS
+        publish(mutable.value.copy(voltageRequestStatus = "Lectura de voltaje OEM solicitada"))
+        try { subscription?.pollMcu() }
+        catch (failure: Exception) {
+            val cause = (failure as? java.lang.reflect.InvocationTargetException)?.cause ?: failure
+            nextVoltageQueryMs = SystemClock.elapsedRealtime() + 30_000
+            publish(mutable.value.copy(voltageRequestStatus = "Consulta de voltaje no disponible (${cause.javaClass.simpleName}); escucha conservada"))
+        }
+    }
+
+    private fun publish(value: OemReadings) {
+        val now = SystemClock.elapsedRealtime()
+        val ages = listOfNotNull(value.lastVoltageMs?.let { "voltaje" to it },
+            value.lastTemperatureMs?.let { "temperatura" to it }, value.lastDoorMs?.let { "aperturas" to it })
+        val stale = ages.isNotEmpty() && (!value.sourceActive || ages.any { now - it.second > 15_000 })
+        val ageText = ages.joinToString(" · ") { (label, time) -> "$label hace ${((now - time).coerceAtLeast(0) / 1000)} s" }
+        mutable.value = value.copy(stale = stale,
+            status = if (stale && value.sourceActive) "OEM · últimas lecturas conservadas; esperando actualización" else value.status,
+            ageSummary = if (ageText.isEmpty()) "Sin lecturas OEM recibidas" else "Últimas lecturas · $ageText",
+            temperatureQueryAvailable = canRequestAmbientTemperature)
+    }
+
+    companion object {
+        private const val VOLTAGE_QUERY_INTERVAL_MS = 5_000L
+        private const val TEMPERATURE_QUERY_INTERVAL_MS = 30_000L
     }
 }

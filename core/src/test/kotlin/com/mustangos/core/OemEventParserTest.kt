@@ -6,9 +6,9 @@ import org.junit.Test
 class OemEventParserTest {
     @Test fun voltageMatchesSystemUiHundredthsOfVolt() {
         assertEquals(12.1f, (OemEventParser.parse(1292, 0, byteArrayOf(0x04, 0xBA.toByte())) as OemEvent.Voltage).volts, 0.001f)
-        assertEquals(12.1f, (OemEventParser.parse(1292, 0, byteArrayOf(0x84.toByte(), 0xBA.toByte())) as OemEvent.Voltage).volts, 0.001f)
     }
     @Test fun voltageRejectsInvalidFlagShortPayloadAndWrongArg() {
+        assertNull(OemEventParser.parse(1292, 0, byteArrayOf(0x84.toByte(), 0xBA.toByte())))
         assertNull(OemEventParser.parse(1292, 0, byteArrayOf(4)))
         assertNull(OemEventParser.parse(1292, 1, byteArrayOf(4, 0xBA.toByte())))
         assertNull(OemEventParser.parse(1292, 0, null))
@@ -32,6 +32,7 @@ class OemEventParserTest {
         assertNull(OemEventParser.parse(1281, 56, byteArrayOf(0x80.toByte()), protocol = OemProtocol(0x41, 1)))
         assertNull(OemEventParser.parse(1281, 56, byteArrayOf(0x80.toByte()), protocol = OemProtocol(149, 2)))
         assertNull(OemEventParser.parse(1281, 55, byteArrayOf(0x80.toByte()), protocol = profile))
+        listOf(34,36,96).forEach { arg -> assertNull(OemEventParser.parse(1281, arg, byteArrayOf(0x80.toByte()), protocol = profile)) }
         assertNull(OemEventParser.parse(1281, 56, byteArrayOf(), protocol = profile))
     }
     @Test fun malformedVersionCannotSelectAnArbitraryDoorDecoder() {
