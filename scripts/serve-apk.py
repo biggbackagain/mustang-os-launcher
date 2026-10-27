@@ -17,7 +17,7 @@ PAGE = """<!doctype html><html lang="es"><meta charset="utf-8">
 main{max-width:720px;margin:24px auto;padding:32px;border:1px solid #303540;border-radius:24px;background:#11141a}
 h1{font-size:36px;margin:0 0 12px}span{color:#ff354a}p,li{line-height:1.6}small{color:#b0b5c0}
 a{display:block;background:#d9253b;color:white;text-decoration:none;padding:22px;text-align:center;border-radius:16px;font-weight:bold;margin:28px 0}li{margin:12px 0}</style>
-<main><h1>MUSTANG <span>OS</span></h1><small>Actualización de prueba 0.3.1 · canales OEM</small>
+<main><h1>MUSTANG <span>OS</span></h1><small>Actualización de prueba 0.3.2 · temperatura OEM</small>
 <p>Instálala como una aplicación normal para probarla en tu pantalla Android.</p>
 <a href="/MustangOS.apk" download="MustangOS-debug.apk">Descargar Mustang OS</a>
 <ol><li>Descarga y abre <b>MustangOS-debug.apk</b>.</li>
@@ -26,11 +26,12 @@ a{display:block;background:#d9253b;color:white;text-decoration:none;padding:22px
 <li>CarPlay, radio, teléfono y música detectan las apps de tu firmware cuando están instaladas.</li></ol>
 <h2>Probar lecturas nativas</h2>
 <ol><li>Abre <b>Motor → Activar lectura OEM → Activar escucha</b>.</li>
-<li>Con el coche estacionado, abre y cierra una puerta mientras Mustang OS está visible. En <b>Motor</b> compara los contadores de los canales y la temperatura ambiente con la barra original.</li>
+<li>Con el coche estacionado, abre y cierra una puerta mientras Mustang OS está visible. En <b>Motor</b> pulsa una vez <b>Solicitar temperatura OEM</b> y espera al resultado.</li>
+<li>Cierra Motor con <b>Cerrar</b> y genera el ZIP mientras la lectura sigue activa; detener la lectura borra los valores y contadores.</li>
 <li>Con ZLink funcionando, vuelve a Mustang OS y abre <b>Ajustes → Inspeccionar servicio ZLink</b>.</li></ol>
 <h2>Investigar datos MCU y el widget CarPlay</h2>
 <p>En Mustang OS: <b>Ajustes → Diagnóstico y exportación → Compatibilidad OEM → Guardar ZIP</b>. Guárdalo en Descargas y selecciónalo aquí.</p>
-<p><small>El voltaje OEM ya se confirmó en tu pantalla. La 0.3.1 añade la escucha del canal alternativo de puertas, condicionada al perfil publicado por el equipo, y contadores por canal. Su recepción de puertas y temperatura aún necesita comprobarse. El ZIP incluye conteos y cabeceras de eventos, sin contenidos de tramas ni datos privados de otras apps. Esta versión no incrusta CarPlay dentro del panel.</small></p>
+<p><small>Voltaje y recepción del canal de puertas ya están confirmados en Mustang OS. La 0.3.2 añade una consulta manual de temperatura, como la de la barra original, limitada a una solicitud por escucha; su resultado aún requiere prueba en pantalla. No cambia la configuración del coche. El ZIP incluye conteos y cabeceras, sin contenidos de tramas ni datos privados de otras apps. Esta versión no incrusta CarPlay dentro del panel.</small></p>
 <input id="report" type="file" accept=".zip,application/zip" style="font-size:18px;max-width:100%">
 <button id="send" style="font-size:20px;background:#1d222b;color:white;padding:20px;border:1px solid #4b5260;border-radius:12px;margin-top:16px">Enviar diagnóstico al PC</button>
 <p id="result" role="status"></p>

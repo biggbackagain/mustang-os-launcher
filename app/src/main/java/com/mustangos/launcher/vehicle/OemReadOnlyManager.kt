@@ -17,10 +17,11 @@ import java.lang.reflect.Modifier
 
 interface OemSubscription {
     fun open(codes: ShortArray, handler: Handler): Boolean
+    fun requestAmbientTemperature(): Int? = null
     fun close()
 }
 
-/** Only the public subscription lifecycle observed in the installed SystemUI. No write method is resolved. */
+/** Public OEM lifecycle; the only optional request is the temperature read used by the installed SystemUI. */
 class TwReadOnlySubscription(private val loadClass: () -> Class<*> = { Class.forName("android.tw.john.TWUtil") }) : OemSubscription {
     private var instance: Any? = null
     private var type: Class<*>? = null
@@ -37,6 +38,12 @@ class TwReadOnlySubscription(private val loadClass: () -> Class<*> = { Class.for
         try { add.invoke(instance, HANDLER_KEY, handler) }
         catch (failure: Exception) { close(); throw failure }
         return true
+    }
+    override fun requestAmbientTemperature(): Int? {
+        val value = instance ?: return null
+        // StatusBarViewInit uses precisely this request to obtain the existing ambient-temperature value.
+        return type?.getMethod("write", Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
+            ?.invoke(value, 1288, 255) as? Int
     }
     override fun close() {
         val value = instance ?: return
@@ -59,7 +66,10 @@ data class OemReadings(
     val frames: Int = 0,
     val lastEventMs: Long = 0,
     val protocol: OemProtocol? = null,
-    val eventReport: String = ""
+    val eventReport: String = "",
+    val temperatureRequestStatus: String = "Consulta manual de temperatura no solicitada",
+    val doorOpenEvents: Int = 0,
+    val doorZeroEvents: Int = 0
 )
 
 class OemReadOnlyManager(
@@ -70,6 +80,9 @@ class OemReadOnlyManager(
     private var subscription: OemSubscription? = null
     private var subscriptionHandler: Handler? = null
     private var running = false
+    private var temperatureRequested = false
+    private var temperatureReceivedAfterRequest = false
+    val canRequestAmbientTemperature: Boolean get() = running && !temperatureRequested
     private val diagnostics = OemEventDiagnostics()
     private val mutable = MutableStateFlow(OemReadings())
     val state = mutable.asStateFlow()
@@ -83,10 +96,14 @@ class OemReadOnlyManager(
             diagnostics.record(msg.what, msg.arg1, msg.arg2, payload?.size, event != null)
             val current = mutable.value.copy(status = "OEM · recepción real", frames = mutable.value.frames + 1,
                 lastEventMs = SystemClock.elapsedRealtime(), eventReport = diagnostics.report())
+            if (event is OemEvent.Temperature && temperatureRequested) temperatureReceivedAfterRequest = true
             mutable.value = when (event) {
                 is OemEvent.Voltage -> current.copy(voltage = event.volts)
-                is OemEvent.Temperature -> current.copy(temperatureC = event.celsius)
-                is OemEvent.Doors -> current.copy(doorMask = event.mask)
+                is OemEvent.Temperature -> current.copy(temperatureC = event.celsius,
+                    temperatureRequestStatus = if (temperatureRequested) "Temperatura recibida durante la escucha" else current.temperatureRequestStatus)
+                is OemEvent.Doors -> current.copy(doorMask = event.mask,
+                    doorOpenEvents = current.doorOpenEvents + if (event.mask != 0) 1 else 0,
+                    doorZeroEvents = current.doorZeroEvents + if (event.mask == 0) 1 else 0)
                 is OemEvent.Protocol -> current.copy(protocol = event.profile,
                     doorMask = if (current.protocol == event.profile) current.doorMask else null)
                 OemEvent.Heartbeat, null -> current
@@ -116,6 +133,8 @@ class OemReadOnlyManager(
         try {
             val candidate = createSubscription()
             subscription = candidate
+            temperatureRequested = false
+            temperatureReceivedAfterRequest = false
             diagnostics.clear()
             mutable.value = OemReadings(status = "OEM suscrito · esperando datos reales", eventReport = diagnostics.report())
             running = true
@@ -138,6 +157,8 @@ class OemReadOnlyManager(
     }
     fun stop() {
         running = false
+        temperatureRequested = false
+        temperatureReceivedAfterRequest = false
         subscriptionHandler?.removeCallbacksAndMessages(null)
         subscriptionHandler = null
         handler.removeCallbacksAndMessages(null)
@@ -150,6 +171,26 @@ class OemReadOnlyManager(
     fun setEnabled(enabled: Boolean) {
         stop(); settings.oemReadEnabled = enabled; settings.oemInterrupted = false
         if (enabled) start()
+    }
+    fun requestAmbientTemperature() {
+        if (!canRequestAmbientTemperature) return
+        temperatureRequested = true
+        temperatureReceivedAfterRequest = false
+        try {
+            val result = subscription?.requestAmbientTemperature()
+            mutable.value = mutable.value.copy(temperatureRequestStatus = when {
+                temperatureReceivedAfterRequest -> "Temperatura recibida durante la escucha"
+                result == null -> "Consulta de temperatura no disponible en esta interfaz"
+                else -> "Temperatura solicitada; esperando evento (retorno OEM $result)"
+            })
+            if (result != null) handler.postDelayed({
+                if (running && !temperatureReceivedAfterRequest) mutable.value = mutable.value.copy(
+                    temperatureRequestStatus = "Consulta de temperatura sin respuesta en 5 s (retorno OEM $result)")
+            }, 5000)
+        } catch (failure: Exception) {
+            val cause = (failure as? java.lang.reflect.InvocationTargetException)?.cause ?: failure
+            mutable.value = mutable.value.copy(temperatureRequestStatus = "Consulta de temperatura rechazada (${cause.javaClass.simpleName})")
+        }
     }
     fun summary(): String {
         val s = mutable.value

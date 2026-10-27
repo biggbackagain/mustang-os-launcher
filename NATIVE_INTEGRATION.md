@@ -1,6 +1,6 @@
-# Datos nativos y CarPlay integrado · investigación 0.3.1
+# Datos nativos y CarPlay integrado · investigación 0.3.2
 
-El ZIP de la pantalla ya fue recibido y analizado. Confirma **SDK 29 / etiqueta RELEASE 13** y los formatos que usa el OEM para voltaje, temperatura y aperturas. Las fotos de 0.3.0 confirman acceso al lector TWUtil desde Mustang OS y **14.1 V**, coincidente con la barra original. La 0.3.1 amplía el diagnóstico para localizar las puertas y temperatura que aún faltan en el launcher. Los detalles comprobados están en [docs/DEVICE_FINDINGS.md](docs/DEVICE_FINDINGS.md).
+Los tres ZIP de la pantalla confirman **SDK 29 / etiqueta RELEASE 13** y permiten identificar formatos OEM. Las fotos de 0.3.0 confirman **14.1 V** en Mustang OS y barra original. La captura activa 0.3.1 confirma **12.52 V, cinco eventos de aperturas y el descriptor del servicio ZLink**. La temperatura aún no llegó por escucha pasiva; la 0.3.2 permite solicitarla manualmente con la misma petición fija que usa la barra original. Los detalles comprobados están en [docs/DEVICE_FINDINGS.md](docs/DEVICE_FINDINGS.md).
 
 ## Evidencia de la pantalla real
 
@@ -25,21 +25,21 @@ El usuario confirma que la interfaz OEM muestra apertura de puertas, temperatura
 | Voltaje BatteryManager | Broadcast estándar Android | Se identifica como voltaje publicado por Android; no se atribuye automáticamente a la batería del coche |
 | Sensores disponibles | SensorManager | Se enumera lo que realmente declare el dispositivo; no se inventan lecturas ambientales |
 | Alimentación OEM | Evento TWUtil 1292 | Confirmado en la pantalla: 14.1 V coincide con la barra OEM |
-| Temperatura ambiente OEM | Evento TWUtil 1288 usado por la barra original | Implementado; todavía sin lectura confirmada en el launcher |
-| Aperturas OEM | TWUtil 1285 y rama 1281 dependiente del perfil recibido | 0.3.1 añade el canal alternativo y contadores; recepción/correlación pendientes |
+| Temperatura ambiente OEM | Evento TWUtil 1288 y consulta manual fija observada en la barra original | 0.3.2 implementada; sin lectura física confirmada |
+| Aperturas OEM | TWUtil 1285 y rama 1281 dependiente del perfil recibido | Cinco eventos 1285 recibidos; última máscara 0; posiciones y transiciones pendientes |
 | Velocidad CAN, RPM, refrigerante y kilometraje | Sin interfaz verificada | No disponibles; no se deducen a partir de otros sensores |
 
 No se requiere comprar ni conectar OBD. Tampoco se modifica Bluetooth, Wi-Fi, CANBUS, MCU, firmware o la activación de ZLink. Que un dato sea visible en una app privilegiada no lo convierte en un dato público.
 
 ## CarPlay real dentro del panel
 
-El requisito es mostrar una superficie real e interactiva de CarPlay. **La 0.3.1 todavía no cumple ese requisito.** El manifiesto real de ZLink deshabilita redimensionamiento/PiP y no exporta el servicio de pantalla secundaria. No se sustituye ese objetivo por una imagen del mapa ni por una captura automatizada.
+El requisito es mostrar una superficie real e interactiva de CarPlay. **La 0.3.2 todavía no cumple ese requisito.** El manifiesto real de ZLink deshabilita redimensionamiento/PiP y no exporta el servicio de pantalla secundaria. No se sustituye ese objetivo por una imagen del mapa ni por una captura automatizada.
 
 La incrustación estándar entre apps de Android está documentada desde API 33 y exige autorización en el manifest de la app incrustada, además del soporte de ventanas del dispositivo. No puede concedérsela Mustang OS unilateralmente. El SDK 29 confirmado en esta unidad no dispone de esa vía estándar. [Activity embedding, Android](https://developer.android.com/develop/ui/views/layout/activity-embedding).
 
 Crear una pantalla virtual no elimina las restricciones: Android limita qué actividades ajenas pueden iniciarse en ella. No se implementa captura de pantalla, inyección de toques, accesibilidad ni llamadas ocultas para eludir estas comprobaciones. [Política de lanzamiento en varias pantallas, AOSP](https://source.android.com/docs/core/display/multi_display/activity-launch).
 
-La próxima evidencia será el descriptor del servicio exportado que ZLink protege con un permiso normal. La opción «Inspeccionar servicio ZLink» lee solo ese descriptor, sin iniciar el servicio ni llamar operaciones de aplicación desconocidas. Aunque el servicio sea vinculable, hará falta un contrato autorizado de superficie para integrar contenido interactivo; el descriptor no lo garantiza.
+La prueba física obtuvo el descriptor `com.zjinnova.zlink.android.core.codec.IPhoneContentPresenter` del servicio protegido por permiso normal. La opción «Inspeccionar servicio ZLink» no inicia ese servicio ni llama operaciones de aplicación desconocidas. Falta el contrato AIDL/SDK de sus métodos; el nombre no demuestra soporte de una superficie externa. La búsqueda pública no localizó ese contrato. La [web oficial de ZLink](https://zjinnova.com/android-zlink.html) ofrece guías de integración mediante su equipo técnico. Quedó preparado un [borrador de preguntas para el proveedor](docs/ZLINK_VENDOR_QUESTIONS.md), sin enviar mensajes a terceros.
 
 ## Investigación MCU
 
@@ -47,9 +47,11 @@ Una investigación pública del proyecto Helm para otra unidad A133/T13 describe
 
 El diagnóstico enumera firmas y componentes sin invocarlos. Separadamente, la 0.3.0 permite activar una suscripción TWUtil mediante la factoría pública observada en el SystemUI instalado. No llama `write`, no consulta providers desconocidos, no abre UART ni solicita UID de sistema. Rechaza errores sin elevar permisos y libera su instancia al ocultarse. Un marcador evita un bucle de arranque después de una interrupción inesperada durante la escucha.
 
+La 0.3.2 mantiene la suscripción pasiva por defecto y añade una acción manual específica: `TWUtil.write(1288, 255)`, observada en el `StatusBarViewInit` de la unidad para pedir su lectura de temperatura. Esa acción queda limitada a una vez por suscripción, informa del retorno OEM y espera un evento 1288 válido; no interpreta el retorno como medición ni aceptación. No expone comandos arbitrarios ni cambia configuración. Si se rechaza o no responde, la escucha de voltaje/aperturas continúa.
+
 ## Conseguir evidencia sin ADB ni USB
 
-1. Instalar la APK 0.3.1 sobre la anterior; con la escucha OEM activa y Mustang OS visible, abrir/cerrar una puerta y consultar **Motor**.
+1. Instalar la APK 0.3.2 sobre la anterior; activar la escucha, abrir/cerrar una puerta con Mustang OS visible y pulsar **Motor → Solicitar temperatura OEM**. Esperar al resultado y cerrar Motor con **Cerrar**, manteniendo la escucha activa.
 2. Abrir **Ajustes → Diagnóstico y exportación → Compatibilidad OEM → Guardar ZIP** y guardar en Descargas.
 3. Volver a la página local de descarga, seleccionar ese ZIP y pulsar **Enviar diagnóstico al PC**.
 

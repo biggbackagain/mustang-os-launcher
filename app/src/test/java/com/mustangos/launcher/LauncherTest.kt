@@ -1,19 +1,23 @@
 package com.mustangos.launcher
 
 import android.app.Application
+import android.content.DialogInterface
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.content.pm.ResolveInfo
+import android.os.Looper
 import android.view.View
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.lifecycle.ViewModelProvider
 import com.mustangos.launcher.appintegration.AppIntegrationManager
 import com.mustangos.launcher.gps.GpsSpeedManager
 import com.mustangos.launcher.media.MediaIntegrationManager
 import com.mustangos.launcher.settings.LauncherSettings
 import com.mustangos.launcher.ui.MainActivity
+import com.mustangos.launcher.ui.LauncherViewModel
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -22,6 +26,7 @@ import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
+import org.robolectric.shadows.ShadowAlertDialog
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
@@ -43,6 +48,23 @@ class LauncherTest {
         controller.pause().stop().start().resume().visible()
         assertFalse(activity.findViewById<ImageButton>(R.id.next).isEnabled)
         assertNotNull(activity.findViewById<View>(R.id.openCarplay))
+        controller.pause().stop().destroy()
+    }
+    @Test fun motorPrimaryCloseKeepsOemEnabledAndDoesNotRequestTemperature() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup().visible()
+        controller.get().findViewById<View>(R.id.dockEngine).performClick()
+        ShadowAlertDialog.getLatestAlertDialog().getButton(DialogInterface.BUTTON_NEGATIVE).performClick()
+        shadowOf(Looper.getMainLooper()).idle()
+        ShadowAlertDialog.getLatestAlertDialog().getButton(DialogInterface.BUTTON_POSITIVE).performClick()
+        shadowOf(Looper.getMainLooper()).idle()
+        val dialog = ShadowAlertDialog.getLatestAlertDialog()
+        val model = ViewModelProvider(controller.get())[LauncherViewModel::class.java]
+        assertEquals("Cerrar", dialog.getButton(DialogInterface.BUTTON_POSITIVE).text.toString())
+        assertEquals("Detener lectura OEM", dialog.getButton(DialogInterface.BUTTON_NEGATIVE).text.toString())
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).performClick()
+        shadowOf(Looper.getMainLooper()).idle()
+        assertTrue(model.settings.oemReadEnabled)
+        assertTrue(model.oem.state.value.temperatureRequestStatus.contains("no solicitada"))
         controller.pause().stop().destroy()
     }
     @Test fun absentZlinkCannotLaunchOrClaimConnection() {

@@ -26,6 +26,8 @@ class OemReadOnlyTest {
     @Before fun setup() { app.getSharedPreferences("launcher", 0).edit().clear().commit(); settings = LauncherSettings(app) }
     private class Feed(val allowed: Boolean = true) : OemSubscription {
         var calls = 0; var closed = false; var handler: Handler? = null
+        var temperatureQueries = 0
+        override fun requestAmbientTemperature(): Int { temperatureQueries++; return 0 }
         override fun open(codes: ShortArray, handler: Handler): Boolean {
             calls++; this.handler = handler
             assertArrayEquals(shortArrayOf(266,514,1281,1285,1288,1292), codes)
@@ -79,6 +81,8 @@ class OemReadOnlyTest {
         assertFalse(reader.state.value.toString().contains("DO_NOT_EXPORT_THIS_SUFFIX"))
         feed.send(1281, 56, byteArrayOf(0))
         assertEquals(0, reader.state.value.doorMask)
+        assertEquals(1, reader.state.value.doorOpenEvents)
+        assertEquals(1, reader.state.value.doorZeroEvents)
         reader.stop(); reader.start()
         feed.send(1281, 56, byteArrayOf(0x80.toByte()))
         assertNull(reader.state.value.doorMask)
@@ -122,6 +126,56 @@ class OemReadOnlyTest {
         assertNull(reader.state.value.doorMask)
         reader.stop()
     }
+    @Test fun temperatureQueryIsManualOncePerSubscriptionAndCannotInventReading() {
+        val feed = Feed(); val reader = OemReadOnlyManager(app, settings) { feed }
+        reader.requestAmbientTemperature(); assertEquals(0, feed.temperatureQueries)
+        reader.setEnabled(true)
+        assertEquals(0, feed.temperatureQueries)
+        reader.requestAmbientTemperature(); reader.requestAmbientTemperature()
+        assertEquals(1, feed.temperatureQueries)
+        assertNull(reader.state.value.temperatureC)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6))
+        assertTrue(reader.state.value.temperatureRequestStatus.contains("sin respuesta"))
+        feed.send(1288, data = byteArrayOf(0,24))
+        assertEquals(24f, reader.state.value.temperatureC!!, 0.001f)
+        assertTrue(reader.state.value.temperatureRequestStatus.contains("recibida"))
+        reader.stop(); reader.start()
+        reader.requestAmbientTemperature(); assertEquals(2, feed.temperatureQueries)
+        reader.stop()
+    }
+    @Test fun immediateTemperatureReplyCannotBeReplacedWithWaitingStatus() {
+        settings.oemReadEnabled = true
+        val reader = OemReadOnlyManager(app, settings) { object : OemSubscription {
+            lateinit var callback: Handler
+            override fun open(codes: ShortArray, handler: Handler): Boolean { callback = handler; return true }
+            override fun requestAmbientTemperature(): Int {
+                callback.dispatchMessage(Message.obtain().apply { what = 1288; obj = byteArrayOf(0,23) })
+                return 0
+            }
+            override fun close() = Unit
+        } }
+        reader.start(); reader.requestAmbientTemperature()
+        assertEquals(23f, reader.state.value.temperatureC!!, 0.001f)
+        assertTrue(reader.state.value.temperatureRequestStatus.contains("recibida"))
+        reader.stop()
+    }
+    @Test fun rejectedTemperatureQueryLeavesPassiveVoltageListeningOperational() {
+        settings.oemReadEnabled = true
+        lateinit var callback: Handler
+        val reader = OemReadOnlyManager(app, settings) { object : OemSubscription {
+            override fun open(codes: ShortArray, handler: Handler): Boolean { callback = handler; return true }
+            override fun requestAmbientTemperature(): Int = throw SecurityException("test")
+            override fun close() = Unit
+        } }
+        reader.start(); reader.requestAmbientTemperature()
+        assertNull(reader.state.value.temperatureC)
+        assertTrue(reader.state.value.temperatureRequestStatus.contains("rechazada"))
+        assertFalse(reader.canRequestAmbientTemperature)
+        assertTrue(settings.oemReadEnabled)
+        callback.dispatchMessage(Message.obtain().apply { what = 1292; obj = byteArrayOf(4,0xBA.toByte()) })
+        assertEquals(12.1f, reader.state.value.voltage!!, 0.001f)
+        reader.stop()
+    }
     class PublicVendorApi {
         companion object {
             var calls = mutableListOf<String>()
@@ -135,6 +189,10 @@ class OemReadOnlyTest {
         fun stop() { calls.add("stop") }
         fun close() { calls.add("close") }
         fun write(code: Int): Int { fail("Write must never be used"); return 0 }
+        fun write(code: Int, argument: Int): Int {
+            assertEquals(1288, code); assertEquals(255, argument)
+            calls.add("temperature-query"); return 0
+        }
     }
     @Test fun reflectiveAdapterUsesOnlySubscriptionLifecycle() {
         PublicVendorApi.calls.clear()
@@ -142,5 +200,15 @@ class OemReadOnlyTest {
         assertTrue(subscription.open(shortArrayOf(1292), Handler(Looper.getMainLooper())))
         subscription.close()
         assertEquals(listOf("open","add","remove","stop","close"), PublicVendorApi.calls)
+    }
+    @Test fun reflectiveTemperatureQueryUsesOnlyVerifiedTwoArgumentRequest() {
+        PublicVendorApi.calls.clear()
+        val subscription = TwReadOnlySubscription { PublicVendorApi::class.java }
+        assertNull(subscription.requestAmbientTemperature())
+        assertTrue(subscription.open(shortArrayOf(1288), Handler(Looper.getMainLooper())))
+        assertEquals(0, subscription.requestAmbientTemperature())
+        subscription.close()
+        assertNull(subscription.requestAmbientTemperature())
+        assertEquals(listOf("open","add","temperature-query","remove","stop","close"), PublicVendorApi.calls)
     }
 }

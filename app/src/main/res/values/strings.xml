@@ -36,4 +36,5 @@
     <string name="dock_apps">"Apps"</string>
     <string name="dock_engine">"Motor"</string>
     <string name="dock_settings">"Ajustes"</string>
+    <string name="request_oem_temperature">Solicitar temperatura OEM</string>
 </resources>

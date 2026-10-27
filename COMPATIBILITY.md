@@ -2,7 +2,7 @@
 
 ## Equipo objetivo
 
-Estado 0.3.1: [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md) y [los hallazgos reales](docs/DEVICE_FINDINGS.md) registran SDK 29 / RELEASE 13, acceso TWUtil y voltaje OEM de 14.1 V comprobados en Mustang OS. Las puertas, temperatura ambiente y superficie CarPlay siguen sin recepción/integración confirmadas en el launcher. El diagnóstico ampliado distingue eventos por canal y solo aplica la rama alternativa de puertas después de recibir el perfil MCU correspondiente. El voltaje BatteryManager conserva su origen Android.
+Estado 0.3.2: [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md) y [los hallazgos reales](docs/DEVICE_FINDINGS.md) registran SDK 29 / RELEASE 13, voltaje OEM y recepción del canal estándar de puertas comprobados en Mustang OS. Temperatura, correlación de puertas y superficie CarPlay siguen pendientes. La consulta manual de temperatura reproduce la solicitud fija de lectura de la barra original y solo se ejecuta al pulsar su botón, una vez por escucha. El servicio ZLink fue vinculable con permiso normal; el descriptor no proporciona su contrato de integración. El voltaje BatteryManager conserva su origen Android.
 
 T10S / T100, Allwinner A133 / sun50iw10p1, Cortex-A53, 2 GB RAM, 1280×720, sin root. Los datos de firmware, MCU, CAN y PT2313/QN8035 provienen del usuario, no de una inspección de hardware realizada aquí.
 

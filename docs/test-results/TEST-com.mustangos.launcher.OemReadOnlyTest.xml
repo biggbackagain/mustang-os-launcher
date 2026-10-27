@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.mustangos.launcher.OemReadOnlyTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-27T05:52:17.998Z" hostname="DESKTOP-3IU4CK5" time="3.094">
+<testsuite name="com.mustangos.launcher.OemReadOnlyTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-27T06:36:45.608Z" hostname="DESKTOP-3IU4CK5" time="2.277">
   <properties/>
-  <testcase name="disabledDoesNotOpenAnything" classname="com.mustangos.launcher.OemReadOnlyTest" time="2.532"/>
-  <testcase name="reflectiveAdapterUsesOnlySubscriptionLifecycle" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.036"/>
-  <testcase name="onlyReceivedValuesAreDisplayedAndStopReleasesClient" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.106"/>
-  <testcase name="callbackFromClosedSubscriptionCannotSelectProtocolForNewSession" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.07"/>
-  <testcase name="shortAndInvalidTemperatureFramesRemainVisibleInDiagnostics" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.076"/>
-  <testcase name="rejectedSubscriptionDoesNotInventMeasurements" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.049"/>
-  <testcase name="eventsDeliveredDuringSubscriptionAreNotOverwritten" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.057"/>
-  <testcase name="interruptedNativeAttemptCannotCauseStartupLoop" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.052"/>
-  <testcase name="feedTimeoutClearsOldValues" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.048"/>
-  <testcase name="canHeadersAreCountedButDoorsRequireAnObservedMatchingProtocol" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.067"/>
+  <testcase name="disabledDoesNotOpenAnything" classname="com.mustangos.launcher.OemReadOnlyTest" time="1.868"/>
+  <testcase name="temperatureQueryIsManualOncePerSubscriptionAndCannotInventReading" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.062"/>
+  <testcase name="reflectiveAdapterUsesOnlySubscriptionLifecycle" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.022"/>
+  <testcase name="onlyReceivedValuesAreDisplayedAndStopReleasesClient" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.031"/>
+  <testcase name="callbackFromClosedSubscriptionCannotSelectProtocolForNewSession" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.037"/>
+  <testcase name="rejectedTemperatureQueryLeavesPassiveVoltageListeningOperational" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.029"/>
+  <testcase name="shortAndInvalidTemperatureFramesRemainVisibleInDiagnostics" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.029"/>
+  <testcase name="reflectiveTemperatureQueryUsesOnlyVerifiedTwoArgumentRequest" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.021"/>
+  <testcase name="rejectedSubscriptionDoesNotInventMeasurements" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.028"/>
+  <testcase name="eventsDeliveredDuringSubscriptionAreNotOverwritten" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.029"/>
+  <testcase name="interruptedNativeAttemptCannotCauseStartupLoop" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.029"/>
+  <testcase name="feedTimeoutClearsOldValues" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.027"/>
+  <testcase name="immediateTemperatureReplyCannotBeReplacedWithWaitingStatus" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.028"/>
+  <testcase name="canHeadersAreCountedButDoorsRequireAnObservedMatchingProtocol" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.036"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

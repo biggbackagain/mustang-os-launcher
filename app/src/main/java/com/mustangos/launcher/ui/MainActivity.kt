@@ -216,27 +216,35 @@ class MainActivity : ComponentActivity() {
     private fun showVehicleData() {
         val native = model.vehicle.nativeReport()
         val text = TextView(this).apply { textSize = 16f; setPadding(24, 16, 24, 16) }
-        val scroll = ScrollView(this).apply { addView(text) }
+        val temperatureQuery = Button(this).apply {
+            setText(R.string.request_oem_temperature)
+            isEnabled = model.oem.canRequestAmbientTemperature
+            setOnClickListener { model.oem.requestAmbientTemperature() }
+        }
+        val content = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; addView(temperatureQuery); addView(text) }
+        val scroll = ScrollView(this).apply { addView(content) }
         val dialog = AlertDialog.Builder(this).setTitle("Vehículo y equipo · sin OBD").setView(scroll)
-            .setPositiveButton(if (model.settings.oemReadEnabled) "Detener lectura OEM" else "Activar lectura OEM") { _, _ ->
+            .setNegativeButton(if (model.settings.oemReadEnabled) "Detener lectura OEM" else "Activar lectura OEM") { _, _ ->
                 if (model.settings.oemReadEnabled) model.oem.setEnabled(false)
                 else AlertDialog.Builder(this).setTitle("Escucha OEM de solo lectura")
-                    .setMessage("Se intentará suscribir a los eventos de voltaje, temperatura y puertas usando la interfaz encontrada en tu firmware. No envía consultas ni órdenes a la MCU. Si el sistema rechaza la suscripción, se mostrará el motivo disponible.\n\nLos valores permanecerán vacíos hasta recibir eventos reales. Después de activarla, abre de nuevo Motor para verlos.")
+                    .setMessage("Se intentará suscribir a los eventos de voltaje, temperatura y puertas usando la interfaz encontrada en tu firmware. La escucha es pasiva. El botón Solicitar temperatura OEM permite pedir una lectura una vez por sesión, como lo hace la barra original; no cambia ajustes del vehículo.\n\nLos valores permanecerán vacíos hasta recibir eventos reales. Después de activarla, abre de nuevo Motor para verlos.")
                     .setPositiveButton("Activar escucha") { _, _ -> model.oem.setEnabled(true); showVehicleData() }.setNegativeButton("Cancelar", null).show()
             }
             .setNeutralButton("Apps OEM") { _, _ -> AlertDialog.Builder(this).setItems(arrayOf("OriginalCar", "CarMate")) { _, index -> openKnownPackage(if (index == 0) "com.tw.car" else "com.dofun.carassistant.car") }.setNegativeButton("Cerrar", null).show() }
-            .setNegativeButton("Cerrar", null).show()
+            .setPositiveButton("Cerrar", null).show()
         val job = lifecycleScope.launch {
             kotlinx.coroutines.flow.combine(model.oem.state, model.gps.state) { oem, gps ->
                 "${oem.status}\n${model.oem.summary()}\nEventos recibidos: ${oem.frames}\n" +
                     "Temperatura ambiente OEM: ${oem.temperatureC?.let { "%.1f °C".format(it) } ?: "sin evento"}\n" +
                     "Puertas: ${oem.doorMask?.let { "máscara OEM 0x%02X (posición pendiente de comprobar)".format(it) } ?: "sin evento"}\n\n" +
+                    "Eventos con apertura publicada: ${oem.doorOpenEvents}; máscara cero: ${oem.doorZeroEvents}\n" +
                     "Perfil MCU recibido: ${oem.protocol?.let { "modelo ${it.model}, tipo ${it.type}" } ?: "sin evento"}\n" +
+                    "${oem.temperatureRequestStatus}\n" +
                     "${oem.eventReport}\n\n" +
                     "GPS: ${gps.kmh?.let { "%.0f km/h".format(it) } ?: "sin velocidad"}; precisión ${gps.accuracyMeters ?: "—"} m; satélites ${gps.satellitesUsed ?: "—"}\n" +
                     "Altitud GPS: ${gps.altitudeMeters?.let { "%.0f m".format(it) } ?: "—"}; rumbo GPS: ${gps.bearingDegrees?.let { "%.0f°".format(it) } ?: "—"}\n\n" + native +
                     "\nRPM, refrigerante, kilometraje y velocidad CAN: sin interfaz verificada."
-            }.collect { text.text = it }
+            }.collect { text.text = it; temperatureQuery.isEnabled = model.oem.canRequestAmbientTemperature }
         }
         dialog.setOnDismissListener { job.cancel() }
     }

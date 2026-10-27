@@ -12,7 +12,7 @@ class DiagnosticReporter(private val context: Context, private val model: Launch
         val mem = ActivityManager.MemoryInfo().also { context.getSystemService(ActivityManager::class.java).getMemoryInfo(it) }
         val d = context.resources.displayMetrics
         return buildString {
-            appendLine("MUSTANG OS 0.3.1 · diagnóstico básico")
+            appendLine("MUSTANG OS 0.3.2 · diagnóstico básico")
             appendLine("SDK real: ${Build.VERSION.SDK_INT}; etiqueta RELEASE: ${Build.VERSION.RELEASE}")
             appendLine("API 29 corresponde a Android 10; API 32 a Android 12L; API 33 a Android 13. La etiqueta del fabricante puede diferir.")
             appendLine("Ventana/densidad: ${d.widthPixels}x${d.heightPixels}px; ${d.densityDpi}dpi")
@@ -34,6 +34,8 @@ class DiagnosticReporter(private val context: Context, private val model: Launch
             appendLine("Valores OEM recibidos: voltaje=${oem.voltage ?: "sin evento"}; temperatura_C=${oem.temperatureC ?: "sin evento"}; máscara de puertas=${oem.doorMask ?: "sin evento"}")
             appendLine("Perfil MCU recibido: ${oem.protocol?.let { "modelo=${it.model}; tipo=${it.type}" } ?: "sin evento; no se presupone a partir del coche"}")
             appendLine(oem.eventReport)
+            appendLine(oem.temperatureRequestStatus)
+            appendLine("Eventos de aperturas: máscara no cero=${oem.doorOpenEvents}; máscara cero=${oem.doorZeroEvents}")
             appendLine(model.vehicle.nativeReport())
             val fix = model.gps.state.value
             appendLine("Calidad GPS: precisión=${fix.accuracyMeters ?: "sin lectura"} m; satélites usados=${fix.satellitesUsed ?: "sin lectura"}")

@@ -1,6 +1,21 @@
-# Registro de verificación · Mustang OS 0.3.1
+# Registro de verificación · Mustang OS 0.3.2
 
-## Resultado actual 0.3.1
+## Resultado actual 0.3.2
+
+**61 pruebas de app/núcleo y seis del servidor pasadas; cero fallos.** `scripts/verify.ps1` completó pruebas JVM/Robolectric, lint y APK debug en 31 segundos en este PC. Lint: cero errores, 24 advertencias. La firma APK v2 conserva el mismo certificado y los permisos son idénticos a 0.3.1.
+
+- APK: `output/MustangOS-0.3.2-debug.apk`, alias `output/MustangOS-debug.apk`.
+- Versión 0.3.2 / código 5; paquete `com.mustangos.launcher`.
+- Tamaño: 2 560 301 bytes.
+- SHA-256: `C3FA4204A599F90540B3A697EAAA912692EDD6966FB59B33984E0A43BFF6F692`.
+
+Cinco pruebas nuevas: consulta de temperatura solo manual/una vez por escucha, sin valor inventado y con timeout; adaptador limitado a la solicitud exacta `write(1288, 255)` del SystemUI exportado; respuesta inmediata conservada; rechazo de consulta sin interrumpir la recepción de voltaje; cierre principal de Motor que conserva la preferencia OEM y no dispara la consulta. La carrera de respuesta inmediata se reprodujo antes de corregirla. El test de diálogo procesa los callbacks del looper de Android antes de comprobar el resultado. También se comprueban los conteos de máscaras de puertas cero/no cero.
+
+Distribución local comprobada: página HTTP 200 con versión 0.3.2 y APK descargada desde el puerto 8766 idéntica por SHA-256 al archivo firmado. Código OEM recibido y ZIP del equipo permanecen fuera de Git y del paquete fuente.
+
+**Evidencia física nueva, obtenida con 0.3.1:** 43 eventos OEM, 12.52 V y cinco eventos de puertas 1285, con última máscara 0. El servicio ZLink respondió con `com.zjinnova.zlink.android.core.codec.IPhoneContentPresenter`. Su MediaSession estaba visible con acciones 0 y sin campos de canción. Temperatura, posiciones/transiciones de puertas y superficie CarPlay siguen pendientes. La consulta manual 0.3.2 aún requiere prueba en la pantalla; no se presenta la simulación como acceso MCU físico confirmado.
+
+## Historial 0.3.1
 
 **56 pruebas de app/núcleo y seis del servidor pasadas; cero fallos.** Verificación completa con `scripts/verify.ps1`: pruebas JVM/Robolectric, lint y APK debug; `BUILD SUCCESSFUL` en 35 segundos en este PC. Lint: cero errores, 24 advertencias. La firma APK v2 está verificada y conserva el certificado de las versiones anteriores.
 

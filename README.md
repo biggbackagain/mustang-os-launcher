@@ -1,14 +1,16 @@
-# MUSTANG OS · 0.3.1
+# MUSTANG OS · 0.3.2
 
 Launcher Android nativo para Ford Mustang 2010 V6 4.0L convertible rojo con capota negra. Kotlin, Views/XML, MVVM y StateFlow. La referencia visual se traduce en tres paneles, superficies grafito, rojo moderado e iconos vectoriales de trazo uniforme.
 
 ![Interfaz Android renderizada en pruebas, sin datos CarPlay simulados](docs/dashboard-1280x720.png)
 
-El usuario instaló versiones de prueba y envió un ZIP de la unidad. Se confirmó SDK 29 pese a la etiqueta Android 13. Las fotos de 0.3.0 confirman acceso TWUtil y voltaje OEM de 14.1 V en Mustang OS, coincidente con la barra original. Las puertas y la temperatura ambiente aparecen en la interfaz OEM, pero su recepción en el launcher sigue pendiente.
+El usuario instaló versiones de prueba y envió tres ZIP de la unidad. Se confirmó SDK 29 pese a la etiqueta Android 13. Las fotos de 0.3.0 confirman voltaje OEM de 14.1 V coincidente con la barra original. El informe activo de 0.3.1 confirma 12.52 V y cinco eventos del canal estándar de puertas, con última máscara 0. La temperatura y las posiciones/transiciones de puertas aún necesitan comprobarse.
 
 La 0.2.0 corrigió el selector de mapas y detectó las apps OEM confirmadas. La 0.3.0 permite activar **Motor → Activar lectura OEM → Activar escucha** para intentar recibir voltaje, temperatura y aperturas con los formatos encontrados en la unidad, sin órdenes ni consultas a la MCU. No muestra valores antes de recibirlos. **La superficie CarPlay dentro del widget sigue sin integración verificada.** El estado exacto está en [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md) y [los hallazgos del equipo](docs/DEVICE_FINDINGS.md).
 
 La 0.3.1 escucha también el canal alternativo de aperturas y el perfil MCU. Solo interpreta la rama de puertas verificada si recibe el perfil correspondiente del equipo; no lo deduce del modelo de coche. **Motor** y el informe exportado muestran eventos recibidos/interpretados por canal y hasta 24 cabeceras CAN, sin guardar el contenido de las tramas.
+
+La 0.3.2 añade **Motor → Solicitar temperatura OEM**, una consulta manual fija usada por la barra original, limitada a una llamada por escucha activa. El inicio sigue siendo pasivo; solo un evento válido se convierte en temperatura. También cuenta máscaras de puertas cero/no cero y usa **Cerrar** como botón principal de Motor para conservar la escucha al salir del diálogo. El servicio ZLink es vinculable y su descriptor está confirmado; su contrato de superficie sigue sin estar disponible. [Datos que solicitar al proveedor](docs/ZLINK_VENDOR_QUESTIONS.md).
 
 ## Instalar y empezar
 

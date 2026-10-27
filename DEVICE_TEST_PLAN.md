@@ -10,6 +10,8 @@ Resultado físico 0.3.0: acceso TWUtil y voltaje **CONFIRMADOS** por foto (14.1 
 
 Segundo ZIP recibido el 27 de octubre: 0.3.1 instalada y recepción OEM vista por el usuario, pero la escucha se detuvo antes de generar el diagnóstico. Sus valores y contadores ya estaban borrados; puertas/temperatura no se califican como fallidas ni superadas. Repetir con la misma APK: cerrar Motor con **Cerrar**, mantener la escucha activa y generar el informe antes de pulsar **Detener lectura OEM**. Inspeccionar ZLink antes de esta escucha para conservar ambos resultados en el informe final.
 
+Tercer ZIP recibido: escucha activa con 43 eventos, 12.52 V y cinco eventos 1285 de puertas (última máscara 0). Recepción de puertas **CONFIRMADA**; sus posiciones y transición abierto/cerrado siguen pendientes porque esa versión solo conservaba la última máscara. El servicio ZLink devolvió el descriptor `com.zjinnova.zlink.android.core.codec.IPhoneContentPresenter`; su contrato de superficie sigue pendiente. No llegó temperatura. En 0.3.2, probar **Motor → Solicitar temperatura OEM**, esperar al valor o al mensaje tras cinco segundos y exportar mientras la escucha sigue activa. Abrir/cerrar una puerta para revisar también los nuevos contadores de máscaras cero/no cero. La consulta manual está limitada a una llamada por escucha y no modifica la configuración del vehículo.
+
 Antes de configurar Home: confirma que ZLink, radio, cámara y mandos funcionan con el launcher original; anota cómo volver a él. Instala Mustang OS como APK normal y realiza primero las pruebas sin cambiar Home. Prueba reversa con el vehículo inmovilizado, freno aplicado y las precauciones habituales del fabricante.
 
 | Caso | Pasos / resultado esperado | Estado |
@@ -17,7 +19,7 @@ Antes de configurar Home: confirma que ZLink, radio, cámara y mandos funcionan 
 | Inicio limpio | Abrir sin permisos. `—` en velocidad, sin canción ni ruta y controles multimedia deshabilitados | PENDIENTE |
 | Hardware | Diagnóstico: SDK, resolución y RAM reales. Contrastar SDK con etiqueta Android comercial | CONFIRMADO: SDK 29 / RELEASE 13, 1280×720, 1974 MiB en ZIP del equipo |
 | Voltaje OEM | Activar escucha y contrastar con barra original | CONFIRMADO en 0.3.0: 14.1 V en ambas interfaces; continuidad pendiente |
-| Puertas / temperatura OEM | Mantener launcher visible, abrir/cerrar puerta, revisar canales en Motor y exportar ZIP | PENDIENTE en el launcher; visibles en interfaz original |
+| Puertas / temperatura OEM | Mantener launcher visible, abrir/cerrar puerta, revisar canales en Motor; en 0.3.2 solicitar temperatura y exportar ZIP | Recepción de puertas confirmada: cinco eventos; posiciones/transiciones y temperatura pendientes |
 | Identificar ZLink | Elegir app original; comparar etiqueta, paquete, actividad y versión del diagnóstico con su pantalla Acerca de | PENDIENTE |
 | Abrir ZLink | Entrar desde panel y dock; comprobar activación, ajustes y emparejamiento conservados | PENDIENTE |
 | CarPlay conectado | Conectar iPhone; ZLink funciona. Mustang OS no declara conectado sin evidencia | PENDIENTE |
