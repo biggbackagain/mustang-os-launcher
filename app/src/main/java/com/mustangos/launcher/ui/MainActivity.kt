@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.content.ComponentName
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -40,6 +41,7 @@ import kotlin.math.roundToInt
 class MainActivity : ComponentActivity() {
     private lateinit var binding: ActivityMainBinding
     private val model: LauncherViewModel by viewModels()
+    private var welcomeLightsPlayed = false
     private val locationPermission = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         model.gps.start()
     }
@@ -82,6 +84,7 @@ class MainActivity : ComponentActivity() {
         if (resources.getBoolean(R.bool.compact_dashboard)) {
             binding.navigationDescription.visibility = View.GONE
             binding.artHint.visibility = View.GONE
+            binding.carImage.scaleType = ImageView.ScaleType.FIT_CENTER
         }
 
         // Auto-request location permission on first launch if not granted
@@ -93,8 +96,8 @@ class MainActivity : ComponentActivity() {
         binding.dockSettings.setOnClickListener { showSettings() }
         binding.openCarplay.setOnClickListener { openRole("zlink") }
         binding.dockCarplay.setOnClickListener { openRole("zlink") }
-        binding.dockMusic.setOnClickListener { openRole("music") }
-        binding.openMaps.setOnClickListener { openRole("maps") }
+        binding.dockMusic.setOnClickListener { openCurrentMedia() }
+        binding.openMaps.setOnClickListener { openRole("zlink") }
         binding.dockNavigation.setOnClickListener { navigationChooser() }
         binding.dockPhone.setOnClickListener { openRole("phone") }
         binding.dockRadio.setOnClickListener { openRole("radio") }
@@ -105,15 +108,14 @@ class MainActivity : ComponentActivity() {
         binding.gpsStatus.setOnClickListener { requestGps() }
         binding.mediaSource.setOnClickListener { mediaSources() }
 
-        // Click on music widget album art or title opens music app
-        binding.albumArt.setOnClickListener { openRole("music") }
-        binding.artPlaceholder.setOnClickListener { openRole("music") }
-        binding.songTitle.setOnClickListener { openRole("music") }
+        binding.albumArt.setOnClickListener { openCurrentMedia() }
+        binding.artPlaceholder.setOnClickListener { openCurrentMedia() }
+        binding.songTitle.setOnClickListener { openCurrentMedia() }
 
         binding.previous.setOnClickListener { mediaCommand(MediaCommand.PREVIOUS) }
         binding.next.setOnClickListener { mediaCommand(MediaCommand.NEXT) }
         binding.playPause.setOnClickListener {
-            mediaCommand(if (model.media.state.value.facts.playing) MediaCommand.PAUSE else MediaCommand.PLAY)
+            if (!model.media.togglePlayPause()) toast(getString(R.string.media_command_unavailable))
         }
 
         lifecycleScope.launch {
@@ -126,41 +128,28 @@ class MainActivity : ComponentActivity() {
                 }
                 launch { model.media.state.collect { renderMedia(it) } }
                 launch {
-                    kotlinx.coroutines.flow.combine(model.oem.state, model.vehicle.battery) { oem, bat ->
-                        // Door status indicator in Top Bar
-                        val doorOpen = oem.doorMask != null && oem.doorMask != 0
-                        if (doorOpen) {
-                            binding.topDoorStatus.visibility = View.VISIBLE
-                            val doorDesc = model.oem.doorDescription() ?: "PUERTA ABIERTA"
-                            binding.topDoorStatus.text = "⚠️ ${doorDesc.uppercase()}"
-                        } else {
-                            binding.topDoorStatus.visibility = View.GONE
-                        }
-
-                        // Battery voltage: Never show 5.0V (internal USB rail) as car battery voltage
-                        val volts = oem.voltage ?: bat.voltage?.takeIf { it > 8.0f }
-                        val voltsText = volts?.let { "%.1f V".format(it) } ?: "--.- V"
-                        binding.topBattery.text = "⚡ $voltsText"
-
-                        // Temperature
-                        val temp = oem.temperatureC ?: bat.tempC
-                        val tempText = temp?.let { "%.0f °C".format(it) }
-
-                        // Center Card vehicleInfo
-                        val doorSummary = model.oem.doorDescription() ?: if (doorOpen) "Puerta abierta" else "Puertas cerradas"
-                        val infoParts = listOfNotNull(
-                            "⚡ $voltsText",
-                            tempText?.let { "🌡️ $it" },
-                            doorSummary
-                        )
-                        binding.vehicleInfo.text = infoParts.joinToString("   ·   ")
-                    }.collect { }
+                    model.oem.state.collect { oem ->
+                        binding.topDoorStatus.visibility = if (oem.doorMask?.let { it != 0 } == true) View.VISIBLE else View.GONE
+                        val now = SystemClock.elapsedRealtime()
+                        val previousDoor = !oem.sourceActive || oem.lastDoorMs?.let { now - it > 15_000 } == true
+                        binding.topDoorStatus.setText(if (previousDoor) R.string.oem_previous_opening_badge else R.string.oem_opening_badge)
+                        binding.topBattery.text = oem.voltage?.let {
+                            val previousVoltage = !oem.sourceActive || oem.lastVoltageMs?.let { time -> now - time > 15_000 } == true
+                            if (previousVoltage) getString(R.string.oem_previous_voltage, it) else "%.1f V".format(it)
+                        } ?: "— V"
+                        binding.vehicleInfo.text = "${model.oem.summary()}\n${oem.ageSummary}"
+                    }
+                }
+                launch {
+                    model.vehicle.accessoryOn.collect { on ->
+                        if (on != null) binding.carImage.setHeadlightsOn(on, animate = true)
+                    }
                 }
                 launch {
                     model.zlinkProbe.state.collect { status ->
                         val friendly = when {
                             status.contains("IPhoneContentPresenter") || status.contains("Interfaz Binder") ->
-                                "ZLink CarPlay listo · Toca para abrir"
+                                getString(R.string.carplay_service_available)
                             status.contains("Consultando") -> "Verificando ZLink…"
                             status.contains("no activo") -> "Toca para abrir ZLink CarPlay"
                             else -> status
@@ -184,10 +173,15 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         model.start()
+        val accessoryOn = model.vehicle.accessoryOn.value
+        if (accessoryOn != null) binding.carImage.setHeadlightsOn(accessoryOn)
+        else if (!welcomeLightsPlayed) binding.carImage.playWelcomeLights()
+        welcomeLightsPlayed = true
         model.zlinkProbe.probe()
     }
 
     override fun onStop() {
+        binding.carImage.stopAnimation()
         model.stop()
         super.onStop()
     }
@@ -208,33 +202,45 @@ class MainActivity : ComponentActivity() {
         binding.artPlaceholder.visibility = if (ui.artwork == null) View.VISIBLE else View.GONE
         binding.artHint.text = if (m.source == null) "Apple Music vía CarPlay" else "Sin portada disponible"
         binding.mediaStatus.text = ui.status
-        binding.playPause.setImageResource(if (m.playing) R.drawable.ic_pause else R.drawable.ic_play)
-        binding.playPause.contentDescription = if (m.playing) "Pausar" else "Reproducir"
+        binding.playPause.setImageResource(when {
+            !ui.playbackStateKnown -> R.drawable.ic_play_pause
+            m.playing -> R.drawable.ic_pause
+            else -> R.drawable.ic_play
+        })
+        binding.playPause.contentDescription = if (!ui.playbackStateKnown) getString(R.string.media_toggle)
+            else if (m.playing) "Pausar" else "Reproducir"
 
         listOf(
             binding.previous to MediaCommand.PREVIOUS,
             binding.next to MediaCommand.NEXT,
             binding.playPause to if (m.playing) MediaCommand.PAUSE else MediaCommand.PLAY
         ).forEach { (view, command) ->
-            view.isEnabled = m.supports(command)
+            view.isEnabled = if (view === binding.playPause)
+                model.media.canCommand(MediaCommand.PLAY) || model.media.canCommand(MediaCommand.PAUSE)
+                else model.media.canCommand(command)
             view.alpha = if (view.isEnabled) 1f else 0.3f
         }
         updateProgress()
     }
 
     private fun updateProgress() {
-        val m = model.media.state.value.facts
+        val ui = model.media.state.value
+        val m = ui.facts
+        if (!ui.playbackStateKnown) {
+            binding.progress.progress = 0
+            binding.songTime.text = if (m.durationMs > 0) "— / ${formatTime(m.durationMs)}" else getString(R.string.media_unknown_time)
+            return
+        }
         val position = m.progress(SystemClock.elapsedRealtime())
         if (m.durationMs > 0) {
             binding.progress.progress = ((position.toDouble() / m.durationMs) * 1000).roundToInt()
             binding.songTime.text = "${formatTime(position)} / ${formatTime(m.durationMs)}"
         } else if (m.playing) {
-            binding.progress.progress = 500
-            val posText = if (position > 0) formatTime(position) else ""
-            binding.songTime.text = if (posText.isNotEmpty()) "$posText · Bluetooth Audio" else "▶ En reproducción"
+            binding.progress.progress = 0
+            binding.songTime.text = if (m.positionMs > 0) "${formatTime(m.positionMs)} / —" else getString(R.string.media_playing_without_duration)
         } else if (m.source != null) {
             binding.progress.progress = 0
-            binding.songTime.text = "⏸ Pausado"
+            binding.songTime.setText(R.string.media_not_playing)
         } else {
             binding.progress.progress = 0
             binding.songTime.text = "— / —"
@@ -245,6 +251,12 @@ class MainActivity : ComponentActivity() {
 
     private fun mediaCommand(command: MediaCommand) {
         if (!model.media.command(command)) toast("La fuente no permite este control")
+    }
+
+    private fun openCurrentMedia() {
+        if (!model.media.openSource(model.apps, model.carplay)) {
+            toast(model.apps.lastFailure ?: getString(R.string.media_source_unavailable))
+        }
     }
 
     private fun updateConnectivity() {
@@ -314,6 +326,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
             dialog.show()
+            dialog.window?.apply {
+                setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            }
         }
     }
 
@@ -476,14 +492,14 @@ class MainActivity : ComponentActivity() {
 
     private fun showVehicleData() {
         val view = layoutInflater.inflate(R.layout.dialog_vehicle_dashboard, null)
-        val builder = AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle("Telemetría y sensores · Ford Mustang 2010")
             .setView(view)
             .setPositiveButton("Cerrar", null)
             .setNegativeButton(if (model.settings.oemReadEnabled) "Detener lectura OEM" else "Activar lectura OEM") { _, _ ->
                 if (model.settings.oemReadEnabled) model.oem.setEnabled(false)
-                else AlertDialog.Builder(this).setTitle("Escucha OEM de solo lectura")
-                    .setMessage("Se intentará suscribir a los eventos de voltaje, temperatura y puertas usando la interfaz encontrada en tu firmware. La escucha es pasiva. El botón Solicitar temperatura OEM permite pedir una lectura una vez por sesión, como lo hace la barra original; no cambia ajustes del vehículo.\n\nLos valores permanecerán vacíos hasta recibir eventos reales. Después de activarla, abre de nuevo Motor para verlos.")
+                else AlertDialog.Builder(this).setTitle("Lectura OEM")
+                    .setMessage(getString(R.string.oem_read_explanation))
                     .setPositiveButton("Activar escucha") { _, _ -> model.oem.setEnabled(true); showVehicleData() }
                     .setNegativeButton("Cancelar", null).show()
             }
@@ -491,11 +507,9 @@ class MainActivity : ComponentActivity() {
                 AlertDialog.Builder(this).setItems(arrayOf("OriginalCar", "CarMate")) { _, index ->
                     openKnownPackage(if (index == 0) "com.tw.car" else "com.dofun.carassistant.car")
                 }.setNegativeButton("Cerrar", null).show()
-            }
-        val dialog = builder.create()
+            }.create()
 
         val dashSpeed = view.findViewById<TextView>(R.id.dashSpeed)
-        val dashSpeedUnit = view.findViewById<TextView>(R.id.dashSpeedUnit)
         val dashGpsDetails = view.findViewById<TextView>(R.id.dashGpsDetails)
         val dashVoltage = view.findViewById<TextView>(R.id.dashVoltage)
         val dashVoltageStatus = view.findViewById<TextView>(R.id.dashVoltageStatus)
@@ -506,106 +520,79 @@ class MainActivity : ComponentActivity() {
         val dashTempDetails = view.findViewById<TextView>(R.id.dashTempDetails)
         val dashQueryTempBtn = view.findViewById<Button>(R.id.dashQueryTempBtn)
         val dashMcuStatus = view.findViewById<TextView>(R.id.dashMcuStatus)
-        val dashCloseBtn = view.findViewById<Button>(R.id.dashCloseBtn)
-        val dashOpenCarBtn = view.findViewById<Button>(R.id.dashOpenCarBtn)
-        val dashOpenCarMateBtn = view.findViewById<Button>(R.id.dashOpenCarMateBtn)
-        val dashOpenFordSettingsBtn = view.findViewById<Button>(R.id.dashOpenFordSettingsBtn)
-
-        dashCloseBtn.setOnClickListener { dialog.dismiss() }
-        dashOpenCarBtn.setOnClickListener { openKnownPackage("com.tw.car") }
-        dashOpenCarMateBtn.setOnClickListener { openKnownPackage("com.dofun.carassistant.car") }
-        dashOpenFordSettingsBtn.setOnClickListener {
+        view.findViewById<Button>(R.id.dashCloseBtn).setOnClickListener { dialog.dismiss() }
+        view.findViewById<Button>(R.id.dashOpenCarBtn).setOnClickListener { openKnownPackage("com.tw.car") }
+        view.findViewById<Button>(R.id.dashOpenCarMateBtn).setOnClickListener { openKnownPackage("com.dofun.carassistant.car") }
+        view.findViewById<Button>(R.id.dashOpenFordSettingsBtn).setOnClickListener {
             val launched = model.apps.launchDirect(ComponentName("com.tw.car", "com.tw.car.HCFordSettingsActivity"))
                 || model.apps.launchDirect(ComponentName("com.tw.car", "com.tw.car.FordEquinoxActivity"))
             if (!launched) openKnownPackage("com.tw.car")
         }
         dashQueryTempBtn.setOnClickListener { model.oem.requestAmbientTemperature() }
 
-        // SensorManager for live G-Force and Gyroscope dynamics
         val sm = getSystemService(SensorManager::class.java)
-        val accel = sm?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        val linear = sm?.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
+        val accel = linear ?: sm?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         val gyro = sm?.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
-
-        val sensorListener = object : SensorEventListener {
+        val accelerationLabel = when {
+            linear != null -> getString(R.string.acceleration_linear_source)
+            accel != null -> getString(R.string.acceleration_gravity_source)
+            else -> getString(R.string.acceleration_unavailable)
+        }
+        val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
-                if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-                    val latG = (event.values[0] / 9.80665f)
-                    val longG = (event.values[1] / 9.80665f)
-                    dashGForceLat.text = "%+.2f G".format(latG)
-                    dashGForceLong.text = "%+.2f G".format(longG)
-                } else if (event.sensor.type == Sensor.TYPE_GYROSCOPE) {
-                    val degX = Math.toDegrees(event.values[0].toDouble())
-                    val degY = Math.toDegrees(event.values[1].toDouble())
-                    val degZ = Math.toDegrees(event.values[2].toDouble())
-                    dashGyroDetails.text = "Giroscopio: X: %+.1f°/s · Y: %+.1f°/s · Z: %+.1f°/s".format(degX, degY, degZ)
+                if (event.values.size < 3 || event.values.take(3).any { !it.isFinite() }) return
+                when (event.sensor.type) {
+                    Sensor.TYPE_LINEAR_ACCELERATION, Sensor.TYPE_ACCELEROMETER -> {
+                        dashGForceLat.text = "%+.2f G".format(event.values[0] / 9.80665f)
+                        dashGForceLong.text = "%+.2f G".format(event.values[1] / 9.80665f)
+                    }
+                    Sensor.TYPE_GYROSCOPE -> dashGyroDetails.text = accelerationLabel + "\n" +
+                        "Giroscopio del equipo: X %+.1f°/s · Y %+.1f°/s · Z %+.1f°/s".format(
+                            Math.toDegrees(event.values[0].toDouble()), Math.toDegrees(event.values[1].toDouble()),
+                            Math.toDegrees(event.values[2].toDouble()))
                 }
             }
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
         }
-        accel?.let { sm.registerListener(sensorListener, it, SensorManager.SENSOR_DELAY_UI) }
-        gyro?.let { sm.registerListener(sensorListener, it, SensorManager.SENSOR_DELAY_UI) }
-
         val job = lifecycleScope.launch {
-            kotlinx.coroutines.flow.combine(model.oem.state, model.gps.state) { oem, gps ->
-                // GPS Speed & Details
-                val kmh = gps.kmh
-                dashSpeed.text = kmh?.let { "%.0f".format(it) } ?: "0"
-                val bearing = gps.bearingDegrees?.let { "Rumbo: %.0f°".format(it) } ?: "Rumbo: --°"
-                val alt = gps.altitudeMeters?.let { "Alt: %.0f m".format(it) } ?: "Alt: -- m"
-                val acc = gps.accuracyMeters?.let { "Precisión: %.0f m".format(it) } ?: "Precisión: -- m"
-                val sats = gps.satellitesUsed?.let { "Satélites: $it" } ?: "Satélites: --"
-                dashGpsDetails.text = "$bearing · $alt · $acc · $sats"
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                dashGForceLat.text = "—"
+                dashGForceLong.text = "—"
+                dashGyroDetails.text = accelerationLabel + "\n" + getString(
+                    if (gyro == null) R.string.gyroscope_unavailable else R.string.device_gyro_unknown)
+                accel?.let { runCatching { sm?.registerListener(listener, it, SensorManager.SENSOR_DELAY_UI) } }
+                gyro?.let { runCatching { sm?.registerListener(listener, it, SensorManager.SENSOR_DELAY_UI) } }
+                try {
+                    kotlinx.coroutines.flow.combine(model.oem.state, model.gps.state, model.vehicle.battery,
+                        model.vehicle.accessoryOn) { oem, gps, battery, accessory ->
+                        dashSpeed.text = gps.kmh?.let { "%.0f".format(it) } ?: "—"
+                        val bearing = gps.bearingDegrees?.let { "Rumbo %.0f°".format(it) } ?: "Rumbo —"
+                        val altitude = gps.altitudeMeters?.let { "Altitud %.0f m".format(it) } ?: "Altitud —"
+                        val accuracy = gps.accuracyMeters?.let { "Precisión %.0f m".format(it) } ?: "Precisión —"
+                        dashGpsDetails.text = "${gps.status}\n$bearing · $altitude · $accuracy\n" +
+                            "Satélites usados: ${gps.satellitesUsed ?: "—"} / visibles: ${gps.satellitesVisible ?: "—"}"
 
-                // Voltage
-                val volts = oem.voltage ?: model.vehicle.battery.value.voltage?.takeIf { it > 8.0f }
-                if (volts != null) {
-                    dashVoltage.text = "%.1f".format(volts)
-                    when {
-                        volts < 11.5f -> {
-                            dashVoltageStatus.text = "⚠️ Batería baja (%.1f V)".format(volts)
-                            dashVoltageStatus.setTextColor(Color.parseColor("#FF354A"))
-                        }
-                        volts in 11.5f..12.8f -> {
-                            dashVoltageStatus.text = "🔋 Batería en reposo · Motor apagado (%.1f V)".format(volts)
-                            dashVoltageStatus.setTextColor(Color.parseColor("#4CAF50"))
-                        }
-                        volts in 12.9f..14.8f -> {
-                            dashVoltageStatus.text = "⚡ Alternador cargando · Motor en marcha (%.1f V)".format(volts)
-                            dashVoltageStatus.setTextColor(Color.parseColor("#2196F3"))
-                        }
-                        else -> {
-                            dashVoltageStatus.text = "⚠️ Tensión alta (%.1f V)".format(volts)
-                            dashVoltageStatus.setTextColor(Color.parseColor("#FF9800"))
-                        }
-                    }
-                } else {
-                    dashVoltage.text = "--.-"
-                    dashVoltageStatus.text = "Esperando lectura MCU..."
-                    dashVoltageStatus.setTextColor(Color.parseColor("#8E99A8"))
-                }
-
-                // Doors
-                val doorDesc = model.oem.doorDescription() ?: "Puertas cerradas"
-                dashDoorStatus.text = doorDesc
-                val doorOpen = oem.doorMask != null && oem.doorMask != 0
-                dashDoorStatus.setTextColor(if (doorOpen) Color.parseColor("#FF354A") else Color.parseColor("#4CAF50"))
-
-                // Temperature
-                val tempOEM = oem.temperatureC?.let { "%.0f °C".format(it) } ?: "sin lectura"
-                val tempBat = model.vehicle.battery.value.tempC?.let { "%.1f °C".format(it) } ?: "--"
-                dashTempDetails.text = "Exterior OEM: $tempOEM · Temperatura interna: $tempBat"
-                dashQueryTempBtn.isEnabled = model.oem.canRequestAmbientTemperature
-
-                // MCU CAN status
-                val proto = oem.protocol?.let { "Modelo: ${it.model}, Tipo: ${it.type}" } ?: "Ford CAN-Bus"
-                dashMcuStatus.text = "MCU TWUtil: ${oem.status} · Tramas: ${oem.frames} · $proto"
-            }.collect { }
+                        dashVoltage.text = oem.voltage?.let { "%.1f".format(it) } ?: "—"
+                        dashVoltageStatus.text = if (oem.voltage == null) getString(R.string.oem_voltage_unknown)
+                            else oem.ageSummary
+                        dashVoltageStatus.setTextColor(Color.parseColor("#8E99A8"))
+                        dashDoorStatus.text = model.oem.doorDescription() ?: getString(R.string.oem_doors_unknown)
+                        dashDoorStatus.setTextColor(Color.parseColor(if (oem.doorMask?.let { it != 0 } == true) "#FF354A" else "#8E99A8"))
+                        val temperature = oem.temperatureC?.let { "%.1f °C".format(it) } ?: "sin lectura"
+                        val androidTemperature = battery.tempC?.let { "%.1f °C".format(it) } ?: "sin lectura"
+                        dashTempDetails.text = "Exterior OEM: $temperature\nBatería Android: $androidTemperature"
+                        dashQueryTempBtn.isEnabled = oem.temperatureQueryAvailable
+                        val profile = oem.protocol?.let { "Perfil recibido: modelo ${it.model}, tipo ${it.type}" } ?: "Perfil OEM sin evento"
+                        val accessoryText = when (accessory) { true -> "ACC OEM activo"; false -> "ACC OEM inactivo"; null -> "ACC OEM sin evento" }
+                        dashMcuStatus.text = "${oem.status} · Eventos: ${oem.frames}\n${oem.ageSummary}\n" +
+                            "${oem.voltageRequestStatus}\n${oem.temperatureRequestStatus}\n$profile · $accessoryText\n" +
+                            getString(R.string.engine_data_unknown)
+                    }.collect { }
+                } finally { sm?.unregisterListener(listener) }
+            }
         }
-
-        dialog.setOnDismissListener {
-            job.cancel()
-            sm?.unregisterListener(sensorListener)
-        }
+        dialog.setOnDismissListener { job.cancel() }
         dialog.show()
     }
 

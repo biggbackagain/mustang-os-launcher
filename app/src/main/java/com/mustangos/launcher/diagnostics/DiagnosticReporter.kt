@@ -12,7 +12,7 @@ class DiagnosticReporter(private val context: Context, private val model: Launch
         val mem = ActivityManager.MemoryInfo().also { context.getSystemService(ActivityManager::class.java).getMemoryInfo(it) }
         val d = context.resources.displayMetrics
         return buildString {
-            appendLine("MUSTANG OS 0.3.5 · diagnóstico básico")
+            appendLine("MUSTANG OS 0.3.6 · diagnóstico básico")
             appendLine("SDK real: ${Build.VERSION.SDK_INT}; etiqueta RELEASE: ${Build.VERSION.RELEASE}")
             appendLine("API 29 corresponde a Android 10; API 32 a Android 12L; API 33 a Android 13. La etiqueta del fabricante puede diferir.")
             appendLine("Ventana/densidad: ${d.widthPixels}x${d.heightPixels}px; ${d.densityDpi}dpi")
@@ -23,6 +23,7 @@ class DiagnosticReporter(private val context: Context, private val model: Launch
             appendLine("Multimedia: ${model.media.state.value.status}")
             appendLine("Paquetes de sesiones visibles: ${model.media.sessions.map { it.packageName }.distinct().joinToString().ifBlank { "ninguno" }}")
             appendLine("Acciones de sesión seleccionada: ${model.media.state.value.facts.actions}")
+            appendLine("Estado de reproducción publicado: ${model.media.state.value.playbackStateKnown}")
             appendLine("CarPlay: ${model.carplay.connectionStatus}")
             appendLine("Servicio ZLink: ${model.zlinkProbe.state.value}")
             val mediaFacts = model.media.state.value.facts
@@ -31,6 +32,9 @@ class DiagnosticReporter(private val context: Context, private val model: Launch
             appendLine("Datos del vehículo: ${model.vehicle.status}")
             val oem = model.oem.state.value
             appendLine("Lectura OEM: ${oem.status}; eventos=${oem.frames}; activa por el usuario=${model.settings.oemReadEnabled}")
+            appendLine("Suscripción local OEM activa: ${oem.sourceActive}; contiene lecturas anteriores: ${oem.stale}")
+            appendLine(oem.ageSummary)
+            appendLine(oem.voltageRequestStatus)
             appendLine("Valores OEM recibidos: voltaje=${oem.voltage ?: "sin evento"}; temperatura_C=${oem.temperatureC ?: "sin evento"}; máscara de puertas=${oem.doorMask ?: "sin evento"}")
             appendLine("Perfil MCU recibido: ${oem.protocol?.let { "modelo=${it.model}; tipo=${it.type}" } ?: "sin evento; no se presupone a partir del coche"}")
             appendLine(oem.eventReport)
@@ -39,6 +43,8 @@ class DiagnosticReporter(private val context: Context, private val model: Launch
             appendLine(model.vehicle.nativeReport())
             val fix = model.gps.state.value
             appendLine("Calidad GPS: precisión=${fix.accuracyMeters ?: "sin lectura"} m; satélites usados=${fix.satellitesUsed ?: "sin lectura"}")
+            appendLine("Proveedor de posición: ${fix.provider ?: "sin lectura"}; edad de posición_ms=${fix.fixAgeMs ?: "sin lectura"}; satélites visibles=${fix.satellitesVisible ?: "sin lectura"}")
+            appendLine("ACC OEM: ${model.vehicle.accessoryOn.value ?: "sin evento"}; no confirma motor en marcha. Faros de bienvenida: efecto visual.")
             appendLine("Último error al abrir una app: ${model.apps.lastFailure ?: "ninguno"}")
             appendLine("Asignaciones:")
             listOf("zlink", "music", "maps", "phone", "radio", "home").forEach { appendLine("$it: ${model.apps.selected(it)?.flattenToShortString() ?: "sin elegir"}") }

@@ -3,19 +3,25 @@ package com.mustangos.launcher
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.view.View
+import androidx.lifecycle.ViewModelProvider
 import com.mustangos.launcher.ui.MainActivity
 import org.junit.Test
+import org.junit.Before
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import org.robolectric.util.ReflectionHelpers
 import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [32], qualifiers = "w1280dp-h720dp-land-mdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class DashboardRenderTest {
+    @Before fun resetProcessApplicationFactory() {
+        ReflectionHelpers.setStaticField(ViewModelProvider.AndroidViewModelFactory::class.java, "_instance", null)
+    }
     @Test fun renderActualDashboardWithoutInventedData() = render(1280, 720)
     @Test @Config(qualifiers = "w853dp-h480dp-land-mdpi") fun renderCompactDashboard() = render(853, 480)
     private fun render(width: Int, height: Int) {

@@ -85,7 +85,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
-                        android:text="0"
+                        android:text="@string/sensor_value_unknown"
                         android:textColor="#FFFFFFFF"
                         android:textSize="44sp" />
 
@@ -129,7 +129,7 @@
                     style="@style/Muted"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="SISTEMA ELÉCTRICO / ALTERNADOR"
+                    android:text="@string/oem_power_title"
                     android:textSize="11sp"
                     android:letterSpacing="0.1" />
 
@@ -145,7 +145,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
-                        android:text="12.3"
+                        android:text="@string/sensor_value_unknown"
                         android:textColor="#FFFFFFFF"
                         android:textSize="44sp" />
 
@@ -170,7 +170,7 @@
                     style="@style/Title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Batería en reposo (12-14 V)"
+                    android:text="@string/oem_power_unknown"
                     android:textColor="#4CAF50"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -198,7 +198,7 @@
                     style="@style/Muted"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="FUERZA G / DINÁMICA (ACELERÓMETRO)"
+                    android:text="@string/device_acceleration_title"
                     android:textSize="11sp"
                     android:letterSpacing="0.1" />
 
@@ -218,7 +218,7 @@
                             style="@style/Muted"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Lateral (Curvas)"
+                            android:text="@string/device_axis_x"
                             android:textSize="11sp" />
 
                         <TextView
@@ -226,7 +226,7 @@
                             style="@style/Title"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0.00 G"
+                            android:text="@string/sensor_value_unknown"
                             android:textSize="20sp" />
                     </LinearLayout>
 
@@ -240,7 +240,7 @@
                             style="@style/Muted"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Longitudinal (Acel/Freno)"
+                            android:text="@string/device_axis_y"
                             android:textSize="11sp" />
 
                         <TextView
@@ -248,7 +248,7 @@
                             style="@style/Title"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0.00 G"
+                            android:text="@string/sensor_value_unknown"
                             android:textSize="20sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -259,7 +259,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Giroscopio: X: 0.0°/s · Y: 0.0°/s · Z: 0.0°/s"
+                    android:text="@string/device_gyro_unknown"
                     android:textSize="11sp" />
             </LinearLayout>
 
@@ -287,8 +287,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Puertas cerradas"
-                    android:textColor="#4CAF50"
+                    android:text="@string/door_state_unknown"
+                    android:textColor="#8E99A8"
                     android:textSize="18sp" />
 
                 <TextView
@@ -297,11 +297,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Temperatura exterior OEM: sin lectura · Batería: -- °C"
+                    android:text="@string/oem_temperatures_unknown"
                     android:textSize="12sp" />
 
                 <Button
                     android:id="@+id/dashQueryTempBtn"
+                    android:enabled="false"
                     style="@style/ActionButton"
                     android:layout_width="match_parent"
                     android:layout_height="38dp"
@@ -325,7 +326,7 @@
                 style="@style/Muted"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="BUS CAN / MCU TWUTIL · ESTADO Y APPS NATIVAS"
+                android:text="@string/oem_apps_status_title"
                 android:textSize="11sp"
                 android:letterSpacing="0.1" />
 

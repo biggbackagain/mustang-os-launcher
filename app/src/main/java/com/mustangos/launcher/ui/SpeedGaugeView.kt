@@ -10,6 +10,8 @@ import kotlin.math.*
 class SpeedGaugeView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val arc = RectF()
+    private val numberMetrics = Paint.FontMetrics()
+    private val unitMetrics = Paint.FontMetrics()
     private var speed: Float? = null
     private var displayed = 0f
     private var animator: ValueAnimator? = null
@@ -37,9 +39,16 @@ class SpeedGaugeView @JvmOverloads constructor(context: Context, attrs: Attribut
             paint.color = Color.rgb(100, 108, 126)
             canvas.drawLine(cx + cos(rad).toFloat()*inner, cy + sin(rad).toFloat()*inner, cx + cos(rad).toFloat()*radius*0.97f, cy + sin(rad).toFloat()*radius*0.97f, paint)
         }
-        paint.style = Paint.Style.FILL; paint.color = Color.WHITE; paint.textAlign = Paint.Align.CENTER; paint.typeface = Typeface.create("sans-serif-light", Typeface.NORMAL); paint.textSize = min(height * 0.43f, width * 0.23f)
-        canvas.drawText(if (speed == null) "—" else displayed.roundToInt().toString(), cx, cy + height * 0.02f, paint)
-        paint.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL); paint.textSize = height * 0.10f; paint.color = Color.rgb(176,181,192)
-        canvas.drawText("km/h", cx, cy + height * 0.18f, paint)
+        val unitSize = max(height * 0.10f, 12f * resources.displayMetrics.scaledDensity)
+        paint.style = Paint.Style.FILL; paint.textAlign = Paint.Align.CENTER
+        paint.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL); paint.textSize = unitSize
+        paint.getFontMetrics(unitMetrics)
+        val unitBaseline = min(cy + height * 0.18f, height - unitMetrics.descent - 2f * resources.displayMetrics.density)
+        paint.color = Color.WHITE; paint.typeface = Typeface.create("sans-serif-light", Typeface.NORMAL)
+        paint.textSize = min(height * 0.43f, width * 0.23f); paint.getFontMetrics(numberMetrics)
+        val numberBaseline = min(cy + height * 0.02f, unitBaseline + unitMetrics.ascent - numberMetrics.descent - 4f * resources.displayMetrics.density)
+        canvas.drawText(if (speed == null) "—" else displayed.roundToInt().toString(), cx, numberBaseline, paint)
+        paint.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL); paint.textSize = unitSize; paint.color = Color.rgb(176,181,192)
+        canvas.drawText("km/h", cx, unitBaseline, paint)
     }
 }

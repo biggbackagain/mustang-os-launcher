@@ -11,6 +11,7 @@
         <intent><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent>
         <intent><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.HOME" /></intent>
         <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="geo" /></intent>
+        <intent><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.APP_MAPS" /></intent>
     </queries>
     <application android:name=".MustangApplication" android:allowBackup="false" android:fullBackupContent="false" android:dataExtractionRules="@xml/data_extraction_rules" android:label="MUSTANG OS" android:icon="@drawable/ic_launcher" android:theme="@style/Theme.Mustang" android:supportsRtl="true">
         <activity android:name=".ui.MainActivity" android:exported="true" android:screenOrientation="landscape" android:launchMode="singleTask">

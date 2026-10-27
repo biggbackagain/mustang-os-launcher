@@ -28,6 +28,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.shadows.ShadowAlertDialog
 import org.robolectric.annotation.Config
+import org.robolectric.util.ReflectionHelpers
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [32], qualifiers = "w1280dp-h720dp-land-mdpi")
@@ -35,6 +36,7 @@ class LauncherTest {
     private lateinit var app: Application
     private lateinit var prefs: LauncherSettings
     @Before fun setup() {
+        ReflectionHelpers.setStaticField(ViewModelProvider.AndroidViewModelFactory::class.java, "_instance", null)
         app = RuntimeEnvironment.getApplication()
         app.getSharedPreferences("launcher", 0).edit().clear().commit()
         prefs = LauncherSettings(app)
