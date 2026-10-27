@@ -1,25 +1,62 @@
 package com.mustangos.launcher.diagnostics
 
 import android.content.Context
+import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.pm.PermissionInfo
+import android.content.pm.ResolveInfo
 import android.os.Build
 import org.xmlpull.v1.XmlPullParser
 
 /** Reads declarations only. Never constructs TWUtil, binds a service, queries a provider or writes MCU commands. */
-class OemInspector(private val context: Context) {
-    fun report(): String = buildString {
+class OemInspector(
+    private val context: Context,
+    private val homeQuery: () -> List<ResolveInfo> = {
+        context.packageManager.queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME), PackageManager.MATCH_DISABLED_COMPONENTS)
+    }
+) {
+    data class HomeActivity(val packageName: String, val activityName: String, val systemApp: Boolean, val ownApp: Boolean)
+    data class HomeInventory(val activities: List<HomeActivity> = emptyList(), val truncated: Boolean = false, val unavailable: Boolean = false)
+
+    fun discoverHomes(): HomeInventory = try {
+        val homes = homeQuery().mapNotNull { result ->
+            val activity = result.activityInfo ?: return@mapNotNull null
+            val pkg = activity.packageName?.takeIf { it.length <= 255 && it.matches(PACKAGE_NAME) } ?: return@mapNotNull null
+            val name = activity.name?.takeIf { it.length <= 512 && it.matches(ACTIVITY_NAME) } ?: return@mapNotNull null
+            val flags = runCatching { context.packageManager.getApplicationInfo(pkg, 0).flags }.getOrElse { activity.applicationInfo?.flags ?: 0 }
+            HomeActivity(pkg, name, flags and (ApplicationInfo.FLAG_SYSTEM or ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0,
+                pkg == context.packageName)
+        }.distinctBy { it.packageName to it.activityName }.sortedWith(compareBy(HomeActivity::packageName, HomeActivity::activityName))
+        HomeInventory(homes.take(MAX_HOME_ACTIVITIES), truncated = homes.size > MAX_HOME_ACTIVITIES)
+    } catch (_: RuntimeException) { HomeInventory(unavailable = true) }
+
+    fun exportPackages(homes: HomeInventory): List<String> = (PACKAGES + homes.activities.asSequence()
+        .filter { it.systemApp && !it.ownApp }.map { it.packageName }.distinct().sorted().take(MAX_HOME_PACKAGES).toList()).distinct()
+
+    fun report(homes: HomeInventory = discoverHomes()): String = buildString {
         appendLine("INSPECCIÓN OEM DE SOLO LECTURA")
         appendLine("SDK real: ${Build.VERSION.SDK_INT}")
         appendLine("La presencia de una clase o componente no demuestra acceso a datos.")
         val apps = com.mustangos.launcher.appintegration.AppIntegrationManager(context, com.mustangos.launcher.settings.LauncherSettings(context))
         appendLine("Incrustación entre apps: ${if (Build.VERSION.SDK_INT < 33) "API estándar entre apps no disponible antes de API 33" else "requiere soporte del fabricante y autorización del manifest de ZLink"}")
         appendLine("Actividades en pantallas secundarias: ${context.packageManager.hasSystemFeature(PackageManager.FEATURE_ACTIVITIES_ON_SECONDARY_DISPLAYS)}")
-        for (pkg in PACKAGES) {
+        val packages = exportPackages(homes)
+        appendLine("HOME visibles (solo paquete/actividad):")
+        if (homes.unavailable) appendLine("Inventario HOME no permitido; no se deducen clientes del launcher")
+        else if (homes.activities.isEmpty()) appendLine("No se encontraron actividades HOME visibles")
+        homes.activities.forEach { home ->
+            val classification = when { home.ownApp -> "propia; omitida"; home.systemApp -> "sistema/actualización de sistema"; else -> "app de usuario; solo inventario" }
+            appendLine("HOME ${home.packageName}/${home.activityName}: $classification; seleccionado para exportar=${home.packageName in packages && !home.ownApp}")
+        }
+        if (homes.truncated) appendLine("Inventario HOME limitado a $MAX_HOME_ACTIVITIES actividades")
+        appendLine("Exportación HOME: máximo $MAX_HOME_PACKAGES paquetes de sistema; APK propia y HOME de usuario excluidas")
+        for (pkg in packages) {
             try {
                 val info = context.packageManager.getPackageInfo(pkg, PackageManager.GET_ACTIVITIES or PackageManager.GET_SERVICES or PackageManager.GET_RECEIVERS or PackageManager.GET_PROVIDERS)
                 appendLine("\n$pkg · ${info.versionName ?: "versión no declarada"}")
                 appendLine(apps.exportedComponents(pkg))
+                appendLine(libraryDeclarations(pkg))
                 if (pkg == "com.zjinnova.zlink") appendLine(embeddingDeclarations(pkg))
                 val permissions = info.services.orEmpty().mapNotNull { it.permission }.distinct()
                 permissions.forEach { permission ->
@@ -39,6 +76,13 @@ class OemInspector(private val context: Context) {
               catch (_: SecurityException) { appendLine("Clase restringida: $name") }
         }
     }
+    private fun libraryDeclarations(pkg: String): String = try {
+        context.packageManager.getResourcesForApplication(pkg).assets.openXmlResourceParser("AndroidManifest.xml").use { xml ->
+            "Bibliotecas compartidas declaradas (máx. $MAX_LIBRARY_NAMES nombres; sin copiar ni cargar): " +
+                declaredLibraryNames(xml).joinToString().ifEmpty { "ninguna declarada visible" }
+        }
+    } catch (_: Exception) { "Bibliotecas compartidas declaradas: manifest no legible; no se consultan rutas ni se cargan archivos" }
+
     private fun embeddingDeclarations(pkg: String): String = try {
         val assets = context.packageManager.getResourcesForApplication(pkg).assets
         assets.openXmlResourceParser("AndroidManifest.xml").use { xml ->
@@ -59,6 +103,26 @@ class OemInspector(private val context: Context) {
     } catch (_: Exception) { "Manifest de ZLink no legible desde esta APK; no se asume autorización" }
 
     companion object {
-        val PACKAGES = listOf("com.zjinnova.zlink", "com.tw.service", "com.tw.uart", "com.tw.car", "com.tw.ac", "com.dofun.carassistant.car", "com.dofun.carsetting", "com.android.systemui")
+        const val MAX_HOME_PACKAGES = 4
+        const val MAX_HOME_ACTIVITIES = 64
+        private const val MAX_LIBRARY_NAMES = 32
+        private val PACKAGE_NAME = Regex("[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*")
+        private val ACTIVITY_NAME = Regex("[A-Za-z0-9_.$]+")
+        private val LIBRARY_NAME = Regex("[A-Za-z0-9_.-]{1,200}")
+        private val LIBRARY_TAGS = setOf("uses-library", "uses-static-library", "uses-sdk-library", "uses-native-library")
+        val PACKAGES = listOf("com.zjinnova.zlink", "com.tw.service", "com.tw.uart", "com.tw.car", "com.tw.ac", "com.tw.bt", "com.tw.music", "com.dofun.carassistant.car", "com.dofun.carsetting", "com.android.systemui")
+
+        internal fun declaredLibraryNames(xml: XmlPullParser): List<String> {
+            val names = sortedSetOf<String>()
+            var tag = xml.eventType
+            while (tag != XmlPullParser.END_DOCUMENT && names.size < MAX_LIBRARY_NAMES) {
+                if (tag == XmlPullParser.START_TAG && xml.name in LIBRARY_TAGS) {
+                    xml.getAttributeValue("http://schemas.android.com/apk/res/android", "name")
+                        ?.takeIf { it.matches(LIBRARY_NAME) }?.let(names::add)
+                }
+                tag = xml.next()
+            }
+            return names.toList()
+        }
     }
 }
