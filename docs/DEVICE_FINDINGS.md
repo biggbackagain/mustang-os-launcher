@@ -63,3 +63,11 @@ Motor y el diagnóstico exportado separan conteos recibidos/interpretados por c�
 - Inspeccionar el servicio de ZLink con CarPlay ya abierto y compartir un informe nuevo.
 - Las RPM, refrigerante, kilometraje y velocidad CAN no tienen un contrato verificado; permanecen ausentes. La velocidad GPS sigue siendo una fuente independiente.
 - La superficie interactiva CarPlay continúa sin integración verificada dentro del widget. Haría falta un contrato de superficie autorizado del proveedor; el nombre del Binder por sí solo no bastará.
+
+## Segundo informe recibido · 27 de octubre de 2026
+
+ZIP de 0.3.1: 10 599 573 bytes, 25 entradas y 27 362 615 bytes sin comprimir. SHA-256 `0BCC9B21DC61B62E05DF2E7FC2AB3AE15466531DE03649BB9059A6DCB0DDF62F`. Se validaron rutas y tamaños; los manifiestos/DEX OEM son idénticos al primer ZIP por SHA-256. No fue necesario repetir su decompilación.
+
+El informe se generó con la lectura OEM desactivada, cero eventos y sin valores/perfil. El usuario confirma que vio `OEM · recepción real` y **después detuvo la lectura** antes de exportar. `setEnabled(false)` cierra la fuente y borra los valores/contadores: esta captura vacía no prueba un rechazo de suscripción ni la ausencia de puertas/temperatura en los canales nuevos. No había errores registrados. La próxima captura debe generarse mientras la escucha está activa; cerrar el diálogo con **Cerrar** conserva la fuente, mientras que **Detener lectura OEM** la desactiva.
+
+ZLink seguía sin inspeccionar en ese informe; solo estaba visible `com.tw.bt`, con acciones 0 y sin campos multimedia publicados. Esto describe ese instante y no demuestra que ZLink nunca publique una sesión. El descriptor y la superficie CarPlay siguen pendientes. Para capturar ambos diagnósticos: inspeccionar ZLink primero, luego iniciar escucha OEM, abrir/cerrar la puerta con Mustang OS visible, cerrar el diálogo con **Cerrar** y generar el informe antes de detener la escucha. La app conserva el texto generado antes de abrir el selector de archivos.

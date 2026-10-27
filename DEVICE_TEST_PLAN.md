@@ -8,6 +8,8 @@ Actualización: el ZIP de compatibilidad fue recibido. La 0.3.0 incorpora el lec
 
 Resultado físico 0.3.0: acceso TWUtil y voltaje **CONFIRMADOS** por foto (14.1 V coincide con barra OEM; 40 eventos). Puertas y temperatura ambiente aún **PENDIENTES en Mustang OS**; el usuario confirma que aparecen en la interfaz Android original. La 0.3.1 añade contadores por canal y escucha de 1281/266. Para la próxima prueba: mantener el launcher visible, abrir/cerrar una puerta, revisar **Motor** y exportar el ZIP antes de salir de Mustang OS. El perfil 266 puede no llegar hasta una emisión natural; no se envía una consulta para forzarlo.
 
+Segundo ZIP recibido el 27 de octubre: 0.3.1 instalada y recepción OEM vista por el usuario, pero la escucha se detuvo antes de generar el diagnóstico. Sus valores y contadores ya estaban borrados; puertas/temperatura no se califican como fallidas ni superadas. Repetir con la misma APK: cerrar Motor con **Cerrar**, mantener la escucha activa y generar el informe antes de pulsar **Detener lectura OEM**. Inspeccionar ZLink antes de esta escucha para conservar ambos resultados en el informe final.
+
 Antes de configurar Home: confirma que ZLink, radio, cámara y mandos funcionan con el launcher original; anota cómo volver a él. Instala Mustang OS como APK normal y realiza primero las pruebas sin cambiar Home. Prueba reversa con el vehículo inmovilizado, freno aplicado y las precauciones habituales del fabricante.
 
 | Caso | Pasos / resultado esperado | Estado |
