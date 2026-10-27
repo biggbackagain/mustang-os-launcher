@@ -23,9 +23,13 @@ object OemEventParser {
     fun parse(code: Int, arg1: Int, payload: ByteArray?, fahrenheitSource: Boolean = false, protocol: OemProtocol? = null): OemEvent? = when (code) {
         514 -> OemEvent.Heartbeat
         1292 -> {
-            if (arg1 != 0 || payload == null || payload.size < 2 || payload[0].toInt() and 0x80 != 0) null
+            if (arg1 != 0 || payload == null || payload.size < 2) null
             else {
-                val voltage = (((payload[0].toInt() and 0x7f) shl 8) or (payload[1].toInt() and 0xff)) / 100f
+                // StatusBar$5 reads getValue(byte[0], 0, 7) * 256 + (byte[1] & 0xFF), multiplied by 0.01.
+                // The upper bit (0x80) on byte 0 is the data-ready flag from the MCU.
+                val b0 = payload[0].toInt() and 0x7f
+                val b1 = payload[1].toInt() and 0xff
+                val voltage = ((b0 shl 8) or b1) / 100f
                 voltage.takeIf { it in 3f..32f }?.let(OemEvent::Voltage)
             }
         }
@@ -35,9 +39,9 @@ object OemEventParser {
             else OemEvent.Temperature(if (fahrenheitSource) (raw - 32) / 1.8f else raw.toFloat())
         }
         1285 -> payload?.getOrNull(0)?.let { OemEvent.Doors(it.toInt() and 0xf8) }
-        // Only the model 0x41/type 2 branch observed in this firmware; other models route differently.
-        1281 -> if (protocol == OemProtocol(0x41, 2) && arg1 == 56)
-            payload?.getOrNull(0)?.let { OemEvent.Doors(it.toInt() and 0xf8) } else null
+        1281 -> if (protocol == OemProtocol(0x41, 2) && arg1 in intArrayOf(56, 34, 36, 96)) {
+            payload?.getOrNull(0)?.let { OemEvent.Doors(it.toInt() and 0xf8) }
+        } else null
         else -> null
     }
 }

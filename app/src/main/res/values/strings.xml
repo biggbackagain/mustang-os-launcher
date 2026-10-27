@@ -1,4 +1,4 @@
-<resources>
+﻿<resources>
     <string name="brand_name">"MUSTANG"</string>
     <string name="brand_os">" OS"</string>
     <string name="vehicle_subtitle">"  /  CONVERTIBLE · 2010"</string>
@@ -24,10 +24,10 @@
     <string name="navigation_title">"Navegación"</string>
     <string name="navigation_carplay_title">"Tu ruta, en CarPlay"</string>
     <string name="navigation_carplay_explanation">"Abre ZLink para ver Apple Maps, Google Maps o Waze desde tu iPhone."</string>
-    <string name="carplay_unknown_connection">"Conexión CarPlay no verificable"</string>
+    <string name="carplay_unknown_connection">"Conecta el iPhone por USB y abre ZLink"</string>
     <string name="carplay_open">"Abrir CarPlay / ZLink"</string>
     <string name="android_maps">"Mapas Android"</string>
-    <string name="navigation_no_route">"Sin acceso verificado a rutas de CarPlay"</string>
+    <string name="navigation_no_route">"Conecta CarPlay para ver la ruta activa"</string>
     <string name="dock_music">"Música"</string>
     <string name="dock_carplay">"CarPlay"</string>
     <string name="dock_navigation">"Navegación"</string>

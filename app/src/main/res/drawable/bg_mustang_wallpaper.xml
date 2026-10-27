@@ -1,0 +1,48 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="1280dp"
+    android:height="720dp"
+    android:viewportWidth="1280"
+    android:viewportHeight="720">
+
+    <!-- Deep dark automotive background -->
+    <path
+        android:fillColor="#090B0F"
+        android:pathData="M 0,0 L 1280,0 L 1280,720 L 0,720 Z" />
+
+    <!-- Subtle vertical grid accent lines -->
+    <path
+        android:strokeColor="#08FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M 370,0 L 370,720 M 910,0 L 910,720" />
+
+    <!-- Iconic Mustang Pony centered watermark with subtle 9% opacity (#18FFFFFF) -->
+    <!-- Scaled and positioned in center of 1280x720 canvas (center is 640, 360) -->
+    <group
+        android:translateX="440"
+        android:translateY="230"
+        android:scaleX="2.0"
+        android:scaleY="2.0">
+        <!-- Mustang Galloping Horse silhouette -->
+        <path
+            android:fillColor="#15FFFFFF"
+            android:pathData="M 185,28 C 180,24 172,21 165,22 C 160,19 152,16 142,16 C 135,16 128,18 122,21 C 117,17 109,14 100,14 C 95,14 88,16 82,19 C 76,14 67,11 58,11 C 52,11 45,13 40,16 C 36,12 30,10 24,11 C 18,12 14,16 12,21 C 10,26 12,32 16,36 C 14,40 13,45 15,49 C 18,55 24,58 31,58 C 36,58 42,56 46,52 C 50,56 56,58 63,58 C 70,58 76,55 81,50 C 85,55 92,58 99,58 C 107,58 114,54 119,49 C 124,54 131,57 139,57 C 147,57 154,53 159,48 C 165,52 173,54 180,52 C 186,50 191,45 192,39 C 193,34 190,29 185,28 Z M 48,27 C 50,23 54,20 59,20 C 65,20 70,24 71,29 C 67,31 62,33 57,33 C 52,33 49,30 48,27 Z M 168,36 C 164,40 158,42 152,41 C 148,37 146,31 149,26 C 153,23 160,23 165,27 C 168,29 169,33 168,36 Z"/>
+        <path
+            android:fillColor="#15FFFFFF"
+            android:pathData="M 32,56 L 22,74 L 14,72 L 26,53 Z"/>
+        <path
+            android:fillColor="#15FFFFFF"
+            android:pathData="M 52,56 L 68,76 L 76,74 L 58,54 Z"/>
+        <path
+            android:fillColor="#15FFFFFF"
+            android:pathData="M 134,54 L 142,75 L 150,73 L 141,52 Z"/>
+        <path
+            android:fillColor="#15FFFFFF"
+            android:pathData="M 162,50 L 180,72 L 188,69 L 169,48 Z"/>
+        <path
+            android:fillColor="#15FFFFFF"
+            android:pathData="M 188,32 C 194,30 198,24 196,18 C 194,14 189,12 184,13 C 181,17 180,22 182,27 Z"/>
+        <path
+            android:fillColor="#15FFFFFF"
+            android:pathData="M 14,24 C 8,28 4,36 6,44 C 8,50 14,54 20,53 C 18,47 17,40 18,34 Z"/>
+    </group>
+</vector>

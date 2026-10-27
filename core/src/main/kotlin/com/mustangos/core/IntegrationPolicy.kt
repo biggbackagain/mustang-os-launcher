@@ -30,7 +30,7 @@ data class MediaFacts(
     val actions: Long = 0
 ) {
     fun supports(command: MediaCommand): Boolean = source != null &&
-        (actions and command.action != 0L ||
+        (actions == 0L || actions and command.action != 0L ||
             (command == MediaCommand.PLAY || command == MediaCommand.PAUSE) && actions and 512L != 0L)
     fun progress(nowMs: Long): Long {
         if (durationMs <= 0) return 0

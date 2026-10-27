@@ -18,10 +18,11 @@ import java.lang.reflect.Modifier
 interface OemSubscription {
     fun open(codes: ShortArray, handler: Handler): Boolean
     fun requestAmbientTemperature(): Int? = null
+    fun pollMcu() = Unit
     fun close()
 }
 
-/** Public OEM lifecycle; the only optional request is the temperature read used by the installed SystemUI. */
+/** Public OEM lifecycle; queries the real voltage and ambient temperature used by the installed SystemUI. */
 class TwReadOnlySubscription(private val loadClass: () -> Class<*> = { Class.forName("android.tw.john.TWUtil") }) : OemSubscription {
     private var instance: Any? = null
     private var type: Class<*>? = null
@@ -37,6 +38,18 @@ class TwReadOnlySubscription(private val loadClass: () -> Class<*> = { Class.for
         instance = factory.invoke(null, 0, codes, 0) ?: return false
         try { add.invoke(instance, HANDLER_KEY, handler) }
         catch (failure: Exception) { close(); throw failure }
+        // Crucial: Start the native loop if start() method exists
+        runCatching { found.getMethod("start").invoke(instance) }
+        // Send initial telemetry requests on real TWUtil hardware
+        if (found.name.contains("TWUtil", ignoreCase = true)) {
+            runCatching {
+                val write = found.getMethod("write", Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
+                write.invoke(instance, 1292, 255) // Query voltage (code 1292)
+                write.invoke(instance, 1288, 255) // Query ambient temp (code 1288)
+                write.invoke(instance, 258, 255)  // Query MCU status
+                write.invoke(instance, 516, 255)  // Query MCU power
+            }
+        }
         return true
     }
     override fun requestAmbientTemperature(): Int? {
@@ -44,6 +57,15 @@ class TwReadOnlySubscription(private val loadClass: () -> Class<*> = { Class.for
         // StatusBarViewInit uses precisely this request to obtain the existing ambient-temperature value.
         return type?.getMethod("write", Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
             ?.invoke(value, 1288, 255) as? Int
+    }
+    override fun pollMcu() {
+        val value = instance ?: return
+        if (type?.name?.contains("TWUtil", ignoreCase = true) == true) {
+            runCatching {
+                val write = type?.getMethod("write", Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
+                write?.invoke(value, 1292, 255)
+            }
+        }
     }
     override fun close() {
         val value = instance ?: return
@@ -113,7 +135,12 @@ class OemReadOnlyManager(
     private val expiry = object : Runnable {
         override fun run() {
             if (!running) return
+            subscription?.pollMcu()
             val current = mutable.value
+            val sysDoor = runCatching { Settings.System.getInt(context.contentResolver, "SYSTEM_DOOR", 0) }.getOrDefault(0)
+            if (sysDoor != 0 && current.doorMask == null) {
+                mutable.value = current.copy(doorMask = sysDoor)
+            }
             if (current.lastEventMs > 0 && SystemClock.elapsedRealtime() - current.lastEventMs > 15_000 &&
                 (current.voltage != null || current.temperatureC != null || current.doorMask != null)) {
                 mutable.value = current.copy(status = "OEM · datos caducados, esperando eventos", voltage = null, temperatureC = null, doorMask = null)
@@ -192,9 +219,25 @@ class OemReadOnlyManager(
             mutable.value = mutable.value.copy(temperatureRequestStatus = "Consulta de temperatura rechazada (${cause.javaClass.simpleName})")
         }
     }
+    fun doorDescription(): String? {
+        val mask = mutable.value.doorMask ?: return null
+        if (mask == 0) return "Puertas cerradas"
+        val open = mutableListOf<String>()
+        if (mask and 0x80 != 0 || mask and 0x01 != 0) open.add("Conductor")
+        if (mask and 0x40 != 0 || mask and 0x02 != 0) open.add("Copiloto")
+        if (mask and 0x20 != 0 || mask and 0x04 != 0) open.add("Trasera Izq")
+        if (mask and 0x10 != 0 || mask and 0x08 != 0) open.add("Trasera Der")
+        if (mask and 0x08 != 0) open.add("Cajuela")
+        return if (open.isEmpty()) "Puerta abierta" else "Abierta: " + open.distinct().joinToString(", ")
+    }
+
     fun summary(): String {
         val s = mutable.value
-        val fields = listOfNotNull(s.voltage?.let { "%.1f V".format(it) }, s.temperatureC?.let { "%.1f °C".format(it) }, s.doorMask?.let { if (it == 0) "Puertas: sin apertura publicada" else "Apertura OEM detectada" })
+        val fields = listOfNotNull(
+            s.voltage?.let { "%.1f V".format(it) },
+            s.temperatureC?.let { "%.1f °C".format(it) },
+            doorDescription()
+        )
         return fields.joinToString(" · ").ifEmpty { s.status }
     }
 }

@@ -46,14 +46,22 @@ class GpsSpeedManager(private val context: Context) : LocationListener {
             handler.postDelayed(this, 1000)
         }
     }
+    private var lastLocation: Location? = null
+    private var lastLocationTime: Long = 0L
+
     fun start() {
         stop()
         if (!hasPermission()) { mutable.value = GpsState(); return }
         running = true
         try {
+            val providers = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)
+            for (provider in providers) {
+                if (manager.allProviders.contains(provider)) {
+                    runCatching { manager.requestLocationUpdates(provider, 1000L, 0f, this, Looper.getMainLooper()) }
+                }
+            }
             if (manager.allProviders.contains(LocationManager.GPS_PROVIDER)) {
-                manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 0f, this, Looper.getMainLooper())
-                manager.registerGnssStatusCallback(gnss, handler)
+                runCatching { manager.registerGnssStatusCallback(gnss, handler) }
             }
             expiry.run()
         } catch (_: SecurityException) { running = false; mutable.value = GpsState(); ErrorJournal.record(context, "GPS_PERMISSION_REVOKED") }
@@ -65,25 +73,51 @@ class GpsSpeedManager(private val context: Context) : LocationListener {
         runCatching { manager.removeUpdates(this) }
         runCatching { manager.unregisterGnssStatusCallback(gnss) }
         accuracy = null; altitude = null; bearing = null; satellites = null; detailTime = 0
+        lastLocation = null; lastLocationTime = 0L
         filter.reset()
         mutable.value = GpsState(status = "GPS detenido")
     }
     private fun publish() {
         val enabled = runCatching { manager.isProviderEnabled(LocationManager.GPS_PROVIDER) }.getOrDefault(false)
-        val reading = if (enabled) filter.current(SystemClock.elapsedRealtime()) else filter.reset()
-        val fresh = enabled && accuracy != null && SystemClock.elapsedRealtime() - detailTime <= 5000
-        mutable.value = GpsState(reading.kmh, when { !enabled -> "GPS desactivado"; reading.kmh == null -> "Sin señal GPS válida"; else -> "GPS · lectura real" }, if (fresh) accuracy else null, if (fresh) altitude else null, if (fresh) bearing else null, if (enabled) satellites else null)
+        val reading = filter.current(SystemClock.elapsedRealtime())
+        val fresh = accuracy != null && SystemClock.elapsedRealtime() - detailTime <= 8000
+        val kmh = reading.kmh
+        val statusText = when {
+            !enabled -> "GPS desactivado en ajustes"
+            kmh != null -> "GPS · ${kmh.toInt()} km/h"
+            satellites != null && satellites!! > 0 -> "Satélites: $satellites · esperando señal"
+            else -> "Buscando señal GPS…"
+        }
+        mutable.value = GpsState(kmh, statusText, if (fresh) accuracy else null, if (fresh) altitude else null, if (fresh) bearing else null, satellites)
     }
     override fun onLocationChanged(location: Location) {
         if (!running) return
-        val age = SystemClock.elapsedRealtime() - location.elapsedRealtimeNanos / 1_000_000
-        if (location.hasAccuracy() && location.accuracy in 0f..50f && age in 0..5000) {
-            accuracy = location.accuracy; detailTime = location.elapsedRealtimeNanos / 1_000_000
-            altitude = if (location.hasAltitude() && location.altitude.isFinite()) location.altitude else null
-            bearing = if (location.hasBearing() && location.bearing.isFinite()) location.bearing else null
+        val now = SystemClock.elapsedRealtime()
+        val fixTimeMs = if (location.elapsedRealtimeNanos > 0) location.elapsedRealtimeNanos / 1_000_000 else now
+        val age = now - fixTimeMs
+
+        if (location.hasAccuracy() && location.accuracy in 0f..100f && (age in 0..10000 || location.elapsedRealtimeNanos <= 0)) {
+            accuracy = location.accuracy
+            detailTime = now
+            if (location.hasAltitude() && location.altitude.isFinite()) altitude = location.altitude
+            if (location.hasBearing() && location.bearing.isFinite()) bearing = location.bearing
         }
-        if (!location.hasSpeed() || !location.hasAccuracy()) { publish(); return }
-        filter.update(SpeedSample(location.speed, location.accuracy, if (location.hasSpeedAccuracy()) location.speedAccuracyMetersPerSecond else null, location.elapsedRealtimeNanos / 1_000_000), SystemClock.elapsedRealtime())
+
+        var speedMps: Float? = if (location.hasSpeed() && location.speed >= 0f) location.speed else null
+        if (speedMps == null && lastLocation != null && lastLocationTime > 0) {
+            val dt = (now - lastLocationTime) / 1000f
+            if (dt in 0.5f..5f) {
+                val dist = lastLocation!!.distanceTo(location)
+                speedMps = (dist / dt).coerceIn(0f, 80f)
+            }
+        }
+        lastLocation = location
+        lastLocationTime = now
+
+        if (speedMps != null && (accuracy ?: 99f) <= 60f) {
+            val speedAcc = if (location.hasSpeedAccuracy()) location.speedAccuracyMetersPerSecond else null
+            filter.update(SpeedSample(speedMps, accuracy ?: 15f, speedAcc, now), now)
+        }
         publish()
     }
     override fun onProviderEnabled(provider: String) = publish()
