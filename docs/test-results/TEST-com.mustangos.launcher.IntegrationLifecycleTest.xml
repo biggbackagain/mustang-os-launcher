@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.mustangos.launcher.IntegrationLifecycleTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-27T03:55:08.781Z" hostname="DESKTOP-3IU4CK5" time="0.131">
+  <properties/>
+  <testcase name="revokedMediaAccessClearsSourceAndControls" classname="com.mustangos.launcher.IntegrationLifecycleTest" time="0.034"/>
+  <testcase name="metadataAndCapabilityCallbacksRemoveStaleData" classname="com.mustangos.launcher.IntegrationLifecycleTest" time="0.037"/>
+  <testcase name="gpsListenerExpiresAndStopsWithoutBackgroundUpdates" classname="com.mustangos.launcher.IntegrationLifecycleTest" time="0.06"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

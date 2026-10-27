@@ -1,0 +1,203 @@
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\diagnostics\ErrorJournal.kt:15: Warning: Consider using apply() instead; commit writes its data to persistent storage immediately, whereas apply will handle it in the background [ApplySharedPref]
+        if (safeCode.startsWith("CRASH_")) edit.commit() else edit.apply()
+                                                ~~~~~~~~
+
+   Explanation for issues of type "ApplySharedPref":
+   Consider using apply() instead of commit on shared preferences. Whereas
+   commit blocks and writes its data to persistent storage immediately, apply
+   will handle it in the background.
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\build.gradle.kts:8: Warning: Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the android.os.Build.VERSION_CODES javadoc for details. [OldTargetApi]
+        targetSdk = 35
+        ~~~~~~~~~~~~~~
+
+   Explanation for issues of type "OldTargetApi":
+   When your application or sdk runs on a version of Android that is more
+   recent than your targetSdkVersion specifies that it has been tested with,
+   various compatibility modes kick in. This ensures that your application
+   continues to work, but it may look out of place. For example, if the
+   targetSdkVersion is less than 14, your app may get an option button in the
+   UI.
+
+   To fix this issue, set the targetSdkVersion to the highest available value.
+   Then test your app to make sure everything works correctly. You may want to
+   consult the compatibility notes to see what changes apply to each version
+   you are adding support for:
+   https://developer.android.com/reference/android/os/Build.VERSION_CODES.html
+   as well as follow this guide:
+   https://developer.android.com/distribute/best-practices/develop/target-sdk.
+   html
+
+   https://developer.android.com/distribute/best-practices/develop/target-sdk.html
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\build.gradle.kts:4: Warning: A newer version of compileSdkVersion than 35 is available: 36 [GradleDependency]
+    compileSdk = 35
+    ~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\build.gradle.kts:20: Warning: A newer version of androidx.activity:activity-ktx than 1.10.1 is available: 1.13.0 [GradleDependency]
+    implementation("androidx.activity:activity-ktx:1.10.1")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\build.gradle.kts:21: Warning: A newer version of androidx.lifecycle:lifecycle-viewmodel-ktx than 2.8.7 is available: 2.11.0 [GradleDependency]
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\build.gradle.kts:22: Warning: A newer version of androidx.lifecycle:lifecycle-runtime-ktx than 2.8.7 is available: 2.11.0 [GradleDependency]
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "GradleDependency":
+   This detector looks for usages of libraries where the version you are using
+   is not the current stable release. Using older versions is fine, and there
+   are cases where you deliberately want to stick with an older version.
+   However, you may simply not be aware that a more recent version is
+   available, and that is what this lint check helps find.
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\build.gradle.kts:23: Warning: A newer version of org.jetbrains.kotlinx:kotlinx-coroutines-android than 1.10.2 is available: 1.11.0 [NewerVersionAvailable]
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\build.gradle.kts:25: Warning: A newer version of org.robolectric:robolectric than 4.14.1 is available: 4.17 [NewerVersionAvailable]
+    testImplementation("org.robolectric:robolectric:4.14.1")
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "NewerVersionAvailable":
+   This detector checks with a central repository to see if there are newer
+   versions available for the dependencies used by this project. This is
+   similar to the GradleDependency check, which checks for newer versions
+   available in the Android SDK tools and libraries, but this works with any
+   MavenCentral dependency, and connects to the library every time, which
+   makes it more flexible but also much slower.
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\AndroidManifest.xml:12: Warning: Fixed screen orientations will be ignored in most cases, starting from Android 16. Android is moving toward a model where apps are expected to adapt to various orientations, display sizes, and aspect ratios. [DiscouragedApi]
+        <activity android:name=".ui.MainActivity" android:exported="true" android:screenOrientation="landscape" android:launchMode="singleTask">
+                                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "DiscouragedApi":
+   Discouraged APIs are allowed and are not deprecated, but they may be unfit
+   for common use (e.g. due to slow performance or subtle behavior).
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\activity_main.xml:12: Warning: This tag and its children can be replaced by one <TextView/> and a compound drawable [UseCompoundDrawables]
+            <LinearLayout android:layout_width="match_parent" android:layout_height="@dimen/card_header_height" android:gravity="center_vertical">
+             ~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\activity_main.xml:45: Warning: This tag and its children can be replaced by one <TextView/> and a compound drawable [UseCompoundDrawables]
+            <LinearLayout android:layout_width="match_parent" android:layout_height="@dimen/card_header_height" android:gravity="center_vertical">
+             ~~~~~~~~~~~~
+
+   Explanation for issues of type "UseCompoundDrawables":
+   A LinearLayout which contains an ImageView and a TextView can be more
+   efficiently handled as a compound drawable (a single TextView, using the
+   drawableTop, drawableLeft, drawableRight and/or drawableBottom attributes
+   to draw one or more images adjacent to the text).
+
+   If the two widgets are offset from each other with margins, this can be
+   replaced with a drawablePadding attribute.
+
+   There's a lint quickfix to perform this conversion in the Eclipse plugin.
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\activity_main.xml:11: Warning: Nested weights are bad for performance [NestedWeights]
+        <LinearLayout style="@style/Card" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="0.29" android:orientation="vertical">
+                                                                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\activity_main.xml:16: Warning: Nested weights are bad for performance [NestedWeights]
+            <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="@dimen/art_margin_top" android:layout_marginBottom="@dimen/art_margin_bottom">
+                                                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "NestedWeights":
+   Layout weights require a widget to be measured twice. When a LinearLayout
+   with non-zero weights is nested inside another LinearLayout with non-zero
+   weights, then the number of measurements increase exponentially.
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\activity_main.xml:1: Warning: Possible overdraw: Root element paints background #090B0F with a theme that also paints a background (inferred theme is @style/Theme.Mustang) [Overdraw]
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/root" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="#090B0F" android:paddingLeft="16dp" android:paddingRight="16dp">
+                                                                                                                                                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "Overdraw":
+   If you set a background drawable on a root view, then you should use a
+   custom theme where the theme background is null. Otherwise, the theme
+   background will be painted first, only to have your custom background
+   completely cover it; this is called "overdraw".
+
+   NOTE: This detector relies on figuring out which layouts are associated
+   with which activities based on scanning the Java code, and it's currently
+   doing that using an inexact pattern matching algorithm. Therefore, it can
+   incorrectly conclude which activity the layout is associated with and then
+   wrongly complain that a background-theme is hidden.
+
+   If you want your custom background on multiple pages, then you should
+   consider making a custom theme with your custom background and just using
+   that theme instead of a root element background.
+
+   Of course it's possible that your custom drawable is translucent and you
+   want it to be mixed with the background. However, you will get better
+   performance if you pre-mix the background with your drawable and use that
+   resulting image or color as a custom theme background instead.
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\appintegration\AppIntegrationManager.kt:16: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+    fun maps(): List<LaunchableApp> = query(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("geo:0,0?q=")))
+                                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\settings\LauncherSettings.kt:9: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+    fun setComponent(role: String, value: ComponentName?) { prefs.edit().putString("app_$role", value?.flattenToString()).apply() }
+                                                            ~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\settings\LauncherSettings.kt:12: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        set(value) { prefs.edit().putString("media", value).apply() }
+                     ~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:160: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+                .setNeutralButton("Permisos de la app") { _, _ -> safeSettings(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:$packageName"))) }
+                                                                                                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\media\MediaIntegrationManager.kt:84: Warning: Use the KTX extension function Bitmap.scale instead? [UseKtx]
+            val art = image?.let { if (maxOf(it.width, it.height) > 384) { val scale = 384f / maxOf(it.width, it.height); Bitmap.createScaledBitmap(it, (it.width * scale).toInt().coerceAtLeast(1), (it.height * scale).toInt().coerceAtLeast(1), true) } else it }
+                                                                                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "UseKtx":
+   The Android KTX libraries decorates the Android platform SDK as well as
+   various libraries with more convenient extension functions available from
+   Kotlin, allowing you to use default parameters, named parameters, and
+   more.
+
+   Available options:
+
+   **remove-defaults** (default is true):
+   Whether to skip arguments that match the defaults provided by the extension.
+
+   Extensions often provide default values for some of the parameters. For example:
+   ```kotlin
+   fun Path.readLines(charset: Charset = Charsets.UTF_8): List<String> { return Files.readAllLines(this, charset) }
+   ```
+   This lint check will by default automatically omit parameters that match the default, so if your code was calling
+
+   ```kotlin
+   Files.readAllLines(file, Charset.UTF_8)
+   ```
+   lint would replace this with
+   ```kotlin
+   file.readLines()
+   ```
+   rather than
+
+   ```kotlin
+   file.readLines(Charset.UTF_8
+   ```
+   You can turn this behavior off using this option.
+
+   To configure this option, use a `lint.xml` file with an <option> like this:
+
+   ```xml
+   <lint>
+       <issue id="UseKtx">
+           <option name="remove-defaults" value="true" />
+       </issue>
+   </lint>
+   ```
+
+   **require-present** (default is true):
+   Whether to only offer extensions already available.
+
+   This option lets you only have lint suggest extension replacements if those extensions are already available on the class path (in other words, you're already depending on the library containing the extension method.)
+
+   To configure this option, use a `lint.xml` file with an <option> like this:
+
+   ```xml
+   <lint>
+       <issue id="UseKtx">
+           <option name="require-present" value="true" />
+       </issue>
+   </lint>
+   ```
+
+0 errors, 19 warnings
