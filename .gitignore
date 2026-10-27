@@ -1,0 +1,12 @@
+.gradle/
+.kotlin/
+.tools/
+.downloads/
+**/build/
+local.properties
+.idea/
+*.iml
+.sdk-repository.xml
+output/
+*.hprof
+*.log
