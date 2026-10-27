@@ -1,10 +1,12 @@
-# MUSTANG OS · 0.1.0
+# MUSTANG OS · 0.2.0
 
 Launcher Android nativo para Ford Mustang 2010 V6 4.0L convertible rojo con capota negra. Kotlin, Views/XML, MVVM y StateFlow. La referencia visual se traduce en tres paneles, superficies grafito, rojo moderado e iconos vectoriales de trazo uniforme.
 
 ![Interfaz Android renderizada en pruebas, sin datos CarPlay simulados](docs/dashboard-1280x720.png)
 
-APK de depuración generada; 29 pruebas automatizadas pasadas. La instalación y las integraciones del T100 siguen pendientes de validación en hardware.
+APK de depuración generada; 36 pruebas automatizadas de la app y seis del servidor pasadas. El usuario instaló la 0.1.0; la corrección 0.2.0 y las integraciones del T100 siguen pendientes de validación en hardware.
+
+La 0.2.0 corrige el selector de mapas, detecta las apps OEM confirmadas y permite exportar evidencia para investigar datos MCU sin OBD, USB ni ADB. **Todavía no muestra la superficie CarPlay dentro del widget ni lee puertas o temperatura MCU**. El estado exacto y el procedimiento están en [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md).
 
 ## Instalar y empezar
 
@@ -19,8 +21,8 @@ Para instalar **por enlace, sin memoria USB ni ADB**, sirve la APK desde un PC c
 
 2. Abre Mustang OS como una aplicación normal. No cambia automáticamente el Home predeterminado.
 3. En **Ajustes → Elegir launcher original**, selecciona la interfaz del fabricante. Prueba **Abrir launcher original** antes de elegir Mustang OS como Home.
-4. Pulsa **CarPlay** y selecciona la app ZLink que ya existe en la pantalla. Se muestran etiqueta y paquete reales. La selección queda guardada. No se instala, actualiza ni reinicia ZLink, ni se borran datos o activación.
-5. En **Ajustes**, asigna radio, teléfono, música y mapas Android a sus aplicaciones instaladas. Si una app falta, el botón muestra el selector; no ejecuta una operación ficticia.
+4. Pulsa **CarPlay**. Se detecta el ZLink confirmado si está instalado; cuando hay varios candidatos se permite elegir. Se guarda el componente resuelto. No se instala, actualiza ni reinicia ZLink, ni se borran datos o activación.
+5. Los accesos a radio, teléfono y música detectan las apps del firmware confirmadas. Puedes cambiarlas en **Ajustes**. El selector de mapas solo muestra apps de mapas Android; si no hay ninguna, explica la alternativa CarPlay. Un permiso OEM denegado se muestra como tal.
 6. Pulsa el estado GPS para conceder ubicación **precisa**. El velocímetro pasa de `—` a una lectura real cuando el receptor entrega una velocidad válida. Sin señal o después de cinco segundos sin lectura válida vuelve a `—`.
 7. En **Elegir fuente**, puedes autorizar acceso a notificaciones para descubrir MediaSessions. Reproduce Apple Music en CarPlay, vuelve al launcher y comprueba las sesiones. Si ZLink no publica una, la tarjeta muestra que no hay datos y los controles permanecen deshabilitados. La autorización no garantiza acceso al iPhone.
 

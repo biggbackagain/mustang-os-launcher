@@ -11,6 +11,9 @@ import com.mustangos.launcher.settings.LauncherSettings
 
 class AppIntegrationManager(private val context: Context, private val settings: LauncherSettings) {
     private val pm get() = context.packageManager
+    var lastFailure: String? = null; private set
+    // Package names confirmed in the user's installed-app screenshots. Activities are still resolved at runtime.
+    private val firmwarePackages = mapOf("zlink" to "com.zjinnova.zlink", "radio" to "com.tw.radio", "phone" to "com.tw.bt", "music" to "com.tw.music")
     fun apps(): List<LaunchableApp> = query(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER))
     fun homes(): List<LaunchableApp> = query(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME))
     fun maps(): List<LaunchableApp> = query(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("geo:0,0?q=")))
@@ -24,19 +27,58 @@ class AppIntegrationManager(private val context: Context, private val settings: 
     fun candidates() = apps().filter(IntegrationPolicy::isZlinkCandidate)
     fun selected(role: String) = settings.component(role)
     fun assign(role: String, app: LaunchableApp) = settings.setComponent(role, ComponentName(app.packageName, app.activity))
-    fun launch(role: String): Boolean = selected(role)?.let(::launchComponent) ?: false
+    fun choices(role: String?): List<LaunchableApp> = when (role) {
+        null -> apps()
+        "maps" -> maps()
+        "home" -> homes()
+        "zlink" -> candidates()
+        "radio", "phone", "music" -> apps().filter { app ->
+            app.packageName == firmwarePackages[role] || when (role) {
+                "radio" -> app.label.contains("radio", true)
+                "phone" -> Regex("teléfono|telefono|bluetooth|phone", RegexOption.IGNORE_CASE).containsMatchIn(app.label)
+                else -> Regex("música|musica|music|spotify", RegexOption.IGNORE_CASE).containsMatchIn(app.label)
+            }
+        }
+        else -> apps()
+    }
+    fun launch(role: String): Boolean {
+        lastFailure = null
+        val chosen = selected(role)
+        if (role == "maps" && chosen != null && maps().none { it.packageName == chosen.packageName && it.activity == chosen.className }) {
+            settings.setComponent(role, null)
+            lastFailure = "La asignación anterior no es una aplicación de mapas Android"
+            return false
+        }
+        if (chosen != null && launchComponent(chosen)) return true
+        // Do not replace a valid selection merely because the OEM denied permission.
+        if (chosen != null && lastFailure?.startsWith("Permiso OEM") == true) return false
+        val available = choices(role)
+        val detected = firmwarePackages[role]?.let { pkg -> available.firstOrNull { it.packageName == pkg } }
+            ?: available.singleOrNull()
+        if (detected != null) {
+            assign(role, detected)
+            return launchApp(detected)
+        }
+        return false
+    }
     fun launchApp(app: LaunchableApp) = launchComponent(ComponentName(app.packageName, app.activity))
     fun launchComponent(component: ComponentName): Boolean = try {
         val info = pm.getActivityInfo(component, 0)
-        if (!info.exported || !info.enabled || !info.applicationInfo.enabled) false
+        if (!info.exported || !info.enabled || !info.applicationInfo.enabled) {
+            lastFailure = "La actividad está deshabilitada o no permite acceso externo"; false
+        } else if (info.permission?.let { context.checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED } == true) {
+            lastFailure = "Permiso OEM no concedido: ${info.permission}"; false
+        }
         else {
             val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER).setComponent(component)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
             context.startActivity(intent)
+            lastFailure = null
             true
         }
-    } catch (_: PackageManager.NameNotFoundException) { ErrorJournal.record(context, "APP_REMOVED"); false }
-      catch (_: RuntimeException) { ErrorJournal.record(context, "APP_LAUNCH_DENIED"); false }
+    } catch (_: PackageManager.NameNotFoundException) { lastFailure = "La actividad elegida ya no está instalada"; ErrorJournal.record(context, "APP_REMOVED"); false }
+      catch (_: SecurityException) { lastFailure = "Android denegó el acceso a esta actividad OEM"; ErrorJournal.record(context, "APP_PERMISSION_DENIED"); false }
+      catch (_: RuntimeException) { lastFailure = "Android no pudo iniciar la actividad elegida"; ErrorJournal.record(context, "APP_LAUNCH_DENIED"); false }
 
     fun exportedComponents(packageName: String): String = try {
         val info = pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES or PackageManager.GET_SERVICES or PackageManager.GET_RECEIVERS or PackageManager.GET_PROVIDERS)

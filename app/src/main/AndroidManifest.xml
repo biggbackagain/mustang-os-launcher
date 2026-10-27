@@ -4,6 +4,9 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
     <queries>
+        <package android:name="com.zjinnova.zlink"/><package android:name="com.tw.radio"/><package android:name="com.tw.bt"/><package android:name="com.tw.music"/>
+        <package android:name="com.tw.car"/><package android:name="com.tw.ac"/><package android:name="com.tw.service"/><package android:name="com.tw.uart"/>
+        <package android:name="com.dofun.carassistant.car"/><package android:name="com.dofun.carsetting"/><package android:name="com.android.systemui"/>
         <intent><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent>
         <intent><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.HOME" /></intent>
         <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="geo" /></intent>

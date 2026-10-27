@@ -1,4 +1,33 @@
-# Registro de verificación · Mustang OS 0.1.0
+# Registro de verificación · Mustang OS 0.2.0
+
+## Resultado actual 0.2.0
+
+**36 pruebas de la app y seis del servidor pasadas; cero fallos.** Gradle completó `:core:test :app:testDebugUnitTest :app:lintDebug :app:assembleDebug`. Lint: cero errores y 19 advertencias. La última verificación completa duró 26 segundos en el PC; no es una medida del T100.
+
+| Suite actual | Pruebas |
+|---|---:|
+| IntegrationPolicyTest | 9 |
+| SpeedFilterTest | 4 |
+| LauncherTest | 14 |
+| IntegrationLifecycleTest | 3 |
+| DashboardRenderTest | 2 |
+| NativeInspectionTest | 4 |
+| DownloadServerTest, Python | 6 |
+
+Nuevas regresiones verificadas: acceso automático a los paquetes OEM instalados de prueba, exclusión de radio del selector de mapas, rechazo de asignaciones inválidas y explicación de permisos OEM. Se comprueba que el voltaje Android no se promocione a voltaje MCU y que el ZIP exporte solo manifiestos/DEX de paquetes permitidos, excluyendo assets de activación y entradas ajenas. La inspección no inicia servicios OEM.
+
+El servidor se prueba contra HTTP real con archivos aislados: descarga idéntica, rutas ajenas 404, subida sin token 403, origen externo 403, contenido no ZIP 415 y ZIP guardado sin extraer entradas ni ejecutarlas. La descarga de la APK 0.2.0 desde el enlace LAN también se verificó por SHA-256.
+
+- APK: `output/MustangOS-0.2.0-debug.apk` y alias `output/MustangOS-debug.apk`.
+- Paquete: `com.mustangos.launcher`; versionCode 2; versionName 0.2.0.
+- Tamaño: 2 455 398 bytes.
+- SHA-256: `88CCA1D8138E83799CCECDD309F81C3377CF353CEB46A22EFBB5BD0872378B00`.
+- Firma v2 verificada. Certificado igual al de la APK 0.1.0 descargada previamente: se puede actualizar sin desinstalar.
+- Sin permisos nuevos de Internet, Bluetooth, UART o control MCU.
+
+Evidencia física recibida: fotos del selector con paquetes OEM reales y confirmación del usuario de puertas, temperatura y voltaje en la interfaz del fabricante. El usuario abrió ZLink desde la 0.1.0 y comprobó que el mapa permanece en ZLink. La incrustación CarPlay, adquisición de datos MCU y comportamiento de la 0.2.0 en la pantalla **siguen pendientes**. La exportación del equipo y su análisis serán la siguiente evidencia necesaria.
+
+## Historial de la entrega inicial 0.1.0
 
 Fecha de la entrega: 26 de octubre de 2026, zona del usuario America/Mexico_City.
 

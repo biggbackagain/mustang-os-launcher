@@ -12,7 +12,7 @@ class DiagnosticReporter(private val context: Context, private val model: Launch
         val mem = ActivityManager.MemoryInfo().also { context.getSystemService(ActivityManager::class.java).getMemoryInfo(it) }
         val d = context.resources.displayMetrics
         return buildString {
-            appendLine("MUSTANG OS 0.1.0 · diagnóstico básico")
+            appendLine("MUSTANG OS 0.2.0 · diagnóstico básico")
             appendLine("SDK real: ${Build.VERSION.SDK_INT}; etiqueta RELEASE: ${Build.VERSION.RELEASE}")
             appendLine("API 32 corresponde a Android 12L; API 33 a Android 13. La etiqueta del fabricante puede diferir.")
             appendLine("Ventana/densidad: ${d.widthPixels}x${d.heightPixels}px; ${d.densityDpi}dpi")
@@ -25,12 +25,17 @@ class DiagnosticReporter(private val context: Context, private val model: Launch
             appendLine("Acciones de sesión seleccionada: ${model.media.state.value.facts.actions}")
             appendLine("CarPlay: ${model.carplay.connectionStatus}")
             appendLine("Navegación: ${model.navigation.status}")
-            appendLine("OBD2: ${model.vehicle.status}")
+            appendLine("Datos del vehículo: ${model.vehicle.status}")
+            appendLine(model.vehicle.nativeReport())
+            val fix = model.gps.state.value
+            appendLine("Calidad GPS: precisión=${fix.accuracyMeters ?: "sin lectura"} m; satélites usados=${fix.satellitesUsed ?: "sin lectura"}")
+            appendLine("Último error al abrir una app: ${model.apps.lastFailure ?: "ninguno"}")
             appendLine("Asignaciones:")
             listOf("zlink", "music", "maps", "phone", "radio", "home").forEach { appendLine("$it: ${model.apps.selected(it)?.flattenToShortString() ?: "sin elegir"}") }
             appendLine("Candidatos ZLink por etiqueta/paquete (sin verificar identidad):")
             model.apps.candidates().forEach { appendLine("${it.label}: ${it.packageName}/${it.activity}") }
             model.carplay.packageName?.let { appendLine("Componentes declarados exportados, sin probar su contrato:"); appendLine(model.apps.exportedComponents(it)) }
+            appendLine(OemInspector(context).report())
             appendLine("Errores recientes (códigos, sin contenido privado):")
             appendLine(ErrorJournal.recent(context))
             appendLine("No contiene coordenadas, contenidos de notificaciones, canciones, IMEI ni seriales.")

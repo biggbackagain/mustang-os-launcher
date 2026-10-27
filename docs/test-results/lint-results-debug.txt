@@ -65,7 +65,7 @@ C:\Users\garci\Documents\ChatGPT\mustang OS\app\build.gradle.kts:25: Warning: A 
    MavenCentral dependency, and connects to the library every time, which
    makes it more flexible but also much slower.
 
-C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\AndroidManifest.xml:12: Warning: Fixed screen orientations will be ignored in most cases, starting from Android 16. Android is moving toward a model where apps are expected to adapt to various orientations, display sizes, and aspect ratios. [DiscouragedApi]
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\AndroidManifest.xml:15: Warning: Fixed screen orientations will be ignored in most cases, starting from Android 16. Android is moving toward a model where apps are expected to adapt to various orientations, display sizes, and aspect ratios. [DiscouragedApi]
         <activity android:name=".ui.MainActivity" android:exported="true" android:screenOrientation="landscape" android:launchMode="singleTask">
                                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -128,7 +128,7 @@ C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\activity_mai
    performance if you pre-mix the background with your drawable and use that
    resulting image or color as a custom theme background instead.
 
-C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\appintegration\AppIntegrationManager.kt:16: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\appintegration\AppIntegrationManager.kt:19: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
     fun maps(): List<LaunchableApp> = query(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("geo:0,0?q=")))
                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\settings\LauncherSettings.kt:9: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
@@ -137,7 +137,7 @@ C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\laun
 C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\settings\LauncherSettings.kt:12: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
         set(value) { prefs.edit().putString("media", value).apply() }
                      ~~~~~~~~~~~~
-C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:160: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:177: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
                 .setNeutralButton("Permisos de la app") { _, _ -> safeSettings(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:$packageName"))) }
                                                                                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\media\MediaIntegrationManager.kt:84: Warning: Use the KTX extension function Bitmap.scale instead? [UseKtx]

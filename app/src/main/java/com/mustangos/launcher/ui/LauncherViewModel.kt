@@ -17,7 +17,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     val media = MediaIntegrationManager(application, settings)
     val gps = GpsSpeedManager(application)
     val navigation = NavigationIntegrationManager()
-    val vehicle = VehicleTelemetryManager()
+    val vehicle = VehicleTelemetryManager(application)
     var lastDiagnostic = ""
     fun start() { media.start(); gps.start() }
     fun stop() { media.stop(); gps.stop() }

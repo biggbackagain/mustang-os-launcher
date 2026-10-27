@@ -2,6 +2,8 @@
 
 Todas las filas comienzan **PENDIENTES**. Ninguna prueba automatizada sustituye esta tabla. Registra fecha, SDK, versión APK, resultado y observaciones, sin datos personales.
 
+Evidencia parcial del usuario: instaló 0.1.0 por Wi-Fi, abrió ZLink y envió fotos del selector; confirmó puertas, temperatura y voltaje en el OEM. Esto no marca como superados los casos completos siguientes. Para 0.2.0, comprobar primero autodetección de CarPlay/radio/teléfono/música, ausencia de apps ajenas en Mapas, exportación del ZIP de compatibilidad y envío desde el navegador. Los datos MCU en Mustang OS y el panel CarPlay siguen pendientes; consulta NATIVE_INTEGRATION.md.
+
 Antes de configurar Home: confirma que ZLink, radio, cámara y mandos funcionan con el launcher original; anota cómo volver a él. Instala Mustang OS como APK normal y realiza primero las pruebas sin cambiar Home. Prueba reversa con el vehículo inmovilizado, freno aplicado y las precauciones habituales del fabricante.
 
 | Caso | Pasos / resultado esperado | Estado |

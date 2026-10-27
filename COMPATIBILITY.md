@@ -2,6 +2,8 @@
 
 ## Equipo objetivo
 
+Estado 0.2.0: [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md) registra evidencia del usuario, corrección de accesos, lecturas Android y límites del panel CarPlay. La adquisición MCU sin OBD sigue en investigación; no se presenta el voltaje BatteryManager como voltaje del vehículo.
+
 T10S / T100, Allwinner A133 / sun50iw10p1, Cortex-A53, 2 GB RAM, 1280×720, sin root. Los datos de firmware, MCU, CAN y PT2313/QN8035 provienen del usuario, no de una inspección de hardware realizada aquí.
 
 La app consulta `Build.VERSION.SDK_INT` y muestra también `Build.VERSION.RELEASE`. API 32 corresponde a Android 12L y API 33 a Android 13: se decide por SDK, no por el nombre comercial. Un firmware puede alterar propiedades del sistema; el informe no equivale a una auditoría de conformidad Android. [Plataformas oficiales Android](https://developer.android.com/tools/releases/platforms).

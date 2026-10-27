@@ -25,6 +25,7 @@ import com.mustangos.launcher.R
 import com.mustangos.launcher.databinding.ActivityMainBinding
 import com.mustangos.launcher.diagnostics.DiagnosticReporter
 import com.mustangos.launcher.diagnostics.ErrorJournal
+import com.mustangos.launcher.diagnostics.CompatibilityExporter
 import com.mustangos.launcher.media.MediaUiState
 import kotlinx.coroutines.*
 import kotlin.math.roundToInt
@@ -37,6 +38,15 @@ class MainActivity : ComponentActivity() {
         if (uri != null) lifecycleScope.launch {
             val saved = withContext(Dispatchers.IO) { runCatching { contentResolver.openOutputStream(uri)?.use { it.write(model.lastDiagnostic.toByteArray(Charsets.UTF_8)) } ?: error("No stream") }.isSuccess }
             toast(if (saved) "Diagnóstico exportado" else "No se pudo exportar el diagnóstico")
+        }
+    }
+    private val exportCompatibility = registerForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
+        if (uri != null) lifecycleScope.launch {
+            toast("Preparando informe y archivos estáticos OEM…")
+            val saved = withContext(Dispatchers.IO) {
+                runCatching { contentResolver.openOutputStream(uri)?.use { CompatibilityExporter(this@MainActivity).write(it, model.lastDiagnostic) } ?: error("No stream") }.isSuccess
+            }
+            toast(if (saved) "ZIP guardado. Abre el enlace de descarga en Chrome y pulsa Enviar diagnóstico" else "No se pudo completar el ZIP")
         }
     }
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,7 +69,7 @@ class MainActivity : ComponentActivity() {
         binding.dockPhone.setOnClickListener { openRole("phone") }
         binding.dockRadio.setOnClickListener { openRole("radio") }
         binding.dockApps.setOnClickListener { chooseApp(null) }
-        binding.dockEngine.setOnClickListener { AlertDialog.Builder(this).setTitle("Motor · V6 4.0L").setMessage("${model.vehicle.status}\n\nRPM, refrigerante, voltaje y kilometraje: no disponibles.\n\nEl módulo está preparado para una futura fuente OBD2 verificada. No se accede al CANBUS ni a la MCU.").setPositiveButton("Cerrar", null).show() }
+        binding.dockEngine.setOnClickListener { showVehicleData() }
         binding.gpsStatus.setOnClickListener { requestGps() }
         binding.mediaSource.setOnClickListener { mediaSources() }
         binding.previous.setOnClickListener { mediaCommand(MediaCommand.PREVIOUS) }
@@ -115,18 +125,25 @@ class MainActivity : ComponentActivity() {
     }
     private fun openRole(role: String) {
         val launched = if (role == "zlink") model.carplay.open() else model.apps.launch(role)
-        if (!launched) chooseApp(role)
+        if (!launched) {
+            val failure = model.apps.lastFailure
+            if (failure != null && (failure.startsWith("Permiso OEM") || failure.contains("denegó"))) {
+                AlertDialog.Builder(this).setTitle("Acceso restringido por el firmware").setMessage(failure).setPositiveButton("Cerrar", null).show()
+            } else chooseApp(role)
+        }
     }
     private fun chooseApp(role: String?, launchAfter: Boolean = true) {
         lifecycleScope.launch {
-            val available = withContext(Dispatchers.IO) { if (role == "home") model.apps.homes() else model.apps.apps() }
+            val available = withContext(Dispatchers.IO) { model.apps.choices(role) }
             if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return@launch
-            if (available.isEmpty()) { toast("No hay aplicaciones visibles compatibles"); return@launch }
-            val sorted = if (role == "zlink") available.sortedByDescending { com.mustangos.core.IntegrationPolicy.isZlinkCandidate(it) } else if (role == "maps") {
-                val maps = withContext(Dispatchers.IO) { model.apps.maps().map { it.packageName }.toSet() }
-                available.sortedByDescending { it.packageName in maps }
-            } else available
-            showAppPicker(role, sorted, launchAfter)
+            if (available.isEmpty()) {
+                if (role == "maps") AlertDialog.Builder(this@MainActivity).setTitle("No hay mapas Android instalados")
+                    .setMessage("Apple Maps del iPhone se ejecuta dentro de ZLink. Esta versión todavía no puede mostrar su superficie dentro del panel. No se ofrecerán radio, clima u otras apps como si fueran mapas.")
+                    .setPositiveButton("Abrir ZLink") { _, _ -> openRole("zlink") }.setNegativeButton("Cerrar", null).show()
+                else toast("No hay una aplicación compatible instalada para ${roleName(role.orEmpty())}")
+                return@launch
+            }
+            showAppPicker(role, available, launchAfter)
         }
     }
     private fun showAppPicker(role: String?, apps: List<LaunchableApp>, launchAfter: Boolean) {
@@ -134,7 +151,7 @@ class MainActivity : ComponentActivity() {
             .setItems(apps.map { "${it.label}\n${it.packageName}" }.toTypedArray()) { _, index ->
                 val app = apps[index]
                 if (role != null) model.apps.assign(role, app)
-                if (launchAfter && !model.apps.launchApp(app)) toast("Android no permite abrir esta actividad")
+                if (launchAfter && !model.apps.launchApp(app)) toast(model.apps.lastFailure ?: "Android no permite abrir esta actividad")
                 else if (!launchAfter) { toast("Aplicación guardada"); model.media.refresh() }
             }.setNegativeButton("Cancelar", null).show()
     }
@@ -185,8 +202,31 @@ class MainActivity : ComponentActivity() {
             if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return@launch
             val text = TextView(this@MainActivity).apply { this.text = report; textSize = 14f; setTextIsSelectable(true); setPadding(24, 16, 24, 16) }
             val scroll = ScrollView(this@MainActivity).apply { addView(text) }
-            AlertDialog.Builder(this@MainActivity).setTitle("Diagnóstico local").setView(scroll).setPositiveButton("Exportar .txt") { _, _ -> export.launch("MustangOS-diagnostico.txt") }.setNegativeButton("Cerrar", null).show()
+            AlertDialog.Builder(this@MainActivity).setTitle("Diagnóstico local").setView(scroll).setPositiveButton("Exportar .txt") { _, _ -> export.launch("MustangOS-diagnostico.txt") }
+                .setNeutralButton("Compatibilidad OEM") { _, _ ->
+                    AlertDialog.Builder(this@MainActivity).setTitle("Investigar MCU y el panel CarPlay")
+                        .setMessage("Se guardará un ZIP con este diagnóstico, los manifiestos y el código instalado de ZLink y apps OEM visibles. No lee sus datos privados ni modifica su instalación. Los archivos permitirán analizar interfaces reales sin ADB.\n\nGuárdalo en Descargas; después puedes enviarlo desde la misma página de descarga de Mustang OS.")
+                        .setPositiveButton("Guardar ZIP") { _, _ -> exportCompatibility.launch("MustangOS-compatibilidad.zip") }.setNegativeButton("Cancelar", null).show()
+                }.setNegativeButton("Cerrar", null).show()
         }
     }
     private fun toast(message: String) { Toast.makeText(this, message, Toast.LENGTH_LONG).show() }
+    private fun showVehicleData() {
+        val gps = model.gps.state.value
+        val report = "${model.vehicle.status}\n\n" + model.vehicle.nativeReport() +
+            "\nGPS: ${gps.kmh?.let { "%.0f km/h".format(it) } ?: "sin velocidad"}; precisión ${gps.accuracyMeters ?: "—"} m; satélites ${gps.satellitesUsed ?: "—"}\n" +
+            "Altitud GPS: ${gps.altitudeMeters?.let { "%.0f m".format(it) } ?: "—"}; rumbo GPS: ${gps.bearingDegrees?.let { "%.0f°".format(it) } ?: "—"}\n\n" +
+            "Puertas, temperatura exterior, RPM y voltaje MCU: pendientes de identificar la interfaz OEM. La pantalla original sí recibe algunos de estos datos; este panel aún no puede atribuirse esas lecturas."
+        val text = TextView(this).apply { this.text = report; textSize = 16f; setPadding(24, 16, 24, 16) }
+        val scroll = ScrollView(this).apply { addView(text) }
+        AlertDialog.Builder(this).setTitle("Vehículo y equipo · sin OBD").setView(scroll)
+            .setPositiveButton("OriginalCar") { _, _ -> openKnownPackage("com.tw.car") }
+            .setNeutralButton("CarMate") { _, _ -> openKnownPackage("com.dofun.carassistant.car") }
+            .setNegativeButton("Cerrar", null).show()
+    }
+    private fun openKnownPackage(pkg: String) {
+        val candidate = model.apps.apps().firstOrNull { it.packageName == pkg }
+        if (candidate == null) toast("Esta aplicación OEM no está visible")
+        else if (!model.apps.launchApp(candidate)) toast(model.apps.lastFailure ?: "No se pudo abrir la aplicación OEM")
+    }
 }

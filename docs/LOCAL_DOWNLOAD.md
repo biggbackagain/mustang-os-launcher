@@ -22,3 +22,7 @@ python scripts/serve-apk.py --host IP_DEL_PC --port 8765
 Sustituye `IP_DEL_PC` por una dirección que pertenezca al PC. En este entorno también puede utilizarse el Python integrado que devuelve la herramienta de dependencias de Codex. Para un proceso iniciado en terminal, Ctrl+C lo detiene. Un proceso iniciado como ayudante oculto se detiene al cerrar su proceso o después del límite de dos horas.
 
 El servidor solo permite la página `/` y la descarga `/MustangOS.apk`; no publica carpetas, diagnósticos ni código fuente. No registra direcciones de clientes, cookies ni parámetros de consultas. La respuesta APK lleva su tipo MIME y nombre de archivo de descarga. No modifica reglas de firewall ni opciones de la pantalla.
+
+Desde la 0.2.0, la página también permite al usuario seleccionar y enviar un ZIP de compatibilidad mediante `/upload`. El servidor exige el token de la página, rechaza orígenes diferentes, limita a 128 MiB y comprueba la cabecera ZIP. Se guarda en `output/device-reports/` con nombre generado, sin extraerlo ni servirlo a otros clientes. La APK no necesita permiso de Internet. El límite de dos horas también se aplica a la recepción.
+
+Pruebas del servidor: `python scripts/test_download_server.py`.

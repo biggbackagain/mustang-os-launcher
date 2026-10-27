@@ -50,16 +50,41 @@ class LauncherTest {
         assertFalse(apps.launch("zlink"))
         assertTrue(apps.candidates().isEmpty())
     }
-    private fun installLaunchable(): ComponentName {
-        val component = ComponentName("test.vendor.projection", "test.vendor.projection.Start")
+    private fun installLaunchable(pkg: String = "test.vendor.projection", label: String = "ZLink"): ComponentName {
+        val component = ComponentName(pkg, "$pkg.Start")
         val info = ActivityInfo().apply {
             packageName = component.packageName; name = component.className; exported = true; enabled = true
             applicationInfo = ApplicationInfo().apply { packageName = component.packageName; enabled = true }
         }
         shadowOf(app.packageManager).addOrUpdateActivity(info)
-        val resolve = ResolveInfo().apply { activityInfo = info; nonLocalizedLabel = "ZLink" }
+        val resolve = ResolveInfo().apply { activityInfo = info; nonLocalizedLabel = label }
         shadowOf(app.packageManager).addResolveInfoForIntent(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), resolve)
         return component
+    }
+    @Test fun knownFirmwareAppsOpenWithoutInitialPicker() {
+        for ((role, pkg) in mapOf("zlink" to "com.zjinnova.zlink", "radio" to "com.tw.radio", "phone" to "com.tw.bt", "music" to "com.tw.music")) {
+            val component = installLaunchable(pkg, role)
+            assertTrue("Must open installed $role", AppIntegrationManager(app, prefs).launch(role))
+            assertEquals(component, shadowOf(app).nextStartedActivity.component)
+        }
+    }
+    @Test fun mapsPickerExcludesUnrelatedAppsAndInvalidSavedAssignment() {
+        val unrelated = installLaunchable("com.tw.radio", "Radio")
+        prefs.setComponent("maps", unrelated)
+        val apps = AppIntegrationManager(app, prefs)
+        assertTrue(apps.choices("maps").isEmpty())
+        assertFalse(apps.launch("maps"))
+        assertNull(shadowOf(app).nextStartedActivity)
+    }
+    @Test fun launchFailureExplainsMissingVendorPermission() {
+        val component = installLaunchable()
+        val info = app.packageManager.getActivityInfo(component, 0)
+        info.permission = "vendor.permission.CONTROL_HEADUNIT"
+        shadowOf(app.packageManager).addOrUpdateActivity(info)
+        prefs.setComponent("zlink", component)
+        val apps = AppIntegrationManager(app, prefs)
+        assertFalse(apps.launch("zlink"))
+        assertTrue(apps.lastFailure.orEmpty().contains("vendor.permission.CONTROL_HEADUNIT"))
     }
     @Test fun detectsInstalledActivityAndLaunchesOnlySelectedComponent() {
         val component = installLaunchable()
