@@ -262,7 +262,7 @@ C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\laun
 C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:581: Warning: Use the KTX extension function String.toColorInt instead? [UseKtx]
                         dashDoorStatus.setTextColor(Color.parseColor(if (oem.doorMask?.let { it != 0 } == true) "#FF354A" else "#8E99A8"))
                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\media\MediaIntegrationManager.kt:100: Warning: Use the KTX extension function Bitmap.scale instead? [UseKtx]
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\media\MediaIntegrationManager.kt:109: Warning: Use the KTX extension function Bitmap.scale instead? [UseKtx]
             val art = image?.let { if (maxOf(it.width, it.height) > 384) { val scale = 384f / maxOf(it.width, it.height); Bitmap.createScaledBitmap(it, (it.width * scale).toInt().coerceAtLeast(1), (it.height * scale).toInt().coerceAtLeast(1), true) } else it }
                                                                                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MustangCarView.kt:78: Warning: Use the KTX extension function Canvas.withClip instead? [UseKtx]

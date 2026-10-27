@@ -1,4 +1,6 @@
-# Datos nativos y CarPlay integrado · investigación 0.3.6
+# Datos nativos y CarPlay integrado · investigación 0.3.7
+
+Los controles CarPlay de 0.3.6 fueron confirmados por el usuario. La 0.3.7 añade campos alternativos y evidencia de todas las sesiones/clientes OEM; metadatos y mapa integrado no están confirmados. [Estado actual y captura necesaria](docs/UPDATE_037.md).
 
 La revisión actual corrige el despacho de controles del iPhone, enrutamiento de Música/mapas, conservación de lecturas y diagnóstico GPS sobre la base 0.3.5 del usuario. Solicita lecturas fijas de voltaje/temperatura con límites de frecuencia y conserva valores anteriores con su antigüedad. [Detalle actual y pruebas físicas pendientes](docs/UPDATE_036.md). Lo que sigue resume también la evidencia de versiones previas; no es una afirmación de funcionamiento físico de 0.3.6.
 

@@ -2,10 +2,12 @@ test_apk_download_is_identical (__main__.DownloadServerTest.test_apk_download_is
 test_cross_origin_upload_rejected (__main__.DownloadServerTest.test_cross_origin_upload_rejected) ... ok
 test_non_zip_rejected (__main__.DownloadServerTest.test_non_zip_rejected) ... ok
 test_other_files_are_not_served (__main__.DownloadServerTest.test_other_files_are_not_served) ... ok
+test_server_closes_after_two_hours_without_waiting_in_real_time (__main__.DownloadServerTest.test_server_closes_after_two_hours_without_waiting_in_real_time) ... ok
 test_upload_requires_page_token (__main__.DownloadServerTest.test_upload_requires_page_token) ... ok
 test_zip_stored_without_extracting_or_executing (__main__.DownloadServerTest.test_zip_stored_without_extracting_or_executing) ... ok
 
 ----------------------------------------------------------------------
-Ran 6 tests in 0.665s
+Ran 7 tests in 0.681s
 
 OK
+Servidor listo en http://127.0.0.1:8765/ sirviendo test.apk (19 bytes)

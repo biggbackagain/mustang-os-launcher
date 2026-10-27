@@ -1,5 +1,7 @@
 # ZLink / CarPlay: investigación y contrato de Mustang OS
 
+Actualización 0.3.7: pausa/reanudar y cambios de canción **confirmados por el usuario con el iPhone** en 0.3.6. La información aparece dentro de CarPlay/Apple Music pero no en el launcher. Se corrige la omisión de DISPLAY_TITLE/DISPLAY_SUBTITLE y se inspeccionan todas las sesiones sin contenido privado; también se amplía la exportación a clientes HOME/BT/Música. La independencia de la app del teléfono depende de lo que publique ZLink, sin integración específica con Apple Music. Mapa interactivo aún pendiente del contrato de superficie. [Detalle y nueva evidencia necesaria](docs/UPDATE_037.md).
+
 La 0.3.6 corrige controles y accesos sobre los cambios del usuario: una sola entrega dirigida por pulsación, toggle cuando el estado OEM es desconocido, portada/Música hacia el CarPlay configurado y mapa del panel que abre ZLink. Esto no integra la superficie de CarPlay en el launcher ni demuestra el cambio efectivo de reproducción en el iPhone. [Detalles y comprobación](docs/UPDATE_036.md).
 
 Los informes posteriores confirmaron paquete `com.zjinnova.zlink`, actividad de entrada, versión 6.1.06 y descriptor Binder del servicio. Las notas siguientes conservan el historial de investigación y sus límites, no el estado inicial previo al primer informe.
@@ -55,10 +57,10 @@ Inspecciona localmente los filtros y permisos declarados del último comando. No
 
 | Pregunta | Estado actual / siguiente evidencia necesaria |
 |---|---|
-| Paquete, versión y actividad instalados | Pendiente del selector e informe de la pantalla |
+| Paquete, versión y actividad instalados | Confirmados: com.zjinnova.zlink 6.1.06, MainActivity; DINGWEI-A133 |
 | Intents y servicios de integración públicos | No encontrados en documentación pública; revisar manifest y obtener contrato OEM |
-| Sesión de Apple Music vía ZLink | Pendiente de inspección durante reproducción real |
-| Portada y acciones transportControls | Implementado con APIs Android; pendiente de publicación y respuesta real de ZLink |
+| Sesión de Apple Music vía ZLink | Sesión ZLink y controles confirmados en 0.3.6; metadatos aún sin verificar en campos crudos |
+| Portada y acciones transportControls | Controles confirmados por usuario; portada ausente, nuevo reporte de bitmap/URI por sesión pendiente |
 | Estado inalámbrico CarPlay | No hay interfaz verificada; UI permanece desconocida |
 | Apple Maps, Google Maps o Waze del iPhone | Sin contrato verificado para rutas/maniobras |
 | Incrustar CarPlay en una tarjeta | No implementado: no hay API verificada para transferir la superficie interactiva |

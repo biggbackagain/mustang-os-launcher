@@ -12,7 +12,7 @@ Solicitar al fabricante/proveedor:
 2. Si permite entregar una `Surface` externa a un launcher: método, ciclo de vida, permisos, tamaños admitidos y retorno a la actividad original.
 3. Si admite una segunda superficie o si transferirla interrumpe la actividad principal, audio, llamadas o navegación.
 4. Contrato para entrada táctil y estados de conexión, sin accesibilidad ni captura de pantalla.
-5. Interfaces autorizadas para metadatos multimedia e indicaciones de navegación. La MediaSession observada publica acciones 0 y ningún campo de canción en esta prueba.
+5. Interfaces autorizadas para metadatos multimedia e indicaciones de navegación independientes de la app de música del iPhone. En 0.3.6 el usuario confirma controles funcionales con acciones 0, pero Mustang OS no muestra los campos principales aunque Apple Music sí los muestra dentro de CarPlay. La 0.3.7 corrige omisiones DISPLAY y solicita un informe por sesión: aún no se afirma ausencia de todos los campos Android.
 6. Ejemplo mínimo de integración para APK sin root, firma OEM ni modificación del sistema, o confirmación de que este escenario no está soportado.
 
 La actividad principal declara redimensionamiento/PiP desactivados y el servicio de pantalla secundaria no está exportado. La solución debe usar una integración admitida por el proveedor y conservar el funcionamiento existente.

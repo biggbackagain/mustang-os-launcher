@@ -1,5 +1,11 @@
 # Hallazgos del equipo real · 26 de octubre de 2026
 
+## Prueba de controles y datos faltantes · 27 de octubre de 2026
+
+Tras instalar 0.3.6, el usuario confirmó pausa/reanudar y cambio de canción del iPhone en CarPlay/ZLink. Las fotos muestran fuente `com.zjinnova.zlink`, sin título/artista/portada, y navegación como acceso a CarPlay. Dentro de CarPlay, Apple Music sí muestra esos datos; el launcher original abre CarPlay completo. La ficha aportada identifica T10S/T100, ZLink 6.1.06 DINGWEI Ultimate/DINGWEI-A133.
+
+No se ha recibido aún un ZIP 0.3.7. La falta de datos en la vista no prueba que todas las claves de MediaMetadata estén vacías: 0.3.6 omitía DISPLAY y solo diagnosticaba la sesión elegida tras extracción. La nueva captura incluye claves estándar por sesión, BT/Música y HOME OEM de sistema. No se presenta como mapa/portada físicamente integrados. [Revisión y procedimiento](UPDATE_037.md).
+
 ## Evidencia recibida
 
 Paquete de compatibilidad enviado voluntariamente por el usuario: 10 599 372 bytes comprimidos, 25 entradas, 27 362 186 bytes sin comprimir. SHA-256 `D563851D4DD7D0EC7D6396EBCDD96BE313D79A9CBD23787E898EE57349565DED`. Se validaron nombres, tamaños y rutas antes de extraer los archivos permitidos al área local de análisis.

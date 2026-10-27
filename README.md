@@ -1,12 +1,12 @@
-# MUSTANG OS · 0.3.6
+# MUSTANG OS · 0.3.7
 
 Launcher Android nativo para Ford Mustang 2010 V6 4.0L convertible rojo con capota negra. Kotlin, Views/XML, MVVM y StateFlow. La referencia visual se traduce en tres paneles, superficies grafito, rojo moderado e iconos vectoriales de trazo uniforme.
 
 ![Interfaz Android renderizada en pruebas, sin datos CarPlay simulados](docs/dashboard-1280x720.png)
 
-La 0.3.6 conserva las modificaciones del usuario de 0.3.5 y corrige el despacho de pausa, la apertura de portada/Música hacia CarPlay, la pérdida de lecturas OEM y la distinción entre ubicación de red y velocidad GPS. Apps muestra la foto del Mustang; el caballo acompaña al nombre y los faros tienen bienvenida visual y respuesta a avisos ACC. [Detalle de las correcciones y pruebas físicas pendientes](docs/UPDATE_036.md).
+El usuario confirmó los controles de música del iPhone en 0.3.6. La 0.3.7 corrige la omisión de DISPLAY_TITLE/DISPLAY_SUBTITLE y amplía el informe para comprobar qué campos entrega cada sesión. La lectura funciona mediante la sesión de CarPlay, sin depender de Apple Music, Spotify u otra app del teléfono; la disponibilidad real depende de ZLink. [Cambios y nueva captura necesaria](docs/UPDATE_037.md).
 
-Los informes del equipo confirmaron SDK 29 pese a la etiqueta Android 13, voltaje OEM y recepción de aperturas. Los números de las capturas no se fijan como valores del widget. La revisión actual distingue lectura recibida, dato anterior y dato ausente. Temperatura, controles CarPlay y GPS de 0.3.6 requieren comprobación en la pantalla.
+Se conservan las modificaciones del usuario de 0.3.5 y las correcciones/visuales de [0.3.6](docs/UPDATE_036.md). Los informes del equipo confirmaron SDK 29 pese a la etiqueta Android 13, voltaje OEM y recepción de aperturas. Temperatura, GPS, metadatos multimedia y ACC siguen pendientes de comprobación completa en la pantalla.
 
 **La superficie CarPlay dentro del widget sigue sin integración verificada.** El botón de mapa abre ZLink. El estado exacto está en [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md) y [los hallazgos del equipo](docs/DEVICE_FINDINGS.md).
 

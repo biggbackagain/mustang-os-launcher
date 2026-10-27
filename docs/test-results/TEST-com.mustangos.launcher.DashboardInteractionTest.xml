@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.mustangos.launcher.DashboardInteractionTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-27T20:06:56.089Z" hostname="DESKTOP-3IU4CK5" time="7.49">
+<testsuite name="com.mustangos.launcher.DashboardInteractionTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-27T21:51:11.683Z" hostname="DESKTOP-3IU4CK5" time="4.003">
   <properties/>
-  <testcase name="musicDockAndArtworkOpenCarPlayForThePhoneBridge" classname="com.mustangos.launcher.DashboardInteractionTest" time="6.567"/>
-  <testcase name="unknownPlaybackDoesNotClaimPausedOrFabricateProgress" classname="com.mustangos.launcher.DashboardInteractionTest" time="0.271"/>
-  <testcase name="androidBatteryAndAbsentGpsAreNotPresentedAsVehicleMeasurements" classname="com.mustangos.launcher.DashboardInteractionTest" time="0.488"/>
-  <testcase name="carPlayRouteButtonDoesNotRequireAnAndroidMapsApp" classname="com.mustangos.launcher.DashboardInteractionTest" time="0.163"/>
+  <testcase name="displayOnlyMetadataReachesDashboardAndExportWithoutExportingSongContents" classname="com.mustangos.launcher.DashboardInteractionTest" time="3.052"/>
+  <testcase name="musicDockAndArtworkOpenCarPlayForThePhoneBridge" classname="com.mustangos.launcher.DashboardInteractionTest" time="0.229"/>
+  <testcase name="unknownPlaybackDoesNotClaimPausedOrFabricateProgress" classname="com.mustangos.launcher.DashboardInteractionTest" time="0.206"/>
+  <testcase name="androidBatteryAndAbsentGpsAreNotPresentedAsVehicleMeasurements" classname="com.mustangos.launcher.DashboardInteractionTest" time="0.371"/>
+  <testcase name="carPlayRouteButtonDoesNotRequireAnAndroidMapsApp" classname="com.mustangos.launcher.DashboardInteractionTest" time="0.145"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[Invalid ID 0x00000000.
+Invalid ID 0x00000000.
 Invalid ID 0x00000000.
 Intent = Intent { act=android.intent.action.BATTERY_CHANGED (has extras) }; Matching wrappers: []
 Invalid ID 0x00000000.

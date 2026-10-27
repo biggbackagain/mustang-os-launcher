@@ -12,29 +12,27 @@ import uuid
 
 PAGE = """<!doctype html><html lang="es"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Descargar Mustang OS 0.3.6</title>
+<title>Descargar Mustang OS 0.3.7</title>
 <style>body{background:#090b0f;color:#f4f5f7;font:20px system-ui;margin:0;padding:32px}
 main{max-width:760px;margin:24px auto;padding:32px;border:1px solid #303540;border-radius:24px;background:#11141a}
 h1{font-size:36px;margin:0 0 12px}span{color:#ff354a}p,li{line-height:1.6}small{color:#b0b5c0}
 a{display:block;background:#d9253b;color:white;text-decoration:none;padding:22px;text-align:center;border-radius:16px;font-weight:bold;margin:28px 0;font-size:22px}li{margin:12px 0}
 .badge{background:#1f2530;padding:4px 10px;border-radius:8px;font-size:14px;color:#ff354a;font-weight:bold}</style>
-<main><h1>MUSTANG <span>OS</span> <span class="badge">v0.3.6</span></h1>
-<small>Actualización de prueba sobre tus cambios de 0.3.5</small>
-<a href="/MustangOS.apk" download="MustangOS-debug.apk">Descargar Mustang OS 0.3.6</a>
+<main><h1>MUSTANG <span>OS</span> <span class="badge">v0.3.7</span></h1>
+<small>Lectura multimedia ampliada y diagnóstico de integración CarPlay</small>
+<a href="/MustangOS.apk" download="MustangOS-debug.apk">Descargar Mustang OS 0.3.7</a>
 <ol><li>Descarga <b>MustangOS-debug.apk</b>.</li>
 <li>Abre el archivo y pulsa <b>Instalar / Actualizar</b>, conservando la aplicación anterior.</li>
 <li>Abre <b>MUSTANG OS</b> con el vehículo estacionado.</li></ol>
 <h2>Qué comprobar</h2>
 <ul>
-<li><b>Música:</b> una sola orden por pulsación. La portada y Música abren CarPlay cuando usas el iPhone; una fuente Android elegida explícitamente conserva su reproductor.</li>
-<li><b>Mapas:</b> el botón del panel abre CarPlay/ZLink. Los mapas del iPhone siguen dentro de ZLink; no hay una superficie de mapa incrustada verificada en este launcher.</li>
-<li><b>Motor:</b> conserva la última lectura con su antigüedad y distingue datos OEM de datos Android. No convierte un dato ausente en cero ni afirma motor encendido a partir del voltaje.</li>
-<li><b>GPS:</b> muestra estado de proveedores y señal; la velocidad requiere una lectura GNSS válida. Una posición de red no se usa como velocidad.</li>
-<li><b>Diseño:</b> foto del Mustang en Apps, caballo junto al nombre y faros con bienvenida visual y avisos ACC compatibles.</li>
+<li><b>Música:</b> conserva los controles que ya confirmaste y añade lectura de título/texto secundario alternativos de la sesión. Depende de lo que ZLink publique; no se conecta a una app de música específica del iPhone.</li>
+<li><b>Diagnóstico:</b> comprueba los campos de todas las sesiones sin exportar canciones. Añade código estático de Bluetooth/Música y del launcher OEM de sistema para investigar las interfaces que faltan.</li>
+<li><b>Mapas:</b> esta revisión todavía no integra el mapa en el panel. Necesitamos identificar la interfaz de superficie y entrada táctil de ZLink 6.1.06.</li>
 </ul>
-<p><small>La compilación y las pruebas locales no sustituyen la comprobación de pausa, GPS y lecturas en tu pantalla. La integración CarPlay dentro del miniwidget sigue pendiente del contrato del proveedor.</small></p>
+<p><small>El usuario confirmó los controles de reproducción con el iPhone en 0.3.6. El título, portada y mapa del panel siguen requiriendo comprobación y un canal de datos disponible.</small></p>
 <h2>Enviar diagnóstico al PC</h2>
-<p>En Mustang OS abre <b>Ajustes → Diagnóstico y exportación → Compatibilidad OEM → Guardar ZIP</b>. Guarda el informe con la lectura OEM activa y selecciónalo aquí:</p>
+<p>Con CarPlay conectado, deja una canción reproduciéndose y una ruta iniciada. Regresa con Home a Mustang OS. Abre <b>Ajustes → Diagnóstico y exportación → Compatibilidad OEM → Guardar ZIP</b>. Selecciona aquí ese ZIP nuevo de 0.3.7:</p>
 <input id="report" type="file" accept=".zip,application/zip" style="font-size:18px;max-width:100%">
 <button id="send" style="font-size:20px;background:#1d222b;color:white;padding:20px;border:1px solid #4b5260;border-radius:12px;margin-top:16px">Enviar diagnóstico al PC</button>
 <p id="result" role="status"></p>
@@ -143,9 +141,12 @@ def main():
             print(f"[{datetime.now().strftime('%H:%M:%S')}] {args[0]}")
 
     server = ThreadingHTTPServer((args.host, args.port), Handler)
+    server.timeout = 1.0
+    deadline = monotonic() + 2 * 60 * 60
     print(f"Servidor listo en http://{args.host}:{args.port}/ sirviendo {apk.name} ({apk.stat().st_size} bytes)")
     try:
-        server.serve_forever()
+        while monotonic() < deadline:
+            server.handle_request()
     except KeyboardInterrupt:
         pass
     finally:

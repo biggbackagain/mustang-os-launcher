@@ -2,6 +2,8 @@
 
 ## Equipo objetivo
 
+Estado 0.3.7: controles confirmados con el iPhone en 0.3.6; metadatos y mapa integrado siguen pendientes. Se corrige la omisión de campos DISPLAY y el ZIP añade clientes HOME/BT/Música que faltaban. [Nueva evidencia necesaria y límites](docs/UPDATE_037.md).
+
 Estado 0.3.6: [correcciones actuales](docs/UPDATE_036.md) sobre los cambios del usuario, conservados en `8c31274`. Los datos OEM anteriores se retienen con su antigüedad, sin convertir BatteryManager en voltaje del coche o temperatura exterior. Las consultas usan formatos fijos observados en la unidad. Multimedia evita envíos duplicados y abre CarPlay para la fuente del teléfono. GPS distingue red/GNSS y ACC se observa sin controles de potencia. La verificación física de esta revisión sigue pendiente. La superficie CarPlay dentro del panel continúa sin contrato disponible.
 
 T10S / T100, Allwinner A133 / sun50iw10p1, Cortex-A53, 2 GB RAM, 1280×720, sin root. Los datos de firmware, MCU, CAN y PT2313/QN8035 provienen del usuario, no de una inspección de hardware realizada aquí.

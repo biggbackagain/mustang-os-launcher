@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.mustangos.launcher.NativeInspectionTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-27T20:07:20.211Z" hostname="DESKTOP-3IU4CK5" time="0.099">
+<testsuite name="com.mustangos.launcher.NativeInspectionTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-27T21:51:16.918Z" hostname="DESKTOP-3IU4CK5" time="0.398">
   <properties/>
-  <testcase name="exportIncludesOnlyStaticManifestAndDexFromAllowedPackages" classname="com.mustangos.launcher.NativeInspectionTest" time="0.048"/>
-  <testcase name="androidVoltageIsNotPromotedToMcuVoltage" classname="com.mustangos.launcher.NativeInspectionTest" time="0.019"/>
-  <testcase name="inspectionReportsApiRestrictionWithoutStartingVendorServices" classname="com.mustangos.launcher.NativeInspectionTest" time="0.017"/>
-  <testcase name="absenceOfBatteryDataDoesNotInventTwelveVolts" classname="com.mustangos.launcher.NativeInspectionTest" time="0.015"/>
+  <testcase name="exportIncludesOnlyStaticManifestAndDexFromAllowedPackages" classname="com.mustangos.launcher.NativeInspectionTest" time="0.061"/>
+  <testcase name="staticEntryLimitStopsBeforeExportingAnUnboundedDexList" classname="com.mustangos.launcher.NativeInspectionTest" time="0.063"/>
+  <testcase name="btMusicAndSystemHomeAreExportedWhileOtherHomesRemainInventoryOnly" classname="com.mustangos.launcher.NativeInspectionTest" time="0.065"/>
+  <testcase name="unreadableSystemHomeDoesNotPreventOtherStaticExports" classname="com.mustangos.launcher.NativeInspectionTest" time="0.029"/>
+  <testcase name="androidVoltageIsNotPromotedToMcuVoltage" classname="com.mustangos.launcher.NativeInspectionTest" time="0.02"/>
+  <testcase name="sharedLibraryInspectionOnlyReturnsDeclaredNames" classname="com.mustangos.launcher.NativeInspectionTest" time="0.018"/>
+  <testcase name="inspectionReportsApiRestrictionWithoutStartingVendorServices" classname="com.mustangos.launcher.NativeInspectionTest" time="0.019"/>
+  <testcase name="deniedHomeDiscoveryDoesNotInventAClientOrRequestMorePermissions" classname="com.mustangos.launcher.NativeInspectionTest" time="0.023"/>
+  <testcase name="systemHomeExportHasPackageLimitWithoutHidingTheOtherHomeNames" classname="com.mustangos.launcher.NativeInspectionTest" time="0.077"/>
+  <testcase name="absenceOfBatteryDataDoesNotInventTwelveVolts" classname="com.mustangos.launcher.NativeInspectionTest" time="0.023"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[Intent = Intent { act=android.intent.action.BATTERY_CHANGED (has extras) }; Matching wrappers: []
 ]]></system-err>

@@ -3,12 +3,14 @@ import hashlib
 import io
 from pathlib import Path
 import re
+import runpy
 import socket
 import subprocess
 import sys
 import tempfile
 import time
 import unittest
+from unittest.mock import patch
 import urllib.error
 import urllib.request
 import zipfile
@@ -51,6 +53,15 @@ class DownloadServerTest(unittest.TestCase):
     def test_apk_download_is_identical(self):
         with urllib.request.urlopen(self.base + "/MustangOS.apk") as response:
             self.assertEqual(hashlib.sha256(response.read()).digest(), hashlib.sha256(self.apk.read_bytes()).digest())
+
+    def test_server_closes_after_two_hours_without_waiting_in_real_time(self):
+        script = Path(__file__).with_name("serve-apk.py")
+        with patch.object(sys, "argv", [str(script), "--host", "127.0.0.1", "--apk", str(self.apk)]), \
+                patch("http.server.ThreadingHTTPServer") as server_type, \
+                patch("time.monotonic", side_effect=[10.0, 11.0, 7210.0]):
+            runpy.run_path(str(script), run_name="__main__")
+        server_type.return_value.handle_request.assert_called_once()
+        server_type.return_value.server_close.assert_called_once()
 
     def test_other_files_are_not_served(self):
         with self.assertRaises(urllib.error.HTTPError) as caught: urllib.request.urlopen(self.base + "/device-reports/private.zip")

@@ -1,6 +1,24 @@
-# Registro de verificación · Mustang OS 0.3.6
+# Registro de verificación · Mustang OS 0.3.7
 
-## Resultado actual 0.3.6
+## Resultado actual 0.3.7
+
+**112 pruebas app/núcleo y siete del servidor pasadas; cero fallos/errores.** Verificación completa con `scripts/verify.ps1`, `BUILD SUCCESSFUL` en 41 segundos. Lint: cero errores y 75 advertencias, sin cambios de permisos. Se conserva firma v2/certificado de 0.3.6.
+
+- Paquete `com.mustangos.launcher`, versión 0.3.7 / código 8.
+- APK `output/MustangOS-0.3.7-debug.apk`, 2 554 269 bytes.
+- SHA-256: `4F79CCE8122766AF69DF276CA6DC8F2BF9777549682E81B5611B5571B1BB0DDB`.
+
+Distribución local verificada: página HTTP 200 con versión 0.3.7 y APK descargada por `http://192.168.100.2:8766/` idéntica por SHA-256. El ayudante caduca dos horas después de iniciarse. La instalación desde la pantalla todavía depende de la comprobación del usuario.
+
+Las trece nuevas regresiones comprueban fallback DISPLAY sin inventar artista, prioridad de campos principales/bitmap, cambios/limpieza por callback, flags por sesión sin mezclar fuentes ni exportar valores de canciones/URI, wiring del tablero/informe y selección/copia de clientes HOME/BT/Música con límites y sin recursos/licencias. La omisión de campos alternativos se reprodujo antes de corregirla. El fixture de privacidad ahora usa una FINGERPRINT única: el valor predeterminado de Robolectric coincidía con MODEL/BRAND, que sí son datos permitidos del equipo.
+
+La séptima prueba del servidor comprueba caducidad de dos horas con reloj simulado. La implementación vuelve a aplicar el límite ya descrito por la página/guía; no se mantiene el bucle indefinido de la base modificada.
+
+**Evidencia física nueva de 0.3.6:** el usuario confirma pausa/reanudar y cambio de canción con CarPlay/ZLink+iPhone. Las fotos muestran sesión `com.zjinnova.zlink`, título/artista/portada ausentes y un panel de navegación que solo abre CarPlay. El usuario confirma datos completos dentro de CarPlay usando Apple Music y que el launcher original también abre CarPlay completo. Eso no demuestra que la sesión Android publique esos campos.
+
+**Pendiente:** nuevo ZIP con 0.3.7 durante reproducción/ruta, portada accesible y mapa interactivo en el panel. Esta revisión no implementa superficie CarPlay, carga de URI ni integración específica con una app del iPhone. [Estado y captura necesaria](docs/UPDATE_037.md).
+
+## Historial 0.3.6
 
 **99 pruebas de app/núcleo y seis del servidor pasadas; cero fallos.** Verificación completa con `scripts/verify.ps1`: tests JVM/Robolectric, lint y APK debug; `BUILD SUCCESSFUL` en 38 segundos en este PC. Lint: **cero errores y 75 advertencias**, frente a 88 en la base 0.3.5 del usuario; no se añadió baseline para ocultar errores. Los avisos pendientes incluyen textos del tablero, versiones de dependencias, APIs OEM por reflexión y sugerencias de layout/KTX.
 
