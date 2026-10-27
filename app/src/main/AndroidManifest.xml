@@ -2,6 +2,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="zjinnova.android.permission.ZLINK_SERVICE" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
     <queries>
         <package android:name="com.zjinnova.zlink"/><package android:name="com.tw.radio"/><package android:name="com.tw.bt"/><package android:name="com.tw.music"/>

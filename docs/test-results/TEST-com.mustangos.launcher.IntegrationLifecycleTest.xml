@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.mustangos.launcher.IntegrationLifecycleTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-27T04:48:55.123Z" hostname="DESKTOP-3IU4CK5" time="1.452">
+<testsuite name="com.mustangos.launcher.IntegrationLifecycleTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-27T05:30:40.055Z" hostname="DESKTOP-3IU4CK5" time="1.23">
   <properties/>
-  <testcase name="revokedMediaAccessClearsSourceAndControls" classname="com.mustangos.launcher.IntegrationLifecycleTest" time="1.311"/>
-  <testcase name="metadataAndCapabilityCallbacksRemoveStaleData" classname="com.mustangos.launcher.IntegrationLifecycleTest" time="0.043"/>
-  <testcase name="gpsListenerExpiresAndStopsWithoutBackgroundUpdates" classname="com.mustangos.launcher.IntegrationLifecycleTest" time="0.098"/>
+  <testcase name="revokedMediaAccessClearsSourceAndControls" classname="com.mustangos.launcher.IntegrationLifecycleTest" time="1.084"/>
+  <testcase name="metadataAndCapabilityCallbacksRemoveStaleData" classname="com.mustangos.launcher.IntegrationLifecycleTest" time="0.052"/>
+  <testcase name="gpsListenerExpiresAndStopsWithoutBackgroundUpdates" classname="com.mustangos.launcher.IntegrationLifecycleTest" time="0.094"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

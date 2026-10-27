@@ -1,6 +1,9 @@
 C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\diagnostics\ErrorJournal.kt:15: Warning: Consider using apply() instead; commit writes its data to persistent storage immediately, whereas apply will handle it in the background [ApplySharedPref]
         if (safeCode.startsWith("CRASH_")) edit.commit() else edit.apply()
                                                 ~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\settings\LauncherSettings.kt:18: Warning: Consider using apply() instead; commit writes its data to persistent storage immediately, whereas apply will handle it in the background [ApplySharedPref]
+        set(value) { prefs.edit().putBoolean("oem_interrupted", value).commit() }
+                                                                       ~~~~~~~~
 
    Explanation for issues of type "ApplySharedPref":
    Consider using apply() instead of commit on shared preferences. Whereas
@@ -29,6 +32,21 @@ C:\Users\garci\Documents\ChatGPT\mustang OS\app\build.gradle.kts:8: Warning: Not
    html
 
    https://developer.android.com/distribute/best-practices/develop/target-sdk.html
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\vehicle\OemReadOnlyManager.kt:22: Warning: Accessing internal APIs via reflection is not supported and may not work on all devices or in the future [PrivateApi]
+class TwReadOnlySubscription(private val loadClass: () -> Class<*> = { Class.forName("android.tw.john.TWUtil") }) : OemSubscription {
+                                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\vehicle\OemReadOnlyManager.kt:22: Warning: Accessing internal APIs via reflection is not supported and may not work on all devices or in the future [PrivateApi]
+class TwReadOnlySubscription(private val loadClass: () -> Class<*> = { Class.forName("android.tw.john.TWUtil") }) : OemSubscription {
+                                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "PrivateApi":
+   Using reflection to access hidden/private Android APIs is not safe; it will
+   often not work on devices from other vendors, and it may suddenly stop
+   working (if the API is removed) or crash spectacularly (if the API behavior
+   changes, since there are no guarantees for compatibility).
+
+   https://developer.android.com/preview/restrictions-non-sdk-interfaces
 
 C:\Users\garci\Documents\ChatGPT\mustang OS\app\build.gradle.kts:4: Warning: A newer version of compileSdkVersion than 35 is available: 36 [GradleDependency]
     compileSdk = 35
@@ -65,7 +83,7 @@ C:\Users\garci\Documents\ChatGPT\mustang OS\app\build.gradle.kts:25: Warning: A 
    MavenCentral dependency, and connects to the library every time, which
    makes it more flexible but also much slower.
 
-C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\AndroidManifest.xml:15: Warning: Fixed screen orientations will be ignored in most cases, starting from Android 16. Android is moving toward a model where apps are expected to adapt to various orientations, display sizes, and aspect ratios. [DiscouragedApi]
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\AndroidManifest.xml:16: Warning: Fixed screen orientations will be ignored in most cases, starting from Android 16. Android is moving toward a model where apps are expected to adapt to various orientations, display sizes, and aspect ratios. [DiscouragedApi]
         <activity android:name=".ui.MainActivity" android:exported="true" android:screenOrientation="landscape" android:launchMode="singleTask">
                                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -137,7 +155,13 @@ C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\laun
 C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\settings\LauncherSettings.kt:12: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
         set(value) { prefs.edit().putString("media", value).apply() }
                      ~~~~~~~~~~~~
-C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:177: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\settings\LauncherSettings.kt:15: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        set(value) { prefs.edit().putBoolean("oem_read", value).apply() }
+                     ~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\settings\LauncherSettings.kt:18: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        set(value) { prefs.edit().putBoolean("oem_interrupted", value).commit() }
+                     ~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:178: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
                 .setNeutralButton("Permisos de la app") { _, _ -> safeSettings(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:$packageName"))) }
                                                                                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\media\MediaIntegrationManager.kt:84: Warning: Use the KTX extension function Bitmap.scale instead? [UseKtx]
@@ -200,4 +224,4 @@ C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\laun
    </lint>
    ```
 
-0 errors, 19 warnings
+0 errors, 24 warnings

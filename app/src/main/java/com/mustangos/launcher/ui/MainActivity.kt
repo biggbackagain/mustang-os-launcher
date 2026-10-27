@@ -79,6 +79,7 @@ class MainActivity : ComponentActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { model.gps.state.collect { state -> binding.gauge.setSpeed(state.kmh); binding.gpsStatus.text = state.status } }
                 launch { model.media.state.collect { renderMedia(it) } }
+                launch { model.oem.state.collect { value -> binding.vehicleInfo.text = if (model.settings.oemReadEnabled || value.frames > 0) model.oem.summary() else getString(R.string.gps_disclaimer) } }
                 launch { while (isActive) { updateProgress(); updateConnectivity(); delay(1000) } }
             }
         }
@@ -180,7 +181,7 @@ class MainActivity : ComponentActivity() {
     }
     private fun showSettings() {
         val roles = listOf("zlink", "music", "maps", "phone", "radio", "home")
-        val entries = roles.map { "Elegir ${roleName(it)}" } + listOf("Abrir launcher original", "Elegir launcher predeterminado", "Permisos GPS", "Fuente y permiso multimedia", "Diagnóstico y exportación", "Ajustes Android")
+        val entries = roles.map { "Elegir ${roleName(it)}" } + listOf("Abrir launcher original", "Elegir launcher predeterminado", "Permisos GPS", "Fuente y permiso multimedia", "Diagnóstico y exportación", "Inspeccionar servicio ZLink", "Ajustes Android")
         AlertDialog.Builder(this).setTitle("Ajustes · configurar estacionado").setItems(entries.toTypedArray()) { _, index ->
             when {
                 index < roles.size -> chooseApp(roles[index], false)
@@ -189,6 +190,7 @@ class MainActivity : ComponentActivity() {
                 index == 8 -> requestGps()
                 index == 9 -> mediaSources()
                 index == 10 -> showDiagnostics()
+                index == 11 -> showZLinkProbe()
                 else -> safeSettings(Intent(Settings.ACTION_SETTINGS))
             }
         }.setNegativeButton("Cerrar", null).show()
@@ -212,21 +214,39 @@ class MainActivity : ComponentActivity() {
     }
     private fun toast(message: String) { Toast.makeText(this, message, Toast.LENGTH_LONG).show() }
     private fun showVehicleData() {
-        val gps = model.gps.state.value
-        val report = "${model.vehicle.status}\n\n" + model.vehicle.nativeReport() +
-            "\nGPS: ${gps.kmh?.let { "%.0f km/h".format(it) } ?: "sin velocidad"}; precisión ${gps.accuracyMeters ?: "—"} m; satélites ${gps.satellitesUsed ?: "—"}\n" +
-            "Altitud GPS: ${gps.altitudeMeters?.let { "%.0f m".format(it) } ?: "—"}; rumbo GPS: ${gps.bearingDegrees?.let { "%.0f°".format(it) } ?: "—"}\n\n" +
-            "Puertas, temperatura exterior, RPM y voltaje MCU: pendientes de identificar la interfaz OEM. La pantalla original sí recibe algunos de estos datos; este panel aún no puede atribuirse esas lecturas."
-        val text = TextView(this).apply { this.text = report; textSize = 16f; setPadding(24, 16, 24, 16) }
+        val native = model.vehicle.nativeReport()
+        val text = TextView(this).apply { textSize = 16f; setPadding(24, 16, 24, 16) }
         val scroll = ScrollView(this).apply { addView(text) }
-        AlertDialog.Builder(this).setTitle("Vehículo y equipo · sin OBD").setView(scroll)
-            .setPositiveButton("OriginalCar") { _, _ -> openKnownPackage("com.tw.car") }
-            .setNeutralButton("CarMate") { _, _ -> openKnownPackage("com.dofun.carassistant.car") }
+        val dialog = AlertDialog.Builder(this).setTitle("Vehículo y equipo · sin OBD").setView(scroll)
+            .setPositiveButton(if (model.settings.oemReadEnabled) "Detener lectura OEM" else "Activar lectura OEM") { _, _ ->
+                if (model.settings.oemReadEnabled) model.oem.setEnabled(false)
+                else AlertDialog.Builder(this).setTitle("Escucha OEM de solo lectura")
+                    .setMessage("Se intentará suscribir a los eventos de voltaje, temperatura y puertas usando la interfaz encontrada en tu firmware. No envía consultas ni órdenes a la MCU. Si el sistema rechaza la suscripción, se mostrará el motivo disponible.\n\nLos valores permanecerán vacíos hasta recibir eventos reales. Después de activarla, abre de nuevo Motor para verlos.")
+                    .setPositiveButton("Activar escucha") { _, _ -> model.oem.setEnabled(true); showVehicleData() }.setNegativeButton("Cancelar", null).show()
+            }
+            .setNeutralButton("Apps OEM") { _, _ -> AlertDialog.Builder(this).setItems(arrayOf("OriginalCar", "CarMate")) { _, index -> openKnownPackage(if (index == 0) "com.tw.car" else "com.dofun.carassistant.car") }.setNegativeButton("Cerrar", null).show() }
             .setNegativeButton("Cerrar", null).show()
+        val job = lifecycleScope.launch {
+            kotlinx.coroutines.flow.combine(model.oem.state, model.gps.state) { oem, gps ->
+                "${oem.status}\n${model.oem.summary()}\nEventos recibidos: ${oem.frames}\n" +
+                    "Puertas: ${oem.doorMask?.let { "máscara OEM 0x%02X (posición pendiente de comprobar)".format(it) } ?: "sin evento"}\n\n" +
+                    "GPS: ${gps.kmh?.let { "%.0f km/h".format(it) } ?: "sin velocidad"}; precisión ${gps.accuracyMeters ?: "—"} m; satélites ${gps.satellitesUsed ?: "—"}\n" +
+                    "Altitud GPS: ${gps.altitudeMeters?.let { "%.0f m".format(it) } ?: "—"}; rumbo GPS: ${gps.bearingDegrees?.let { "%.0f°".format(it) } ?: "—"}\n\n" + native +
+                    "\nRPM, refrigerante, kilometraje y velocidad CAN: sin interfaz verificada."
+            }.collect { text.text = it }
+        }
+        dialog.setOnDismissListener { job.cancel() }
     }
     private fun openKnownPackage(pkg: String) {
         val candidate = model.apps.apps().firstOrNull { it.packageName == pkg }
         if (candidate == null) toast("Esta aplicación OEM no está visible")
         else if (!model.apps.launchApp(candidate)) toast(model.apps.lastFailure ?: "No se pudo abrir la aplicación OEM")
+    }
+    private fun showZLinkProbe() {
+        val text = TextView(this).apply { textSize = 17f; setPadding(24, 24, 24, 24) }
+        val dialog = AlertDialog.Builder(this).setTitle("Interfaz pública de ZLink").setView(text).setPositiveButton("Cerrar", null).show()
+        val job = lifecycleScope.launch { model.zlinkProbe.state.collect { text.text = it } }
+        dialog.setOnDismissListener { job.cancel(); model.zlinkProbe.stop() }
+        model.zlinkProbe.probe()
     }
 }

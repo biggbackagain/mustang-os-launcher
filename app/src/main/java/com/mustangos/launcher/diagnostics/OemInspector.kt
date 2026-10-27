@@ -32,7 +32,7 @@ class OemInspector(private val context: Context) {
         for (name in listOf("android.tw.john.TWUtil", "android.tw.john.TWClient", "androidx.window.extensions.WindowExtensionsProvider")) {
             try {
                 val type = Class.forName(name, false, context.classLoader)
-                appendLine("\nClase visible: $name (sin inicializar ni invocar)")
+                appendLine("\nClase visible: $name (inspección pasiva de firmas)")
                 type.declaredMethods.map { method -> "${method.name}(${method.parameterTypes.joinToString { it.simpleName }}): ${method.returnType.simpleName}" }.sorted().take(80).forEach(::appendLine)
             } catch (_: ReflectiveOperationException) { appendLine("Clase no accesible: $name") }
               catch (_: LinkageError) { appendLine("Clase no cargable: $name") }

@@ -1,6 +1,25 @@
-# Registro de verificación · Mustang OS 0.2.0
+# Registro de verificación · Mustang OS 0.3.0
 
-## Resultado actual 0.2.0
+## Resultado actual 0.3.0
+
+**48 pruebas de la app/núcleo y seis del servidor pasadas; cero fallos.** Verificación completa: compilación debug, pruebas JVM/Robolectric y lint. Lint: cero errores, 24 advertencias (incluye la escritura síncrona intencionada del marcador de recuperación y comprobaciones del permiso OEM normal). Última ejecución incremental: 28 segundos en este PC.
+
+Nuevas pruebas: cuatro del decodificador OEM (voltaje, invalidación, temperatura con signo/conversión y máscara de aperturas); seis del lector pasivo (no abrir si está desactivado, rechazo sin datos inventados, solo valores recibidos, liberación, caducidad y recuperación de interrupción); dos del descriptor ZLink (rechazo de permiso privilegiado y lectura/liberación del servicio normal, con flags 0 y sin startService).
+
+- APK: `output/MustangOS-0.3.0-debug.apk` y alias `MustangOS-debug.apk`.
+- Versión: 0.3.0 / código 3; paquete propio sin cambios.
+- Tamaño: 2 535 914 bytes.
+- SHA-256: `438772781968D39FD380E4D6FD9BD8E4C1FD67330B9D904EFD0F14DB3FF2DFBA`.
+- Firma v2 verificada y mismo certificado que 0.1.0/0.2.0; actualización sin desinstalar.
+- Nuevo permiso: `zjinnova.android.permission.ZLINK_SERVICE`, confirmado como normal en el manifiesto y PackageManager de la unidad. El código vuelve a verificar propietario/nivel antes de vincular.
+
+Hardware confirmado por el ZIP: SDK 29 / RELEASE 13, ZLink 6.1.06, MediaSession visible con acciones 0 en esa captura, clase TWUtil visible, formatos de alimentación/temperatura/aperturas identificados estáticamente. [Evidencia y límites del análisis](docs/DEVICE_FINDINGS.md).
+
+**Pendiente:** aceptación del lector OEM desde Mustang OS, recepción de datos reales, correlación de puertas y descriptor del servicio ZLink en la pantalla. La superficie CarPlay dentro del widget sigue sin integración verificada. Las pruebas simuladas del transporte no prueban acceso al firmware.
+
+## Historial 0.2.0
+
+### Resultado 0.2.0
 
 **36 pruebas de la app y seis del servidor pasadas; cero fallos.** Gradle completó `:core:test :app:testDebugUnitTest :app:lintDebug :app:assembleDebug`. Lint: cero errores y 19 advertencias. La última verificación completa duró 26 segundos en el PC; no es una medida del T100.
 

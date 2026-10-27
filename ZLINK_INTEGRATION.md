@@ -4,6 +4,8 @@ Fecha de investigación: 26 de octubre de 2026. Sin conexión física confirmada
 
 Actualización 0.2.0: las fotos enviadas por el usuario confirman el paquete `com.zjinnova.zlink`. Su actividad y contrato aún deben inspeccionarse en el ZIP de compatibilidad. La app ahora resuelve el paquete confirmado cuando está instalado. Consulta [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md) para la investigación del panel interactivo y datos OEM sin OBD.
 
+Actualización 0.3.0: el ZIP fue recibido. Confirma MainActivity, versión 6.1.06, MediaSession visible con acciones `0` en esa captura, SDK real 29 y PiP/redimensionamiento desactivados en ZLink. El permiso del servicio exportado es normal, no privilegiado. Se añade una inspección limitada al descriptor Binder del servicio ya activo. Consulta [docs/DEVICE_FINDINGS.md](docs/DEVICE_FINDINGS.md); no se ha integrado la superficie CarPlay.
+
 ## Evidencia pública
 
 ZJINNOVA presenta Android zLink como una solución que entrega APK, HAL, drivers y documentación de integración a fabricantes. Enumera Allwinner y conectividad USB/Wi-Fi. Su página invita a solicitar el documento de integración, pero la documentación pública revisada no especifica intents, extras, AIDL, broadcasts ni proveedores para lectura de metadatos y navegación por una APK externa. Esto no demuestra que tales contratos no existan en una variante OEM: falta inspeccionar el equipo o recibir documentación autorizada. [Android zLink, fabricante](https://www.zjinnova.com/android-zlink.html).

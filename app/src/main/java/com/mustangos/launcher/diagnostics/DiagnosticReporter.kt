@@ -12,9 +12,9 @@ class DiagnosticReporter(private val context: Context, private val model: Launch
         val mem = ActivityManager.MemoryInfo().also { context.getSystemService(ActivityManager::class.java).getMemoryInfo(it) }
         val d = context.resources.displayMetrics
         return buildString {
-            appendLine("MUSTANG OS 0.2.0 · diagnóstico básico")
+            appendLine("MUSTANG OS 0.3.0 · diagnóstico básico")
             appendLine("SDK real: ${Build.VERSION.SDK_INT}; etiqueta RELEASE: ${Build.VERSION.RELEASE}")
-            appendLine("API 32 corresponde a Android 12L; API 33 a Android 13. La etiqueta del fabricante puede diferir.")
+            appendLine("API 29 corresponde a Android 10; API 32 a Android 12L; API 33 a Android 13. La etiqueta del fabricante puede diferir.")
             appendLine("Ventana/densidad: ${d.widthPixels}x${d.heightPixels}px; ${d.densityDpi}dpi")
             appendLine("RAM total: ${mem.totalMem / 1_048_576} MiB; disponible: ${mem.availMem / 1_048_576} MiB")
             appendLine("GPS: ${model.gps.state.value.status}")
@@ -24,8 +24,14 @@ class DiagnosticReporter(private val context: Context, private val model: Launch
             appendLine("Paquetes de sesiones visibles: ${model.media.sessions.map { it.packageName }.distinct().joinToString().ifBlank { "ninguno" }}")
             appendLine("Acciones de sesión seleccionada: ${model.media.state.value.facts.actions}")
             appendLine("CarPlay: ${model.carplay.connectionStatus}")
+            appendLine("Servicio ZLink: ${model.zlinkProbe.state.value}")
+            val mediaFacts = model.media.state.value.facts
+            appendLine("Campos multimedia publicados: título=${mediaFacts.title != null}; artista=${mediaFacts.artist != null}; álbum=${mediaFacts.album != null}; duración=${mediaFacts.durationMs > 0}; portada=${model.media.state.value.artwork != null}")
             appendLine("Navegación: ${model.navigation.status}")
             appendLine("Datos del vehículo: ${model.vehicle.status}")
+            val oem = model.oem.state.value
+            appendLine("Lectura OEM: ${oem.status}; eventos=${oem.frames}; activa por el usuario=${model.settings.oemReadEnabled}")
+            appendLine("Valores OEM recibidos: voltaje=${oem.voltage ?: "sin evento"}; temperatura_C=${oem.temperatureC ?: "sin evento"}; máscara de puertas=${oem.doorMask ?: "sin evento"}")
             appendLine(model.vehicle.nativeReport())
             val fix = model.gps.state.value
             appendLine("Calidad GPS: precisión=${fix.accuracyMeters ?: "sin lectura"} m; satélites usados=${fix.satellitesUsed ?: "sin lectura"}")

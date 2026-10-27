@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.mustangos.launcher.OemReadOnlyTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-27T05:30:49.510Z" hostname="DESKTOP-3IU4CK5" time="1.975">
+  <properties/>
+  <testcase name="disabledDoesNotOpenAnything" classname="com.mustangos.launcher.OemReadOnlyTest" time="1.763"/>
+  <testcase name="reflectiveAdapterUsesOnlySubscriptionLifecycle" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.025"/>
+  <testcase name="onlyReceivedValuesAreDisplayedAndStopReleasesClient" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.063"/>
+  <testcase name="rejectedSubscriptionDoesNotInventMeasurements" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.041"/>
+  <testcase name="interruptedNativeAttemptCannotCauseStartupLoop" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.042"/>
+  <testcase name="feedTimeoutClearsOldValues" classname="com.mustangos.launcher.OemReadOnlyTest" time="0.04"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

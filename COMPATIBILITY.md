@@ -2,7 +2,7 @@
 
 ## Equipo objetivo
 
-Estado 0.2.0: [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md) registra evidencia del usuario, corrección de accesos, lecturas Android y límites del panel CarPlay. La adquisición MCU sin OBD sigue en investigación; no se presenta el voltaje BatteryManager como voltaje del vehículo.
+Estado 0.3.0: [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md) y [los hallazgos reales](docs/DEVICE_FINDINGS.md) registran SDK 29 / RELEASE 13, protocolo OEM identificado y límites comprobados del panel CarPlay. El lector pasivo está implementado pero pendiente de comprobar acceso desde Mustang OS. No se presenta el voltaje BatteryManager como voltaje del vehículo.
 
 T10S / T100, Allwinner A133 / sun50iw10p1, Cortex-A53, 2 GB RAM, 1280×720, sin root. Los datos de firmware, MCU, CAN y PT2313/QN8035 provienen del usuario, no de una inspección de hardware realizada aquí.
 

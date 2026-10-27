@@ -10,4 +10,10 @@ class LauncherSettings(context: Context) {
     var mediaPackage: String?
         get() = prefs.getString("media", null)
         set(value) { prefs.edit().putString("media", value).apply() }
+    var oemReadEnabled: Boolean
+        get() = prefs.getBoolean("oem_read", false)
+        set(value) { prefs.edit().putBoolean("oem_read", value).apply() }
+    var oemInterrupted: Boolean
+        get() = prefs.getBoolean("oem_interrupted", false)
+        set(value) { prefs.edit().putBoolean("oem_interrupted", value).commit() }
 }

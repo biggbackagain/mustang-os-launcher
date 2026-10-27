@@ -4,6 +4,8 @@ Todas las filas comienzan **PENDIENTES**. Ninguna prueba automatizada sustituye 
 
 Evidencia parcial del usuario: instaló 0.1.0 por Wi-Fi, abrió ZLink y envió fotos del selector; confirmó puertas, temperatura y voltaje en el OEM. Esto no marca como superados los casos completos siguientes. Para 0.2.0, comprobar primero autodetección de CarPlay/radio/teléfono/música, ausencia de apps ajenas en Mapas, exportación del ZIP de compatibilidad y envío desde el navegador. Los datos MCU en Mustang OS y el panel CarPlay siguen pendientes; consulta NATIVE_INTEGRATION.md.
 
+Actualización: el ZIP de compatibilidad fue recibido. La 0.3.0 incorpora el lector de prueba descrito en docs/DEVICE_FINDINGS.md. Con el vehículo estacionado, activar Motor → Activar lectura OEM → Activar escucha; anotar estado y contador. Comparar voltaje/temperatura con la barra OEM y abrir/cerrar una puerta para verificar recepción; no atribuir posiciones antes de correlacionarlas. Después, con ZLink ya activo, usar Ajustes → Inspeccionar servicio ZLink y volver a exportar el ZIP si hace falta. No marcar estos casos como pasados hasta recibir resultados físicos.
+
 Antes de configurar Home: confirma que ZLink, radio, cámara y mandos funcionan con el launcher original; anota cómo volver a él. Instala Mustang OS como APK normal y realiza primero las pruebas sin cambiar Home. Prueba reversa con el vehículo inmovilizado, freno aplicado y las precauciones habituales del fabricante.
 
 | Caso | Pasos / resultado esperado | Estado |

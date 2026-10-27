@@ -39,7 +39,7 @@
             <Button android:id="@+id/gpsStatus" style="@style/ActionButton" android:layout_width="match_parent" android:layout_height="48dp" android:minHeight="48dp" android:text="@string/gps_enable" android:textSize="13sp"/>
             <ImageView android:id="@+id/carImage" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1.15" android:src="@drawable/mustang_2010" android:scaleType="centerCrop" android:contentDescription="@string/vehicle_description"/>
             <TextView style="@style/Title" android:layout_width="match_parent" android:layout_height="28dp" android:text="@string/engine_label" android:gravity="center" android:textSize="16sp"/>
-            <TextView style="@style/Muted" android:layout_width="match_parent" android:layout_height="24dp" android:text="@string/gps_disclaimer" android:gravity="center" android:textSize="12sp"/>
+            <TextView android:id="@+id/vehicleInfo" style="@style/Muted" android:layout_width="match_parent" android:layout_height="24dp" android:text="@string/gps_disclaimer" android:gravity="center" android:textSize="12sp" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
         <LinearLayout style="@style/Card" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="0.29" android:orientation="vertical">
             <LinearLayout android:layout_width="match_parent" android:layout_height="@dimen/card_header_height" android:gravity="center_vertical">

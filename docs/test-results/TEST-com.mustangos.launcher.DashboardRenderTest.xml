@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.mustangos.launcher.DashboardRenderTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-27T04:48:45.370Z" hostname="DESKTOP-3IU4CK5" time="9.746">
+<testsuite name="com.mustangos.launcher.DashboardRenderTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-27T05:30:31.025Z" hostname="DESKTOP-3IU4CK5" time="9.024">
   <properties/>
-  <testcase name="renderActualDashboardWithoutInventedData" classname="com.mustangos.launcher.DashboardRenderTest" time="9.532"/>
-  <testcase name="renderCompactDashboard" classname="com.mustangos.launcher.DashboardRenderTest" time="0.213"/>
+  <testcase name="renderActualDashboardWithoutInventedData" classname="com.mustangos.launcher.DashboardRenderTest" time="8.812"/>
+  <testcase name="renderCompactDashboard" classname="com.mustangos.launcher.DashboardRenderTest" time="0.212"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[Invalid ID 0x00000000.
 Invalid ID 0x00000000.

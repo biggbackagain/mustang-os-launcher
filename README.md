@@ -1,12 +1,12 @@
-# MUSTANG OS · 0.2.0
+# MUSTANG OS · 0.3.0
 
 Launcher Android nativo para Ford Mustang 2010 V6 4.0L convertible rojo con capota negra. Kotlin, Views/XML, MVVM y StateFlow. La referencia visual se traduce en tres paneles, superficies grafito, rojo moderado e iconos vectoriales de trazo uniforme.
 
 ![Interfaz Android renderizada en pruebas, sin datos CarPlay simulados](docs/dashboard-1280x720.png)
 
-APK de depuración generada; 36 pruebas automatizadas de la app y seis del servidor pasadas. El usuario instaló la 0.1.0; la corrección 0.2.0 y las integraciones del T100 siguen pendientes de validación en hardware.
+El usuario instaló versiones de prueba y envió un ZIP de la unidad. Se confirmó SDK 29 pese a la etiqueta Android 13. La 0.3.0 añade lectura OEM pasiva y diagnóstico del servicio público ZLink; la adquisición real de datos necesita la prueba en pantalla. Pasaron 48 pruebas de la app/núcleo y seis del servidor.
 
-La 0.2.0 corrige el selector de mapas, detecta las apps OEM confirmadas y permite exportar evidencia para investigar datos MCU sin OBD, USB ni ADB. **Todavía no muestra la superficie CarPlay dentro del widget ni lee puertas o temperatura MCU**. El estado exacto y el procedimiento están en [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md).
+La 0.2.0 corrigió el selector de mapas y detectó las apps OEM confirmadas. La 0.3.0 permite activar **Motor → Activar lectura OEM → Activar escucha** para intentar recibir voltaje, temperatura y aperturas con los formatos encontrados en la unidad, sin órdenes ni consultas a la MCU. No muestra valores antes de recibirlos. **La superficie CarPlay dentro del widget sigue sin integración verificada.** El estado exacto está en [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md) y [los hallazgos del equipo](docs/DEVICE_FINDINGS.md).
 
 ## Instalar y empezar
 
@@ -49,7 +49,9 @@ La APK usa una firma de depuración y el paquete propio `com.mustangos.launcher`
 | OBD2 | Contrato y estado no disponible | Transporte ELM327 y adaptador aún no implementados |
 | Ruta CarPlay / mapa incrustado | Acceso a ZLink y mapas Android | Sin contrato público verificado para datos o incrustación |
 
-No hay temperatura exterior, kilometraje, rutas ni canciones de demostración. No se solicitan root, control de Bluetooth/Wi-Fi, accesibilidad, micrófono, contactos, audio focus ni permisos privilegiados. No hay permiso de Internet, analítica de la APK ni servicio de GPS en segundo plano. El servicio de acceso multimedia no lee el contenido de las notificaciones.
+No se inventan temperaturas, kilometraje, rutas ni canciones. No se solicitan root, control de Bluetooth/Wi-Fi, accesibilidad, micrófono, contactos, audio focus ni permisos privilegiados. No hay permiso de Internet, analítica de la APK ni servicio de GPS en segundo plano. El servicio de acceso multimedia no lee el contenido de las notificaciones.
+
+La única autorización adicional de 0.3.0 es `zjinnova.android.permission.ZLINK_SERVICE`, confirmado como permiso **normal** en el equipo. La inspección comprueba propietario/nivel y lee únicamente el descriptor Binder de un servicio ya activo. No inicia ZLink ni invoca transacciones de aplicación desconocidas. Abre primero CarPlay, regresa y usa **Ajustes → Inspeccionar servicio ZLink**; luego exporta el informe si es necesario.
 
 ## Compilar
 
