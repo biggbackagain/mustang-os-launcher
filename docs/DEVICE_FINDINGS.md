@@ -30,7 +30,9 @@ No llama transacciones de aplicación desconocidas. Este diagnóstico no constit
 
 ## Protocolo OEM identificado
 
-La clase pública OEM `android.tw.john.TWUtil` existe y sus métodos son visibles desde Mustang OS. El código de SystemUI usa una factoría pública `open(int, short[], int)` y registra un Handler. La posibilidad de hacerlo desde una APK ordinaria todavía no está confirmada: la clase visible no prueba que su llamada sea aceptada.
+La clase pública OEM `android.tw.john.TWUtil` existe y sus métodos son visibles desde Mustang OS. El código de SystemUI usa una factoría pública `open(int, short[], int)` y registra un Handler. **La suscripción desde Mustang OS 0.3.0 ya está confirmada en el equipo:** la foto del usuario muestra `OEM · recepción real`, 40 eventos y **14.1 V**, coincidente con la barra OEM. El contador incluye actividad de la fuente; no significa 40 mediciones distintas de voltaje.
+
+En esa misma prueba, Mustang OS muestra `Puertas: sin evento` y no presenta temperatura exterior. El usuario confirma que el aviso grande de puertas y la temperatura ambiente sí aparecen en la interfaz original de Android. Esto confirma disponibilidad en el equipo, sin confirmar todavía su recepción en el launcher. El campo de batería Android de 1.1 °C no es evidencia de temperatura ambiente ni del refrigerante. El GPS solo reportó un satélite usado y ninguna lectura válida de velocidad/precisión/altitud/rumbo.
 
 | Mensaje | Evidencia en los archivos de la unidad | Interpretación usada en 0.3.0 |
 |---|---|---|
@@ -39,16 +41,24 @@ La clase pública OEM `android.tw.john.TWUtil` existe y sus métodos son visible
 | 1285 / 0x0505 | Handler TWService entrega el primer byte a la vista de aperturas | máscara `byte0 & 0xF8`; no se atribuyen posiciones sin comprobar correlación física |
 | 514 / 0x0202 | Suscrito por SystemUI/TWService | Actividad de la fuente, sin convertirla en lectura del motor |
 
-La implementación propia solo suscribe estos eventos mediante la factoría, registra su Handler y libera su propia instancia al ocultarse la app. **No resuelve ni llama `write`, no envía consultas iniciales y no abre UART ni cambia CANBUS.** Por ello una lectura puede permanecer vacía hasta que el fabricante publique un evento de forma natural. El retorno de suscripción rechazada se muestra sin intentar elevar permisos ni reintentar en bucle.
+La 0.3.0 solo suscribe estos cuatro eventos mediante la factoría, registra su Handler y libera su propia instancia al ocultarse la app. **No resuelve ni llama `write`, no envía consultas iniciales y no abre UART ni cambia CANBUS.** Por ello una lectura puede permanecer vacía hasta que el fabricante publique un evento de forma natural. El retorno de suscripción rechazada se muestra sin intentar elevar permisos ni reintentar en bucle. La 0.3.1 amplía únicamente las suscripciones como se detalla más abajo.
 
 Si la escucha queda interrumpida de forma inesperada, un marcador persistente impide reactivarla automáticamente en el siguiente arranque. Se puede probar de nuevo manualmente. Los valores se eliminan al cerrar la fuente o cuando su actividad caduca durante 15 segundos. La etiqueta se refiere a lecturas OEM recibidas, no a un diagnóstico de seguridad del automóvil.
 
 El broadcast `com.tw.launcher.dvrinfo` también contiene un campo de voltaje, pero proviene de una lectura de DVR y **no se utiliza como batería del coche**.
 
+## Revisión 0.3.1 tras la prueba física
+
+TWService muestra una segunda ruta de aperturas en 1281. Para tipo 2, modelo 0x41, `arg1=56` entrega el primer byte, enmascarado con 0xF8, al indicador de aperturas. El perfil depende de los dos primeros dígitos hexadecimales y el tercer dígito del tercer grupo de la versión recibida por el evento 266. La versión MCU aportada inicialmente contiene `412`, compatible con esa rama, pero la app **no la presupone**: espera el evento 266 real en cada sesión. Solo se conservan modelo/tipo; se descarta la cadena completa.
+
+La 0.3.1 suscribe 266 y 1281 además de los cuatro códigos iniciales. La interpretación alternativa requiere perfil 0x41/tipo 2 observado y `arg1=56`; otros mensajes 1281 permanecen sin interpretar. La máscara solo indica apertura publicada; no asigna puertas físicas ni afirma estado de maletero. El permiso y transporte siguen siendo los mismos, sin consultas o comandos.
+
+Motor y el diagnóstico exportado separan conteos recibidos/interpretados por código; guardan hasta 24 combinaciones de cabecera CAN (arg1/arg2/longitud y conteo), sin contenidos de tramas. Esto permite distinguir un evento ausente de un evento recibido con formato no interpretado. Los contadores se reinician al abrir la suscripción y se descartan al cerrarla. Se corrigen también la pérdida de un evento entregado durante `open` y el posible callback atrasado de una suscripción ya cerrada. No se presenta esta revisión como puertas/temperatura comprobadas en hardware.
+
 ## Pendientes concretos
 
-- Activar el lector desde Motor; confirmar suscripción aceptada y contador de eventos.
-- Contrastar voltaje y temperatura recibidos con la barra OEM, sin rellenar valores si no llegan.
+- Voltaje y acceso TWUtil: confirmados por la prueba física de 0.3.0; falta comprobar continuidad y reconexión.
+- Localizar el canal de puertas y la ausencia de temperatura en Mustang OS, contrastando con la interfaz original. TWService también procesa aperturas en `1281 / 0x0501`, con ramas dependientes del modelo y tipo de protocolo. No se aplica una máscara genérica a todos esos mensajes.
 - Abrir/cerrar una puerta, comprobar máscara y después calibrar posiciones. No mostrar todas cerradas antes de recibir estado.
 - Inspeccionar el servicio de ZLink con CarPlay ya abierto y compartir un informe nuevo.
 - Las RPM, refrigerante, kilometraje y velocidad CAN no tienen un contrato verificado; permanecen ausentes. La velocidad GPS sigue siendo una fuente independiente.

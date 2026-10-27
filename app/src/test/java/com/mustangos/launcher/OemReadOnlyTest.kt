@@ -28,11 +28,15 @@ class OemReadOnlyTest {
         var calls = 0; var closed = false; var handler: Handler? = null
         override fun open(codes: ShortArray, handler: Handler): Boolean {
             calls++; this.handler = handler
-            assertArrayEquals(shortArrayOf(514,1285,1288,1292), codes)
+            assertArrayEquals(shortArrayOf(266,514,1281,1285,1288,1292), codes)
             return allowed
         }
         override fun close() { closed = true }
         fun voltage() { handler!!.sendMessage(Message.obtain().apply { what = 1292; arg1 = 0; obj = byteArrayOf(4,0xBA.toByte()) }); shadowOf(Looper.getMainLooper()).idle() }
+        fun send(code: Int, arg: Int = 0, data: Any? = null) {
+            handler!!.sendMessage(Message.obtain().apply { what = code; arg1 = arg; obj = data })
+            shadowOf(Looper.getMainLooper()).idle()
+        }
     }
     @Test fun disabledDoesNotOpenAnything() {
         val feed = Feed(); val reader = OemReadOnlyManager(app, settings) { feed }
@@ -61,6 +65,62 @@ class OemReadOnlyTest {
         settings.oemReadEnabled = true; settings.oemInterrupted = true
         val feed = Feed(); val reader = OemReadOnlyManager(app, settings) { feed }
         reader.start(); assertEquals(0, feed.calls); assertFalse(settings.oemReadEnabled)
+    }
+    @Test fun canHeadersAreCountedButDoorsRequireAnObservedMatchingProtocol() {
+        settings.oemReadEnabled = true
+        val feed = Feed(); val reader = OemReadOnlyManager(app, settings) { feed }
+        reader.start()
+        feed.send(1281, 56, byteArrayOf(0x80.toByte()))
+        assertNull(reader.state.value.doorMask)
+        assertTrue(reader.state.value.eventReport.contains("1281: recibidos=1; interpretados=0"))
+        feed.send(266, data = "T13.1.1-100-412-DO_NOT_EXPORT_THIS_SUFFIX")
+        feed.send(1281, 56, byteArrayOf(0x80.toByte()))
+        assertEquals(0x80, reader.state.value.doorMask)
+        assertFalse(reader.state.value.toString().contains("DO_NOT_EXPORT_THIS_SUFFIX"))
+        feed.send(1281, 56, byteArrayOf(0))
+        assertEquals(0, reader.state.value.doorMask)
+        reader.stop(); reader.start()
+        feed.send(1281, 56, byteArrayOf(0x80.toByte()))
+        assertNull(reader.state.value.doorMask)
+        reader.stop()
+    }
+    @Test fun shortAndInvalidTemperatureFramesRemainVisibleInDiagnostics() {
+        settings.oemReadEnabled = true
+        val feed = Feed(); val reader = OemReadOnlyManager(app, settings) { feed }
+        reader.start()
+        feed.send(1288, data = byteArrayOf(0))
+        feed.send(1288, data = byteArrayOf(0,127))
+        assertNull(reader.state.value.temperatureC)
+        assertTrue(reader.state.value.eventReport.contains("1288: recibidos=2; interpretados=0"))
+        feed.send(1288, data = byteArrayOf(0,22))
+        assertEquals(22f, reader.state.value.temperatureC!!, 0.001f)
+        reader.stop()
+    }
+    @Test fun eventsDeliveredDuringSubscriptionAreNotOverwritten() {
+        settings.oemReadEnabled = true
+        val reader = OemReadOnlyManager(app, settings) { object : OemSubscription {
+            override fun open(codes: ShortArray, handler: Handler): Boolean {
+                handler.dispatchMessage(Message.obtain().apply { what = 1292; obj = byteArrayOf(4, 0xBA.toByte()) })
+                return true
+            }
+            override fun close() = Unit
+        } }
+        reader.start()
+        assertEquals(12.1f, reader.state.value.voltage!!, 0.001f)
+        assertEquals(1, reader.state.value.frames)
+        reader.stop()
+    }
+    @Test fun callbackFromClosedSubscriptionCannotSelectProtocolForNewSession() {
+        settings.oemReadEnabled = true
+        val feed = Feed(); val reader = OemReadOnlyManager(app, settings) { feed }
+        reader.start()
+        val previousHandler = feed.handler!!
+        reader.stop(); reader.start()
+        previousHandler.dispatchMessage(Message.obtain().apply { what = 266; obj = "T13.1.1-100-412-EXAMPLE" })
+        feed.send(1281, 56, byteArrayOf(0x80.toByte()))
+        assertNull(reader.state.value.protocol)
+        assertNull(reader.state.value.doorMask)
+        reader.stop()
     }
     class PublicVendorApi {
         companion object {

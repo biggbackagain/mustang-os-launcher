@@ -229,7 +229,10 @@ class MainActivity : ComponentActivity() {
         val job = lifecycleScope.launch {
             kotlinx.coroutines.flow.combine(model.oem.state, model.gps.state) { oem, gps ->
                 "${oem.status}\n${model.oem.summary()}\nEventos recibidos: ${oem.frames}\n" +
+                    "Temperatura ambiente OEM: ${oem.temperatureC?.let { "%.1f °C".format(it) } ?: "sin evento"}\n" +
                     "Puertas: ${oem.doorMask?.let { "máscara OEM 0x%02X (posición pendiente de comprobar)".format(it) } ?: "sin evento"}\n\n" +
+                    "Perfil MCU recibido: ${oem.protocol?.let { "modelo ${it.model}, tipo ${it.type}" } ?: "sin evento"}\n" +
+                    "${oem.eventReport}\n\n" +
                     "GPS: ${gps.kmh?.let { "%.0f km/h".format(it) } ?: "sin velocidad"}; precisión ${gps.accuracyMeters ?: "—"} m; satélites ${gps.satellitesUsed ?: "—"}\n" +
                     "Altitud GPS: ${gps.altitudeMeters?.let { "%.0f m".format(it) } ?: "—"}; rumbo GPS: ${gps.bearingDegrees?.let { "%.0f°".format(it) } ?: "—"}\n\n" + native +
                     "\nRPM, refrigerante, kilometraje y velocidad CAN: sin interfaz verificada."

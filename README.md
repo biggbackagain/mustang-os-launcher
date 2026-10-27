@@ -1,12 +1,14 @@
-# MUSTANG OS · 0.3.0
+# MUSTANG OS · 0.3.1
 
 Launcher Android nativo para Ford Mustang 2010 V6 4.0L convertible rojo con capota negra. Kotlin, Views/XML, MVVM y StateFlow. La referencia visual se traduce en tres paneles, superficies grafito, rojo moderado e iconos vectoriales de trazo uniforme.
 
 ![Interfaz Android renderizada en pruebas, sin datos CarPlay simulados](docs/dashboard-1280x720.png)
 
-El usuario instaló versiones de prueba y envió un ZIP de la unidad. Se confirmó SDK 29 pese a la etiqueta Android 13. La 0.3.0 añade lectura OEM pasiva y diagnóstico del servicio público ZLink; la adquisición real de datos necesita la prueba en pantalla. Pasaron 48 pruebas de la app/núcleo y seis del servidor.
+El usuario instaló versiones de prueba y envió un ZIP de la unidad. Se confirmó SDK 29 pese a la etiqueta Android 13. Las fotos de 0.3.0 confirman acceso TWUtil y voltaje OEM de 14.1 V en Mustang OS, coincidente con la barra original. Las puertas y la temperatura ambiente aparecen en la interfaz OEM, pero su recepción en el launcher sigue pendiente.
 
 La 0.2.0 corrigió el selector de mapas y detectó las apps OEM confirmadas. La 0.3.0 permite activar **Motor → Activar lectura OEM → Activar escucha** para intentar recibir voltaje, temperatura y aperturas con los formatos encontrados en la unidad, sin órdenes ni consultas a la MCU. No muestra valores antes de recibirlos. **La superficie CarPlay dentro del widget sigue sin integración verificada.** El estado exacto está en [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md) y [los hallazgos del equipo](docs/DEVICE_FINDINGS.md).
+
+La 0.3.1 escucha también el canal alternativo de aperturas y el perfil MCU. Solo interpreta la rama de puertas verificada si recibe el perfil correspondiente del equipo; no lo deduce del modelo de coche. **Motor** y el informe exportado muestran eventos recibidos/interpretados por canal y hasta 24 cabeceras CAN, sin guardar el contenido de las tramas.
 
 ## Instalar y empezar
 

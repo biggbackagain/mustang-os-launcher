@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.mustangos.core.OemEventParserTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-27T05:17:35.605Z" hostname="DESKTOP-3IU4CK5" time="0.007">
+<testsuite name="com.mustangos.core.OemEventParserTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-27T05:49:11.620Z" hostname="DESKTOP-3IU4CK5" time="0.009">
   <properties/>
   <testcase name="voltageMatchesSystemUiHundredthsOfVolt" classname="com.mustangos.core.OemEventParserTest" time="0.001"/>
-  <testcase name="negativeTemperatureUsesSignedByteAndConvertsConfiguredFahrenheit" classname="com.mustangos.core.OemEventParserTest" time="0.005"/>
-  <testcase name="doorMaskPreservesUnknownPositionRatherThanInventingSpeedOrRpm" classname="com.mustangos.core.OemEventParserTest" time="0.0"/>
+  <testcase name="malformedVersionCannotSelectAnArbitraryDoorDecoder" classname="com.mustangos.core.OemEventParserTest" time="0.0"/>
+  <testcase name="negativeTemperatureUsesSignedByteAndConvertsConfiguredFahrenheit" classname="com.mustangos.core.OemEventParserTest" time="0.004"/>
+  <testcase name="rawDoorChannelRequiresProfileReceivedFromMcuVersionEvent" classname="com.mustangos.core.OemEventParserTest" time="0.003"/>
+  <testcase name="doorMaskPreservesUnknownPositionRatherThanInventingSpeedOrRpm" classname="com.mustangos.core.OemEventParserTest" time="0.001"/>
   <testcase name="voltageRejectsInvalidFlagShortPayloadAndWrongArg" classname="com.mustangos.core.OemEventParserTest" time="0.0"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>

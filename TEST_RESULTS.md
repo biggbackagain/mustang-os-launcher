@@ -1,6 +1,22 @@
-# Registro de verificación · Mustang OS 0.3.0
+# Registro de verificación · Mustang OS 0.3.1
 
-## Resultado actual 0.3.0
+## Resultado actual 0.3.1
+
+**56 pruebas de app/núcleo y seis del servidor pasadas; cero fallos.** Verificación completa con `scripts/verify.ps1`: pruebas JVM/Robolectric, lint y APK debug; `BUILD SUCCESSFUL` en 35 segundos en este PC. Lint: cero errores, 24 advertencias. La firma APK v2 está verificada y conserva el certificado de las versiones anteriores.
+
+- APK: `output/MustangOS-0.3.1-debug.apk`, alias `output/MustangOS-debug.apk`.
+- Versión 0.3.1 / código 4; paquete `com.mustangos.launcher`.
+- Tamaño: 2 480 858 bytes.
+- SHA-256: `C23090EC7326CA735FD7D0DE8DE07C3DDA3C2AF4E0E0966FBF28FBEE5EF0FE43`.
+- Sin cambios de permisos respecto de 0.3.0; la app sigue sin Internet, Bluetooth, UID de sistema ni acceso UART.
+
+Las ocho pruebas añadidas comprueban selección de protocolo solo desde el evento MCU correspondiente, rechazo de versiones mal formadas/perfiles ajenos, contadores separados y límite de memoria de 24 cabeceras sin contenidos de tramas, recepción alternativa de puertas condicionada al perfil observado, diagnóstico de temperatura inválida, conservación de eventos entregados durante la apertura y rechazo de callbacks de clientes cerrados. Esta última regresión se reprodujo como un fallo antes de corregirla.
+
+Distribución verificada: página local HTTP 200 con versión 0.3.1 y descarga desde el puerto 8766 idéntica a la APK firmada por SHA-256. No se comprobó aún su instalación en la pantalla.
+
+**Evidencia física:** fotos de 0.3.0 confirman suscripción TWUtil y 14.1 V en Mustang OS, iguales a la barra original, con 40 eventos de la fuente. El usuario confirma aviso de puertas y temperatura ambiente en la interfaz OEM. **Pendientes en el launcher:** puertas, temperatura, descriptor ZLink y superficie CarPlay. Los resultados automatizados de 0.3.1 no se presentan como una prueba de esas funciones en el automóvil.
+
+## Historial 0.3.0
 
 **48 pruebas de la app/núcleo y seis del servidor pasadas; cero fallos.** Verificación completa: compilación debug, pruebas JVM/Robolectric y lint. Lint: cero errores, 24 advertencias (incluye la escritura síncrona intencionada del marcador de recuperación y comprobaciones del permiso OEM normal). Última ejecución incremental: 28 segundos en este PC.
 

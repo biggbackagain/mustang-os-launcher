@@ -8,6 +8,8 @@ import android.os.SystemClock
 import android.provider.Settings
 import com.mustangos.core.OemEvent
 import com.mustangos.core.OemEventParser
+import com.mustangos.core.OemEventDiagnostics
+import com.mustangos.core.OemProtocol
 import com.mustangos.launcher.settings.LauncherSettings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -55,7 +57,9 @@ data class OemReadings(
     val temperatureC: Float? = null,
     val doorMask: Int? = null,
     val frames: Int = 0,
-    val lastEventMs: Long = 0
+    val lastEventMs: Long = 0,
+    val protocol: OemProtocol? = null,
+    val eventReport: String = ""
 )
 
 class OemReadOnlyManager(
@@ -64,20 +68,28 @@ class OemReadOnlyManager(
     private val createSubscription: () -> OemSubscription = { TwReadOnlySubscription() }
 ) {
     private var subscription: OemSubscription? = null
+    private var subscriptionHandler: Handler? = null
     private var running = false
+    private val diagnostics = OemEventDiagnostics()
     private val mutable = MutableStateFlow(OemReadings())
     val state = mutable.asStateFlow()
     private val handler = object : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message) {
-            if (!running) return
-            val event = OemEventParser.parse(msg.what, msg.arg1, msg.obj as? ByteArray,
-                Settings.System.getInt(context.contentResolver, "TEMP_CONVERT", 0) == 1) ?: return
-            val current = mutable.value.copy(status = "OEM · recepción real", frames = mutable.value.frames + 1, lastEventMs = SystemClock.elapsedRealtime())
+            if (!running || msg.what !in OemEventDiagnostics.CODES) return
+            val payload = msg.obj as? ByteArray
+            val event = OemEventParser.parseProtocol(msg.what, msg.arg1, msg.obj as? String)
+                ?: OemEventParser.parse(msg.what, msg.arg1, payload,
+                    Settings.System.getInt(context.contentResolver, "TEMP_CONVERT", 0) == 1, mutable.value.protocol)
+            diagnostics.record(msg.what, msg.arg1, msg.arg2, payload?.size, event != null)
+            val current = mutable.value.copy(status = "OEM · recepción real", frames = mutable.value.frames + 1,
+                lastEventMs = SystemClock.elapsedRealtime(), eventReport = diagnostics.report())
             mutable.value = when (event) {
                 is OemEvent.Voltage -> current.copy(voltage = event.volts)
                 is OemEvent.Temperature -> current.copy(temperatureC = event.celsius)
                 is OemEvent.Doors -> current.copy(doorMask = event.mask)
-                OemEvent.Heartbeat -> current
+                is OemEvent.Protocol -> current.copy(protocol = event.profile,
+                    doorMask = if (current.protocol == event.profile) current.doorMask else null)
+                OemEvent.Heartbeat, null -> current
             }
         }
     }
@@ -104,11 +116,18 @@ class OemReadOnlyManager(
         try {
             val candidate = createSubscription()
             subscription = candidate
+            diagnostics.clear()
+            mutable.value = OemReadings(status = "OEM suscrito · esperando datos reales", eventReport = diagnostics.report())
             running = true
-            if (!candidate.open(shortArrayOf(514, 1285, 1288, 1292), handler)) {
+            val ownedHandler = object : Handler(Looper.getMainLooper()) {
+                override fun handleMessage(msg: Message) {
+                    if (running && subscriptionHandler === this) handler.handleMessage(msg)
+                }
+            }
+            subscriptionHandler = ownedHandler
+            if (!candidate.open(OemEventDiagnostics.CODES.map(Int::toShort).toShortArray(), ownedHandler)) {
                 stop(); mutable.value = OemReadings(status = "El firmware rechazó la suscripción de lectura OEM"); return
             }
-            mutable.value = OemReadings(status = "OEM suscrito · esperando datos reales")
             handler.postDelayed(expiry, 1000)
         } catch (failure: Exception) {
             val cause = (failure as? java.lang.reflect.InvocationTargetException)?.cause ?: failure
@@ -119,9 +138,12 @@ class OemReadOnlyManager(
     }
     fun stop() {
         running = false
+        subscriptionHandler?.removeCallbacksAndMessages(null)
+        subscriptionHandler = null
         handler.removeCallbacksAndMessages(null)
         val owned = subscription
         subscription = null
+        diagnostics.clear()
         owned?.let { runCatching { it.close() }; settings.oemInterrupted = false }
         mutable.value = OemReadings(status = if (settings.oemReadEnabled) "Lectura OEM detenida" else "Lectura OEM desactivada")
     }

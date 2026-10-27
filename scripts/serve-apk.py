@@ -17,7 +17,7 @@ PAGE = """<!doctype html><html lang="es"><meta charset="utf-8">
 main{max-width:720px;margin:24px auto;padding:32px;border:1px solid #303540;border-radius:24px;background:#11141a}
 h1{font-size:36px;margin:0 0 12px}span{color:#ff354a}p,li{line-height:1.6}small{color:#b0b5c0}
 a{display:block;background:#d9253b;color:white;text-decoration:none;padding:22px;text-align:center;border-radius:16px;font-weight:bold;margin:28px 0}li{margin:12px 0}</style>
-<main><h1>MUSTANG <span>OS</span></h1><small>Actualización de prueba 0.3.0 · lector OEM</small>
+<main><h1>MUSTANG <span>OS</span></h1><small>Actualización de prueba 0.3.1 · canales OEM</small>
 <p>Instálala como una aplicación normal para probarla en tu pantalla Android.</p>
 <a href="/MustangOS.apk" download="MustangOS-debug.apk">Descargar Mustang OS</a>
 <ol><li>Descarga y abre <b>MustangOS-debug.apk</b>.</li>
@@ -26,11 +26,11 @@ a{display:block;background:#d9253b;color:white;text-decoration:none;padding:22px
 <li>CarPlay, radio, teléfono y música detectan las apps de tu firmware cuando están instaladas.</li></ol>
 <h2>Probar lecturas nativas</h2>
 <ol><li>Abre <b>Motor → Activar lectura OEM → Activar escucha</b>.</li>
-<li>Observa el estado y el contador de eventos. Con el coche estacionado, abre y cierra una puerta para comprobar si llegan datos reales.</li>
+<li>Con el coche estacionado, abre y cierra una puerta mientras Mustang OS está visible. En <b>Motor</b> compara los contadores de los canales y la temperatura ambiente con la barra original.</li>
 <li>Con ZLink funcionando, vuelve a Mustang OS y abre <b>Ajustes → Inspeccionar servicio ZLink</b>.</li></ol>
 <h2>Investigar datos MCU y el widget CarPlay</h2>
 <p>En Mustang OS: <b>Ajustes → Diagnóstico y exportación → Compatibilidad OEM → Guardar ZIP</b>. Guárdalo en Descargas y selecciónalo aquí.</p>
-<p><small>El ZIP contiene diagnóstico y código estático de apps OEM. No incluye sus datos privados. El lector intenta recibir voltaje, temperatura y aperturas con el protocolo encontrado en tu firmware, sin enviar órdenes a la MCU. Su acceso real está pendiente de prueba en la pantalla. Esta versión no incrusta CarPlay dentro del panel.</small></p>
+<p><small>El voltaje OEM ya se confirmó en tu pantalla. La 0.3.1 añade la escucha del canal alternativo de puertas, condicionada al perfil publicado por el equipo, y contadores por canal. Su recepción de puertas y temperatura aún necesita comprobarse. El ZIP incluye conteos y cabeceras de eventos, sin contenidos de tramas ni datos privados de otras apps. Esta versión no incrusta CarPlay dentro del panel.</small></p>
 <input id="report" type="file" accept=".zip,application/zip" style="font-size:18px;max-width:100%">
 <button id="send" style="font-size:20px;background:#1d222b;color:white;padding:20px;border:1px solid #4b5260;border-radius:12px;margin-top:16px">Enviar diagnóstico al PC</button>
 <p id="result" role="status"></p>

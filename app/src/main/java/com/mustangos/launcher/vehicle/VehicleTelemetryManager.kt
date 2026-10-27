@@ -18,7 +18,7 @@ interface VehicleTelemetrySource { suspend fun read(): VehicleTelemetry }
 class VehicleTelemetryManager(private val context: Context) {
     private val mutable = MutableStateFlow(VehicleTelemetry())
     val state = mutable.asStateFlow()
-    val status = "MCU: interfaz de lectura todavía no verificada"
+    val status = "Motor (RPM, refrigerante y kilometraje): sin interfaz verificada"
     fun nativeReport(): String = buildString {
         appendLine("LECTURAS NATIVAS ANDROID (sin OBD)")
         val battery = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))

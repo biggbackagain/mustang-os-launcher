@@ -1,12 +1,12 @@
-# Datos nativos y CarPlay integrado · investigación 0.3.0
+# Datos nativos y CarPlay integrado · investigación 0.3.1
 
-El ZIP de la pantalla ya fue recibido y analizado. Confirma **SDK 29 / etiqueta RELEASE 13** y los formatos que usa el OEM para voltaje, temperatura y aperturas. La 0.3.0 incorpora un lector pasivo activable desde Motor; su acceso desde una APK normal está pendiente de la prueba del usuario. Los detalles comprobados están en [docs/DEVICE_FINDINGS.md](docs/DEVICE_FINDINGS.md).
+El ZIP de la pantalla ya fue recibido y analizado. Confirma **SDK 29 / etiqueta RELEASE 13** y los formatos que usa el OEM para voltaje, temperatura y aperturas. Las fotos de 0.3.0 confirman acceso al lector TWUtil desde Mustang OS y **14.1 V**, coincidente con la barra original. La 0.3.1 amplía el diagnóstico para localizar las puertas y temperatura que aún faltan en el launcher. Los detalles comprobados están en [docs/DEVICE_FINDINGS.md](docs/DEVICE_FINDINGS.md).
 
 ## Evidencia de la pantalla real
 
 El usuario instaló versiones de prueba por Wi-Fi y proporcionó fotos y un ZIP de compatibilidad. Quedan confirmados los paquetes instalados `com.zjinnova.zlink`, `com.tw.radio`, `com.tw.bt`, `com.tw.music`, `com.tw.car`, `com.tw.ac`, `com.dofun.carassistant.car` y `com.dofun.carsetting`. La actividad de entrada de ZLink y su permiso normal de servicio se verificaron en el informe y manifiesto.
 
-El usuario confirma que la interfaz OEM muestra apertura de puertas, temperatura y voltaje. Una foto muestra 12.1 V en la barra OEM. Esto demuestra que el equipo presenta esos datos; no demuestra que estén accesibles desde una aplicación ordinaria ni cuál sea su protocolo. No se transcribe 12.1 V como valor actual del widget.
+El usuario confirma que la interfaz OEM muestra apertura de puertas, temperatura ambiente y voltaje. Las primeras fotos muestran 12.1 V en la barra OEM; las nuevas muestran 14.1 V en esa barra y en el lector de Mustang OS, con 40 eventos. Solo el voltaje está confirmado dentro del launcher. Ninguna de esas cifras se fija como valor actual del widget.
 
 ## Corrección de accesos
 
@@ -17,21 +17,23 @@ El usuario confirma que la interfaz OEM muestra apertura de puertas, temperatura
 
 ## ¿Qué se puede leer sin OBD?
 
-| Dato | Fuente en Mustang OS 0.2.0 | Estado |
+| Dato | Fuente en Mustang OS | Estado |
 |---|---|---|
 | Velocidad | LocationManager GPS | Implementado, requiere permiso preciso y señal |
 | Precisión, altitud, rumbo y satélites usados | Location/GnssStatus | Implementado, solo muestra lecturas publicadas y recientes |
 | Almacenamiento libre, volumen y brillo Android | APIs públicas del equipo | Implementado; no se confunden con información del motor o amplificador OEM |
 | Voltaje BatteryManager | Broadcast estándar Android | Se identifica como voltaje publicado por Android; no se atribuye automáticamente a la batería del coche |
 | Sensores disponibles | SensorManager | Se enumera lo que realmente declare el dispositivo; no se inventan lecturas ambientales |
-| Aperturas, temperatura y alimentación OEM | Eventos TWUtil 1285, 1288 y 1292 identificados en los archivos de la unidad | Lector pasivo 0.3.0 implementado; pendiente de aceptación y datos reales en la pantalla |
+| Alimentación OEM | Evento TWUtil 1292 | Confirmado en la pantalla: 14.1 V coincide con la barra OEM |
+| Temperatura ambiente OEM | Evento TWUtil 1288 usado por la barra original | Implementado; todavía sin lectura confirmada en el launcher |
+| Aperturas OEM | TWUtil 1285 y rama 1281 dependiente del perfil recibido | 0.3.1 añade el canal alternativo y contadores; recepción/correlación pendientes |
 | Velocidad CAN, RPM, refrigerante y kilometraje | Sin interfaz verificada | No disponibles; no se deducen a partir de otros sensores |
 
 No se requiere comprar ni conectar OBD. Tampoco se modifica Bluetooth, Wi-Fi, CANBUS, MCU, firmware o la activación de ZLink. Que un dato sea visible en una app privilegiada no lo convierte en un dato público.
 
 ## CarPlay real dentro del panel
 
-El requisito es mostrar una superficie real e interactiva de CarPlay. **La 0.3.0 todavía no cumple ese requisito.** El manifiesto real de ZLink deshabilita redimensionamiento/PiP y no exporta el servicio de pantalla secundaria. No se sustituye ese objetivo por una imagen del mapa ni por una captura automatizada.
+El requisito es mostrar una superficie real e interactiva de CarPlay. **La 0.3.1 todavía no cumple ese requisito.** El manifiesto real de ZLink deshabilita redimensionamiento/PiP y no exporta el servicio de pantalla secundaria. No se sustituye ese objetivo por una imagen del mapa ni por una captura automatizada.
 
 La incrustación estándar entre apps de Android está documentada desde API 33 y exige autorización en el manifest de la app incrustada, además del soporte de ventanas del dispositivo. No puede concedérsela Mustang OS unilateralmente. El SDK 29 confirmado en esta unidad no dispone de esa vía estándar. [Activity embedding, Android](https://developer.android.com/develop/ui/views/layout/activity-embedding).
 
@@ -47,7 +49,7 @@ El diagnóstico enumera firmas y componentes sin invocarlos. Separadamente, la 0
 
 ## Conseguir evidencia sin ADB ni USB
 
-1. Instalar la APK 0.2.0 sobre la anterior.
+1. Instalar la APK 0.3.1 sobre la anterior; con la escucha OEM activa y Mustang OS visible, abrir/cerrar una puerta y consultar **Motor**.
 2. Abrir **Ajustes → Diagnóstico y exportación → Compatibilidad OEM → Guardar ZIP** y guardar en Descargas.
 3. Volver a la página local de descarga, seleccionar ese ZIP y pulsar **Enviar diagnóstico al PC**.
 

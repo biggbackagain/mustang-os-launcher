@@ -6,12 +6,16 @@ Evidencia parcial del usuario: instaló 0.1.0 por Wi-Fi, abrió ZLink y envió f
 
 Actualización: el ZIP de compatibilidad fue recibido. La 0.3.0 incorpora el lector de prueba descrito en docs/DEVICE_FINDINGS.md. Con el vehículo estacionado, activar Motor → Activar lectura OEM → Activar escucha; anotar estado y contador. Comparar voltaje/temperatura con la barra OEM y abrir/cerrar una puerta para verificar recepción; no atribuir posiciones antes de correlacionarlas. Después, con ZLink ya activo, usar Ajustes → Inspeccionar servicio ZLink y volver a exportar el ZIP si hace falta. No marcar estos casos como pasados hasta recibir resultados físicos.
 
+Resultado físico 0.3.0: acceso TWUtil y voltaje **CONFIRMADOS** por foto (14.1 V coincide con barra OEM; 40 eventos). Puertas y temperatura ambiente aún **PENDIENTES en Mustang OS**; el usuario confirma que aparecen en la interfaz Android original. La 0.3.1 añade contadores por canal y escucha de 1281/266. Para la próxima prueba: mantener el launcher visible, abrir/cerrar una puerta, revisar **Motor** y exportar el ZIP antes de salir de Mustang OS. El perfil 266 puede no llegar hasta una emisión natural; no se envía una consulta para forzarlo.
+
 Antes de configurar Home: confirma que ZLink, radio, cámara y mandos funcionan con el launcher original; anota cómo volver a él. Instala Mustang OS como APK normal y realiza primero las pruebas sin cambiar Home. Prueba reversa con el vehículo inmovilizado, freno aplicado y las precauciones habituales del fabricante.
 
 | Caso | Pasos / resultado esperado | Estado |
 |---|---|---|
 | Inicio limpio | Abrir sin permisos. `—` en velocidad, sin canción ni ruta y controles multimedia deshabilitados | PENDIENTE |
-| Hardware | Diagnóstico: SDK, resolución y RAM reales. Contrastar SDK 32/33 con etiqueta Android comercial | PENDIENTE |
+| Hardware | Diagnóstico: SDK, resolución y RAM reales. Contrastar SDK con etiqueta Android comercial | CONFIRMADO: SDK 29 / RELEASE 13, 1280×720, 1974 MiB en ZIP del equipo |
+| Voltaje OEM | Activar escucha y contrastar con barra original | CONFIRMADO en 0.3.0: 14.1 V en ambas interfaces; continuidad pendiente |
+| Puertas / temperatura OEM | Mantener launcher visible, abrir/cerrar puerta, revisar canales en Motor y exportar ZIP | PENDIENTE en el launcher; visibles en interfaz original |
 | Identificar ZLink | Elegir app original; comparar etiqueta, paquete, actividad y versión del diagnóstico con su pantalla Acerca de | PENDIENTE |
 | Abrir ZLink | Entrar desde panel y dock; comprobar activación, ajustes y emparejamiento conservados | PENDIENTE |
 | CarPlay conectado | Conectar iPhone; ZLink funciona. Mustang OS no declara conectado sin evidencia | PENDIENTE |
