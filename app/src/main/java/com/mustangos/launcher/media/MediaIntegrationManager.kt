@@ -56,6 +56,7 @@ class MediaIntegrationManager(private val context: Context, private val settings
     private var artworkRevision = 0L
     private var currentArtwork: Bitmap? = null
     private var currentCoverStatus = ArtworkStatus.NONE
+    private var selectionReason = "sin_consulta"
     private val sessionListener = MediaSessionManager.OnActiveSessionsChangedListener { refresh() }
     private val callback = object : MediaController.Callback() {
         override fun onMetadataChanged(metadata: MediaMetadata?) { invalidateArtwork(); publish() }
@@ -86,16 +87,31 @@ class MediaIntegrationManager(private val context: Context, private val settings
         }
         try {
             if (!listening) { manager.addOnActiveSessionsChangedListener(sessionListener, component, handler); listening = true }
-            sessions = manager.getActiveSessions(component)
+            // A package can own several independent sessions. Only identical tokens are duplicates.
+            sessions = manager.getActiveSessions(component).distinctBy { it.sessionToken }
+            val candidates = sessions.map { SessionCandidate(it) }
             val preferred = settings.mediaPackage
-            var pkg = IntegrationPolicy.selectMedia(sessions.map { it.packageName }, preferred,
-                settings.component("zlink")?.packageName ?: VERIFIED_ZLINK_PACKAGE)
-            if (pkg == null && preferred == null && sessions.isNotEmpty()) {
-                pkg = sessions.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING }?.packageName
-                    ?: (if (sessions.any { it.packageName == "com.tw.bt" }) "com.tw.bt" else null)
-                    ?: sessions.firstOrNull { it.metadata != null }?.packageName
+            val projection = settings.component("zlink")?.packageName ?: VERIFIED_ZLINK_PACKAGE
+            var pkg = IntegrationPolicy.selectMedia(candidates.map { it.pkg }, preferred, projection)
+            selectionReason = when {
+                preferred != null -> if (pkg == null) "preferida_ausente" else "preferida"
+                pkg == projection -> "proyeccion"
+                pkg != null -> "paquete_unico"
+                else -> "sin_fuente_unica"
             }
-            select(sessions.firstOrNull { it.packageName == pkg })
+            if (pkg == null && preferred == null && sessions.isNotEmpty()) {
+                val playing = candidates.filter { it.playbackRank == 4 }
+                pkg = playing.firstOrNull { it.controller.sessionToken == selected?.sessionToken }?.pkg ?: playing.firstOrNull()?.pkg
+                if (pkg != null) selectionReason = "reproduciendo"
+                else if (candidates.any { it.pkg == "com.tw.bt" }) { pkg = "com.tw.bt"; selectionReason = "bluetooth" }
+                else candidates.firstOrNull { it.metadataPublished }?.let { pkg = it.pkg; selectionReason = "metadata_publicada" }
+            }
+            val eligible = candidates.filter { it.pkg == pkg }
+            val quality = eligible.maxWithOrNull(compareBy<SessionCandidate> { it.playbackRank }.thenBy { it.metadataRank })
+            val best = quality?.let { target -> eligible.filter { it.playbackRank == target.playbackRank && it.metadataRank == target.metadataRank } }
+            val chosen = best?.firstOrNull { it.controller.sessionToken == selected?.sessionToken }
+                ?: best?.maxByOrNull { it.updatedAtMs }
+            select(chosen?.controller)
             publish()
         } catch (_: SecurityException) {
             select(null); sessions = emptyList(); mutable.value = MediaUiState(status = "Esperando autorización del sistema")
@@ -106,14 +122,41 @@ class MediaIntegrationManager(private val context: Context, private val settings
         }
     }
     private fun select(controller: MediaController?) {
-        if (selected?.sessionToken == controller?.sessionToken) return
-        invalidateArtwork()
+        if (selected === controller) return
+        // Fresh wrappers can contain new cached metadata even when the Binder token stays the same.
+        if (selected?.sessionToken != controller?.sessionToken) invalidateArtwork()
         selected?.let { runCatching { it.unregisterCallback(callback) } }
         selected = controller
         controller?.registerCallback(callback, handler)
     }
+    private data class SessionCandidate(val controller: MediaController) {
+        val pkg = controller.packageName
+        private val playback = runCatching { controller.playbackState }.getOrNull()
+        private val metadata = runCatching { controller.metadata }.getOrNull()
+        val metadataPublished = metadata != null
+        val playbackRank = when (playback?.state) {
+            PlaybackState.STATE_PLAYING -> 4
+            PlaybackState.STATE_BUFFERING, PlaybackState.STATE_CONNECTING, PlaybackState.STATE_SKIPPING_TO_NEXT,
+            PlaybackState.STATE_SKIPPING_TO_PREVIOUS, PlaybackState.STATE_SKIPPING_TO_QUEUE_ITEM -> 3
+            PlaybackState.STATE_PAUSED -> 2
+            PlaybackState.STATE_STOPPED -> 1
+            else -> 0
+        }
+        private fun text(key: String) = runCatching { metadata?.getText(key)?.isNotBlank() == true }.getOrDefault(false)
+        val metadataRank = (if (text(MediaMetadata.METADATA_KEY_TITLE) || text(MediaMetadata.METADATA_KEY_DISPLAY_TITLE)) 4 else 0) +
+            (if (text(MediaMetadata.METADATA_KEY_ARTIST) || text(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE)) 2 else 0) +
+            (if (text(MediaMetadata.METADATA_KEY_ALBUM)) 1 else 0) +
+            (if (runCatching { (metadata?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L) > 0L }.getOrDefault(false)) 1 else 0)
+        val updatedAtMs = playback?.lastPositionUpdateTime ?: 0L
+    }
     private fun publish() {
-        val controller = selected ?: run { mutable.value = MediaUiState(status = if (sessions.size > 1) "Selecciona una fuente multimedia" else "Sin sesión multimedia compatible"); return }
+        val controller = selected ?: run {
+            mutable.value = MediaUiState(status = when {
+                selectionReason == "preferida_ausente" -> "Esperando la fuente multimedia elegida"
+                sessions.map { it.packageName }.distinct().size > 1 -> "Selecciona una fuente multimedia"
+                else -> "Sin sesión multimedia compatible"
+            }); return
+        }
         try {
             val m = controller.metadata
             val p = controller.playbackState
@@ -187,10 +230,11 @@ class MediaIntegrationManager(private val context: Context, private val settings
     /** Standard-field presence only. Never prints song contents, custom keys, URI values or notification data. */
     fun sessionDiagnostics(): String = buildString {
         appendLine("SESIONES MULTIMEDIA · campos crudos sin contenido privado")
+        appendLine("Selección: preferencia=${settings.mediaPackage ?: "automática"}; motivo=$selectionReason; paquetes=${sessions.map { it.packageName }.distinct().size}; tokens=${sessions.size}")
         if (!runCatching { hasAccess() }.getOrDefault(false)) { append("Acceso multimedia no disponible"); return@buildString }
         val currentSessions = sessions.take(12)
         if (currentSessions.isEmpty()) { append("Sin sesiones visibles"); return@buildString }
-        for (controller in currentSessions) {
+        for ((index, controller) in currentSessions.withIndex()) {
             val metadata = runCatching { controller.metadata }
             val m = metadata.getOrNull()
             val playback = runCatching { controller.playbackState }.getOrNull()
@@ -198,6 +242,7 @@ class MediaIntegrationManager(private val context: Context, private val settings
             val pkg = runCatching { controller.packageName }.getOrDefault("paquete no legible")
             val known = playback?.state in listOf(PlaybackState.STATE_PLAYING, PlaybackState.STATE_PAUSED, PlaybackState.STATE_STOPPED)
             appendLine("$pkg; seleccionada=$chosen; metadata=${m != null}; metadata_legible=${metadata.isSuccess}; estado=${playback?.state ?: "no publicado"}; estado_conocido=$known; acciones=${playback?.actions ?: 0L}")
+            appendLine("Sesión visible=${index + 1}; sesiones de este paquete=${sessions.count { it.packageName == pkg }}")
             fun text(short: String, key: String) = "$short{clave=${m?.containsKey(key) == true},valor=${runCatching { m?.getText(key)?.isNotBlank() == true }.getOrDefault(false)}}"
             fun bitmap(short: String, key: String) = "$short{clave=${m?.containsKey(key) == true},bitmap=${runCatching { m?.getBitmap(key) != null }.getOrDefault(false)}}"
             fun uri(short: String, key: String): String {

@@ -10,6 +10,10 @@ class IntegrationPolicyTest {
         assertFalse(IntegrationPolicy.isZlinkCandidate(LaunchableApp("vendor.player", "Main", "Music")))
     }
     @Test fun ambiguousSessionsRequireSelection() { assertNull(IntegrationPolicy.selectMedia(listOf("a", "b"), null, null)) }
+    @Test fun repeatedSessionsFromOnePackageAreOneAutomaticSource() {
+        assertEquals("com.tw.bt", IntegrationPolicy.selectMedia(List(14) { "com.tw.bt" }, null, "com.zjinnova.zlink"))
+        assertNull(IntegrationPolicy.selectMedia(List(14) { "com.tw.bt" }, "com.zjinnova.zlink", "com.zjinnova.zlink"))
+    }
     @Test fun lostPreferredSourceDoesNotControlAnotherApp() { assertNull(IntegrationPolicy.selectMedia(listOf("b"), "a", null)) }
     @Test fun sourceReconnects() { assertEquals("a", IntegrationPolicy.selectMedia(listOf("a"), "a", null)) }
     @Test fun zlinkSessionCanBeSelectedWithoutClaimingCarplayConnected() { assertEquals("z", IntegrationPolicy.selectMedia(listOf("a", "z"), null, "z")) }
