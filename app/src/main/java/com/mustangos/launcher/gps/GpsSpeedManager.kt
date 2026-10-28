@@ -26,12 +26,15 @@ data class GpsState(
     val satellitesUsed: Int? = null,
     val satellitesVisible: Int? = null,
     val provider: String? = null,
-    val fixAgeMs: Long? = null
+    val fixAgeMs: Long? = null,
+    // Volatile position for the visible map only; diagnostic exports must omit coordinates.
+    val latitude: Double? = null,
+    val longitude: Double? = null
 )
 
 class GpsSpeedManager(private val context: Context) : LocationListener {
     private data class FixDetails(val provider: String, val timeMs: Long, val accuracy: Float,
-        val altitude: Double?, val bearing: Float?)
+        val altitude: Double?, val bearing: Float?, val latitude: Double, val longitude: Double)
     private val manager = context.getSystemService(LocationManager::class.java)
     private val filter = SpeedFilter()
     private val handler = Handler(Looper.getMainLooper())
@@ -130,7 +133,7 @@ class GpsSpeedManager(private val context: Context) : LocationListener {
         }
         mutable.value = GpsState(speed, status, details?.accuracy, details?.altitude, details?.bearing,
             if (gpsEnabled) satellites else null, if (gpsEnabled) visibleSatellites else null,
-            details?.provider, details?.let { now - it.timeMs })
+            details?.provider, details?.let { now - it.timeMs }, details?.latitude, details?.longitude)
     }
 
     private fun fixTime(location: Location, now: Long): Long? {
@@ -153,7 +156,7 @@ class GpsSpeedManager(private val context: Context) : LocationListener {
             !location.longitude.isFinite() || location.longitude !in -180.0..180.0) { publish(); return }
         val details = FixDetails(location.provider ?: "", time, location.accuracy,
             location.altitude.takeIf { location.hasAltitude() && it.isFinite() },
-            location.bearing.takeIf { location.hasBearing() && it.isFinite() })
+            location.bearing.takeIf { location.hasBearing() && it.isFinite() }, location.latitude, location.longitude)
         when (location.provider) {
             LocationManager.GPS_PROVIDER -> {
                 if (!enabled(LocationManager.GPS_PROVIDER)) { publish(); return }

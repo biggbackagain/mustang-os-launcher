@@ -97,4 +97,17 @@ class GpsSpeedManagerTest {
         assertTrue(shadowOf(manager).getLocationUpdateListeners(LocationManager.NETWORK_PROVIDER).isEmpty())
         gps.onLocationChanged(fix()); assertNull(gps.state.value.kmh)
     }
+    @Test fun mapCoordinatesAreVolatileFreshMeasurementsAndDisappearWithFix() {
+        val gps = GpsSpeedManager(app); gps.start()
+        assertNull(gps.state.value.latitude); assertNull(gps.state.value.longitude)
+        gps.onLocationChanged(fix(speed = null))
+        assertEquals(19.0, gps.state.value.latitude!!, 0.0001)
+        assertEquals(-99.0, gps.state.value.longitude!!, 0.0001)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(9))
+        assertNull(gps.state.value.latitude); assertNull(gps.state.value.longitude)
+        gps.onLocationChanged(fix().apply { latitude = Double.NaN })
+        assertNull(gps.state.value.latitude)
+        gps.onLocationChanged(fix()); gps.stop()
+        assertNull(gps.state.value.latitude); assertNull(gps.state.value.longitude)
+    }
 }
