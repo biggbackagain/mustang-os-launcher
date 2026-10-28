@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/launcherSettingsRoot"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="#070B10" android:orientation="vertical" android:padding="20dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp" android:gravity="center_vertical">
+        <ImageView android:layout_width="48dp" android:layout_height="24dp" android:layout_marginEnd="16dp"
+            android:src="@drawable/ic_mustang_pony" android:importantForAccessibility="no" />
+        <TextView style="@style/Title" android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="Tu Mustang" android:textSize="26sp" />
+        <Button android:id="@+id/closeSettings" style="@style/ActionButton"
+            android:layout_width="128dp" android:layout_height="52dp" android:text="Cerrar" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:orientation="horizontal" android:layout_marginTop="16dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:orientation="vertical" android:layout_marginEnd="20dp" android:gravity="center_vertical">
+            <TextView style="@style/Muted" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="MUSTANG OS" android:letterSpacing="0.16" />
+            <TextView style="@style/Title" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Hecho para\ntu Mustang." android:textSize="30sp" android:layout_marginTop="12dp" />
+            <ImageView android:layout_width="match_parent" android:layout_height="160dp"
+                android:src="@drawable/mustang_2010" android:scaleType="fitCenter" android:contentDescription="Mustang convertible rojo" />
+            <TextView style="@style/Muted" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="2010 · V6 4.0 · Convertible\nConfigura tus preferencias estando estacionado."
+                android:lineSpacingExtra="4dp" />
+            <TextView style="@style/Muted" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Versión 0.4.0" android:layout_marginTop="16dp" />
+        </LinearLayout>
+        <ScrollView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="2"
+            android:fillViewport="true" android:scrollbarStyle="outsideOverlay">
+            <LinearLayout android:id="@+id/settingsRows" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="vertical" android:paddingEnd="8dp" />
+        </ScrollView>
+    </LinearLayout>
+</LinearLayout>

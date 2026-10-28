@@ -1,0 +1,15 @@
+<resources>
+    <color name="ui_background">#05070A</color>
+    <color name="ui_surface">#0D121A</color>
+    <color name="ui_surface_raised">#17212C</color>
+    <color name="ui_border">#2B3848</color>
+    <color name="ui_text">#F2F6FC</color>
+    <color name="ui_muted">#AFBDCE</color>
+    <color name="ui_dim">#8496AA</color>
+    <color name="ui_accent">#93D8FF</color>
+    <color name="ui_accent_surface">#163B50</color>
+    <color name="ui_accent_border">#568CAB</color>
+    <color name="ui_alert">#FF6874</color>
+    <color name="ui_ripple">#3093D8FF</color>
+    <color name="ui_map_background">#111B25</color>
+</resources>

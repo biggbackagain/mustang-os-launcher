@@ -1,33 +1,33 @@
 ﻿<resources>
     <string name="brand_name">"MUSTANG"</string>
     <string name="brand_os">" OS"</string>
-    <string name="vehicle_subtitle">"  /  CONVERTIBLE · 2010"</string>
-    <string name="network_pending">"Red: consultando"</string>
+    <string name="vehicle_subtitle">CONVERTIBLE · 2010</string>
+    <string name="network_pending">Red sin comprobar</string>
     <string name="settings_description">"Ajustes de Mustang OS"</string>
-    <string name="media_title">"Multimedia"</string>
+    <string name="media_title">Audio</string>
     <string name="artwork_description">"Portada del álbum"</string>
-    <string name="carplay_music_hint">"Apple Music vía CarPlay"</string>
-    <string name="media_no_data">"Sin datos de reproducción"</string>
-    <string name="media_connect_source">"Conecta una fuente compatible"</string>
+    <string name="carplay_music_hint">CarPlay</string>
+    <string name="media_no_data">Sin reproducción</string>
+    <string name="media_connect_source">Elige una fuente</string>
     <string name="media_unknown_time">"— / —"</string>
     <string name="media_previous">"Canción anterior"</string>
     <string name="media_play">"Reproducir"</string>
     <string name="media_next">"Canción siguiente"</string>
     <string name="media_no_access">"Acceso multimedia sin conceder"</string>
-    <string name="media_choose_source">"Elegir fuente"</string>
-    <string name="your_mustang">"TU MUSTANG"</string>
+    <string name="media_choose_source">Fuentes</string>
+    <string name="your_mustang">MUSTANG · 2010</string>
     <string name="gps_unknown_description">"Velocidad GPS sin señal"</string>
     <string name="gps_enable">"Activar velocidad GPS"</string>
     <string name="vehicle_description">"Ford Mustang 2010 V6 convertible rojo con capota de lona negra"</string>
-    <string name="engine_label">"V6 4.0L  /  CONVERTIBLE"</string>
+    <string name="engine_label">V6 4.0L · CONVERTIBLE</string>
     <string name="gps_disclaimer">"Velocidad orientativa · fuente GPS"</string>
-    <string name="navigation_title">"Navegación"</string>
+    <string name="navigation_title">Mapa Android</string>
     <string name="navigation_carplay_title">"Tu ruta, en CarPlay"</string>
-    <string name="navigation_carplay_explanation">"Abre ZLink para ver Apple Maps, Google Maps o Waze desde tu iPhone."</string>
-    <string name="carplay_unknown_connection">"Abre ZLink para usar CarPlay"</string>
-    <string name="carplay_open">"Abrir CarPlay / ZLink"</string>
-    <string name="android_maps">"Mapas Android"</string>
-    <string name="navigation_no_route">"Los mapas del iPhone se muestran dentro de ZLink"</string>
+    <string name="navigation_carplay_explanation">Mapa independiente de CarPlay</string>
+    <string name="carplay_unknown_connection">CarPlay se abre en ZLink</string>
+    <string name="carplay_open">CarPlay</string>
+    <string name="android_maps">Ampliar mapa</string>
+    <string name="navigation_no_route">El mapa Android no muestra la ruta del iPhone</string>
     <string name="dock_music">"Música"</string>
     <string name="dock_carplay">"CarPlay"</string>
     <string name="dock_navigation">"Navegación"</string>
@@ -39,7 +39,7 @@
     <string name="request_oem_temperature">Solicitar temperatura OEM</string>
     <string name="app_drawer_title">APLICACIONES</string>
     <string name="close_drawer">Cerrar aplicaciones</string>
-    <string name="carplay_maps">Ver mapa en CarPlay</string>
+    <string name="carplay_maps">CarPlay</string>
     <string name="device_acceleration_title">ACELERACIÓN DEL EQUIPO</string>
     <string name="device_axis_x">Eje X del equipo</string>
     <string name="device_axis_y">Eje Y del equipo</string>
@@ -67,4 +67,15 @@
     <string name="acceleration_unavailable">Acelerómetro no disponible en este equipo</string>
     <string name="gyroscope_unavailable">Giroscopio no disponible en este equipo</string>
     <string name="engine_data_unknown">RPM, refrigerante y kilometraje: sin interfaz verificada. ACC no confirma motor en marcha.</string>
+    <string name="header_voltage_unknown">— V</string>
+    <string name="map_idle_hint">Toca Centrar para activar el mapa</string>
+    <string name="map_zoom_in">Acercar el mapa</string>
+    <string name="map_zoom_out">Alejar el mapa</string>
+    <string name="map_follow">Centrar</string>
+    <string name="map_attribution">© OpenStreetMap contributors</string>
+    <string name="map_attribution_description">Ver la licencia y atribución de OpenStreetMap</string>
+    <string name="app_search_hint">Buscar aplicación</string>
+    <string name="close_plain">Cerrar</string>
+    <string name="map_zoom_in_symbol" translatable="false">+</string>
+    <string name="map_zoom_out_symbol" translatable="false">−</string>
 </resources>

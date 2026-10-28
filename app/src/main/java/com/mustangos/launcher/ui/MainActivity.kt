@@ -15,8 +15,11 @@ import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.os.SystemClock
 import android.provider.Settings
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.*
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
@@ -29,12 +32,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.mustangos.core.LaunchableApp
 import com.mustangos.core.MediaCommand
+import com.mustangos.core.AppSearch
 import com.mustangos.launcher.R
 import com.mustangos.launcher.databinding.ActivityMainBinding
 import com.mustangos.launcher.diagnostics.DiagnosticReporter
 import com.mustangos.launcher.diagnostics.ErrorJournal
 import com.mustangos.launcher.diagnostics.CompatibilityExporter
 import com.mustangos.launcher.media.MediaUiState
+import com.mustangos.launcher.navigation.NativeMapView
 import kotlinx.coroutines.*
 import kotlin.math.roundToInt
 
@@ -42,6 +47,12 @@ class MainActivity : ComponentActivity() {
     private lateinit var binding: ActivityMainBinding
     private val model: LauncherViewModel by viewModels()
     private var welcomeLightsPlayed = false
+    private lateinit var nativeMap: NativeMapView
+    private var mapScreen: MapScreen? = null
+    private var mapMenuDepth = 0
+    private var appsDialog: AlertDialog? = null
+    private var appDrawerJob: Job? = null
+    private val mediaLabels = mutableMapOf<String, String>()
     private val locationPermission = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         model.gps.start()
     }
@@ -80,6 +91,21 @@ class MainActivity : ComponentActivity() {
         }
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        applyScreenPreference()
+        nativeMap = NativeMapView(this).apply {
+            setNetworkEnabled(model.settings.mapNetworkEnabled)
+            onStatusChanged = { status ->
+                binding.mapStatus.text = status
+                mapScreen?.status?.text = status
+            }
+        }
+        binding.mapHost.addView(nativeMap, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        binding.mapZoomIn.setOnClickListener { nativeMap.zoomIn() }
+        binding.mapZoomOut.setOnClickListener { nativeMap.zoomOut() }
+        binding.mapFollow.setOnClickListener { followMap() }
+        binding.mapAttribution.setOnClickListener {
+            safeSettings(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.openstreetmap.org/copyright")))
+        }
 
         if (resources.getBoolean(R.bool.compact_dashboard)) {
             binding.navigationDescription.visibility = View.GONE
@@ -88,7 +114,8 @@ class MainActivity : ComponentActivity() {
         }
 
         // Auto-request location permission on first launch if not granted
-        if (!model.gps.hasPermission()) {
+        if (!model.gps.hasPermission() && !model.settings.gpsPermissionPrompted) {
+            model.settings.gpsPermissionPrompted = true
             locationPermission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
         }
 
@@ -97,7 +124,7 @@ class MainActivity : ComponentActivity() {
         binding.openCarplay.setOnClickListener { openRole("zlink") }
         binding.dockCarplay.setOnClickListener { openRole("zlink") }
         binding.dockMusic.setOnClickListener { openCurrentMedia() }
-        binding.openMaps.setOnClickListener { openRole("zlink") }
+        binding.openMaps.setOnClickListener { showMapScreen() }
         binding.dockNavigation.setOnClickListener { navigationChooser() }
         binding.dockPhone.setOnClickListener { openRole("phone") }
         binding.dockRadio.setOnClickListener { openRole("radio") }
@@ -123,7 +150,13 @@ class MainActivity : ComponentActivity() {
                 launch {
                     model.gps.state.collect { state ->
                         binding.gauge.setSpeed(state.kmh)
-                        binding.gpsStatus.text = state.status
+                        binding.gpsStatus.text = when {
+                            !model.gps.hasPermission() -> "Permitir GPS"
+                            state.latitude != null -> "${if (state.provider == android.location.LocationManager.GPS_PROVIDER) "GPS" else "Ubicación"} · ${state.accuracyMeters?.roundToInt() ?: "—"} m"
+                            state.status.contains("apagado", true) -> "GPS apagado"
+                            else -> "Buscando GPS"
+                        }
+                        nativeMap.setLocation(state.latitude, state.longitude, state.accuracyMeters, state.bearingDegrees)
                     }
                 }
                 launch { model.media.state.collect { renderMedia(it) } }
@@ -137,7 +170,11 @@ class MainActivity : ComponentActivity() {
                             val previousVoltage = !oem.sourceActive || oem.lastVoltageMs?.let { time -> now - time > 15_000 } == true
                             if (previousVoltage) getString(R.string.oem_previous_voltage, it) else "%.1f V".format(it)
                         } ?: "— V"
-                        binding.vehicleInfo.text = "${model.oem.summary()}\n${oem.ageSummary}"
+                        binding.vehicleInfo.text = buildString {
+                            append(oem.temperatureC?.let { "Exterior OEM · %.1f °C".format(it) } ?: "Exterior · sin lectura OEM")
+                            append("\n")
+                            append(if (oem.voltage != null || oem.temperatureC != null) oem.ageSummary else "Consulta las lecturas en Motor")
+                        }
                     }
                 }
                 launch {
@@ -149,10 +186,9 @@ class MainActivity : ComponentActivity() {
                     model.zlinkProbe.state.collect { status ->
                         val friendly = when {
                             status.contains("IPhoneContentPresenter") || status.contains("Interfaz Binder") ->
-                                getString(R.string.carplay_service_available)
-                            status.contains("Consultando") -> "Verificando ZLink…"
-                            status.contains("no activo") -> "Toca para abrir ZLink CarPlay"
-                            else -> status
+                                "CarPlay / ZLink disponible"
+                            status.contains("Consultando") -> "Verificando CarPlay…"
+                            else -> "Abre CarPlay para conectar tu iPhone"
                         }
                         binding.carplayStatus.text = friendly
                     }
@@ -173,6 +209,7 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         model.start()
+        if (::nativeMap.isInitialized) nativeMap.setActive(mapMenuDepth == 0)
         val accessoryOn = model.vehicle.accessoryOn.value
         if (accessoryOn != null) binding.carImage.setHeadlightsOn(accessoryOn)
         else if (!welcomeLightsPlayed) binding.carImage.playWelcomeLights()
@@ -182,8 +219,48 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         binding.carImage.stopAnimation()
+        nativeMap.setActive(false)
         model.stop()
         super.onStop()
+    }
+
+    override fun onDestroy() {
+        appsDialog?.dismiss(); appsDialog = null
+        mapScreen?.dismiss(); mapScreen = null
+        if (::nativeMap.isInitialized) nativeMap.onStatusChanged = null
+        super.onDestroy()
+    }
+
+    private fun applyScreenPreference() {
+        if (model.settings.keepScreenOn) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+
+    private fun followMap() {
+        model.settings.mapNetworkEnabled = true
+        nativeMap.setNetworkEnabled(true)
+        nativeMap.followLocation()
+        if (!model.gps.hasPermission()) requestGps()
+    }
+
+    private fun pauseMapForMenu() { mapMenuDepth++; nativeMap.setActive(false) }
+    private fun restoreMapAfterMenu() {
+        mapMenuDepth = (mapMenuDepth - 1).coerceAtLeast(0)
+        nativeMap.setActive(mapMenuDepth == 0 && lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED))
+    }
+
+    private fun showMapScreen() {
+        if (mapScreen != null) { mapScreen?.show(); return }
+        mapScreen = MapScreen(this, nativeMap, binding.mapStatus.text.toString(), ::followMap, ::navigationChooser) { mapScreen = null }
+        mapScreen?.show()
+    }
+
+    private fun mediaLabel(pkg: String): String = mediaLabels.getOrPut(pkg) {
+        when (pkg) {
+            "com.zjinnova.zlink" -> "CarPlay / ZLink"
+            "com.tw.bt" -> "Bluetooth"
+            else -> runCatching { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString() }.getOrDefault("Multimedia")
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -193,15 +270,16 @@ class MainActivity : ComponentActivity() {
 
     private fun renderMedia(ui: MediaUiState) {
         val m = ui.facts
-        binding.songTitle.text = ui.displayTitle ?: if (m.source == null) "Sin datos de reproducción" else "Título no disponible"
-        binding.songArtist.text = ui.displaySubtitle ?: "Artista no disponible"
+        binding.songTitle.text = ui.displayTitle ?: "Sin datos de canción"
+        binding.songArtist.text = ui.displaySubtitle
+        binding.songArtist.visibility = if (ui.displaySubtitle == null) View.GONE else View.VISIBLE
         binding.songAlbum.text = m.album
         binding.songAlbum.visibility = if (m.album == null) View.GONE else View.VISIBLE
         binding.albumArt.setImageBitmap(ui.artwork)
         binding.albumArt.visibility = if (ui.artwork == null) View.GONE else View.VISIBLE
         binding.artPlaceholder.visibility = if (ui.artwork == null) View.VISIBLE else View.GONE
-        binding.artHint.text = if (m.source == null) "Multimedia de CarPlay" else "Sin portada disponible"
-        binding.mediaStatus.text = ui.status
+        binding.artHint.text = if (m.source == null) "Tu música, en CarPlay" else ui.coverStatus
+        binding.mediaStatus.text = m.source?.let { "Fuente · ${mediaLabel(it)}" } ?: "Elige una fuente multimedia"
         binding.playPause.setImageResource(when {
             !ui.playbackStateKnown -> R.drawable.ic_play_pause
             m.playing -> R.drawable.ic_pause
@@ -282,7 +360,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun showAppDrawer() {
-        lifecycleScope.launch {
+        if (appDrawerJob?.isActive == true || appsDialog?.isShowing == true) return
+        appDrawerJob = lifecycleScope.launch {
             val apps = withContext(Dispatchers.IO) { model.apps.apps() }
             if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return@launch
 
@@ -299,24 +378,34 @@ class MainActivity : ComponentActivity() {
             closeBtn.setOnClickListener { dialog.dismiss() }
 
             val pm = packageManager
-            grid.adapter = object : BaseAdapter() {
-                override fun getCount(): Int = apps.size
-                override fun getItem(position: Int): Any = apps[position]
+            var visibleApps = apps
+            val iconCache = android.util.LruCache<String, android.graphics.drawable.Drawable>(16)
+            val adapter = object : BaseAdapter() {
+                override fun getCount(): Int = visibleApps.size
+                override fun getItem(position: Int): Any = visibleApps[position]
                 override fun getItemId(position: Int): Long = position.toLong()
                 override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
                     val item = convertView ?: layoutInflater.inflate(R.layout.item_app_drawer, parent, false)
-                    val app = apps[position]
+                    val app = visibleApps[position]
                     val icon = item.findViewById<ImageView>(R.id.appIcon)
                     val label = item.findViewById<TextView>(R.id.appLabel)
                     label.text = app.label
-                    try {
-                        icon.setImageDrawable(pm.getActivityIcon(ComponentName(app.packageName, app.activity)))
-                    } catch (_: Exception) {
-                        try {
-                            icon.setImageDrawable(pm.getApplicationIcon(app.packageName))
-                        } catch (_: Exception) {
-                            icon.setImageResource(R.drawable.ic_apps)
-                        }
+                    val systemIcon = when (app.packageName) {
+                        "com.tw.radio" -> R.drawable.ic_radio
+                        "com.tw.bt" -> R.drawable.ic_phone
+                        "com.tw.music" -> R.drawable.ic_music
+                        "com.zjinnova.zlink" -> R.drawable.ic_carplay
+                        "com.tw.car", "com.dofun.carassistant.car" -> R.drawable.ic_engine
+                        "com.dofun.carsetting" -> R.drawable.ic_settings
+                        else -> null
+                    }
+                    if (systemIcon != null) icon.setImageResource(systemIcon)
+                    else {
+                        val key = "${app.packageName}/${app.activity}"
+                        val drawable = iconCache.get(key) ?: runCatching {
+                            pm.getActivityIcon(ComponentName(app.packageName, app.activity))
+                        }.getOrElse { getDrawable(R.drawable.ic_apps)!! }.also { iconCache.put(key, it) }
+                        icon.setImageDrawable(drawable)
                     }
                     item.setOnClickListener {
                         dialog.dismiss()
@@ -325,7 +414,21 @@ class MainActivity : ComponentActivity() {
                     return item
                 }
             }
+            grid.adapter = adapter
+            view.findViewById<EditText>(R.id.appSearch).addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    visibleApps = AppSearch.filter(apps, s?.toString().orEmpty())
+                    countText.text = if (s.isNullOrBlank()) "${apps.size} aplicaciones" else "${visibleApps.size} de ${apps.size} aplicaciones"
+                    adapter.notifyDataSetChanged()
+                }
+                override fun afterTextChanged(s: Editable?) = Unit
+            })
+            pauseMapForMenu()
+            appsDialog = dialog
+            dialog.setOnDismissListener { appsDialog = null; restoreMapAfterMenu() }
             dialog.show()
+            dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
             dialog.window?.apply {
                 setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                 setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
@@ -394,7 +497,7 @@ class MainActivity : ComponentActivity() {
             return
         }
         AlertDialog.Builder(this).setTitle("Fuente multimedia real")
-            .setItems((listOf("Selección automática") + sessions).toTypedArray()) { _, which ->
+            .setItems((listOf("Selección automática") + sessions.map(::mediaLabel)).toTypedArray()) { _, which ->
                 model.settings.mediaPackage = if (which == 0) null else sessions[which - 1]
                 model.media.refresh()
             }.setNegativeButton("Cerrar", null).show()
@@ -403,7 +506,7 @@ class MainActivity : ComponentActivity() {
     private fun requestGps() {
         if (!model.gps.hasPermission()) {
             AlertDialog.Builder(this).setTitle("Velocidad GPS")
-                .setMessage("La ubicación precisa se usa solamente mientras Mustang OS está visible. No se guardan ni se envían coordenadas. Elige ubicación precisa para medir velocidad. No sustituye los instrumentos originales.")
+                .setMessage("La ubicación precisa permite centrar el mapa y medir velocidad mientras Mustang OS está visible. Al activar el mapa se descargan imágenes de OpenStreetMap del área que estás viendo. El diagnóstico no incluye coordenadas. No sustituye los instrumentos originales.")
                 .setPositiveButton("Permitir ubicación") { _, _ ->
                     locationPermission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
                 }
@@ -417,6 +520,30 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun showSettings() {
+        pauseMapForMenu()
+        SettingsSheet(this, ::restoreMapAfterMenu)
+            .section("CONEXIONES")
+            .action("CarPlay", "Aplicación de conexión del iPhone") { chooseApp("zlink", false) }
+            .action("Audio", "Fuente de reproducción y acceso multimedia", ::mediaSources)
+            .action("Navegación", "Elegir aplicación de mapas Android") { chooseApp("maps", false) }
+            .section("PANTALLA Y MAPA")
+            .toggle("Mapa por Internet", "OpenStreetMap · carga el área que estás viendo", model.settings.mapNetworkEnabled) {
+                model.settings.mapNetworkEnabled = it; nativeMap.setNetworkEnabled(it)
+            }
+            .toggle("Mantener pantalla encendida", "Mientras Mustang OS está visible", model.settings.keepScreenOn) {
+                model.settings.keepScreenOn = it; applyScreenPreference()
+            }
+            .action("Ubicación GPS", "Permisos y receptor de la pantalla", ::requestGps)
+            .section("VEHÍCULO Y SISTEMA")
+            .action("Motor", "Voltaje, temperatura y lecturas disponibles", ::showVehicleData)
+            .action("Aplicaciones predeterminadas", "Teléfono, radio y launcher original", ::showAdvancedSettings)
+            .action("Interfaz original", "Volver al launcher del fabricante") { openRole("home") }
+            .action("Diagnóstico y exportación", "Información de compatibilidad y soporte", ::showDiagnostics)
+            .action("Ajustes del equipo", "Configuración original de Android") { safeSettings(Intent(Settings.ACTION_SETTINGS)) }
+            .show()
+    }
+
+    private fun showAdvancedSettings() {
         val roles = listOf("zlink", "music", "maps", "phone", "radio", "home")
         val entries = roles.map { "Elegir ${roleName(it)}" } + listOf(
             "Abrir launcher original",

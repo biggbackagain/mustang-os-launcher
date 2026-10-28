@@ -9,6 +9,7 @@ import org.junit.Test
 import org.junit.Before
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
+import org.robolectric.shadows.ShadowDialog
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
@@ -24,6 +25,20 @@ class DashboardRenderTest {
     }
     @Test fun renderActualDashboardWithoutInventedData() = render(1280, 720)
     @Test @Config(qualifiers = "w853dp-h480dp-land-mdpi") fun renderCompactDashboard() = render(853, 480)
+    @Test fun renderProductSettings() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup().visible()
+        controller.get().findViewById<View>(R.id.topSettings).performClick()
+        val dialog = ShadowDialog.getLatestDialog()
+        val root = dialog.findViewById<View>(R.id.launcherSettingsRoot)
+        root.measure(View.MeasureSpec.makeMeasureSpec(1280, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(720, View.MeasureSpec.EXACTLY))
+        root.layout(0, 0, 1280, 720)
+        val bitmap = Bitmap.createBitmap(1280, 720, Bitmap.Config.ARGB_8888)
+        root.draw(Canvas(bitmap))
+        val file = File("build/reports/screenshots/settings-1280x720.png")
+        file.parentFile?.mkdirs()
+        file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        bitmap.recycle(); dialog.dismiss(); controller.pause().stop().destroy()
+    }
     private fun render(width: Int, height: Int) {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup().visible()
         val root = controller.get().findViewById<View>(R.id.root)

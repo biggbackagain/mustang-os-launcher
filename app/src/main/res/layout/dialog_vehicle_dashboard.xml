@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#090B0F"
+    android:background="@color/ui_background"
     android:fillViewport="true">
 
     <LinearLayout
@@ -34,17 +34,17 @@
                 android:paddingEnd="0dp"
                 android:text="TELEMETRÍA Y SENSORES · MUSTANG 2010"
                 android:textSize="18sp"
-                android:textColor="#FFFFFFFF" />
+                android:textColor="@color/ui_text" />
 
             <Button
                 android:id="@+id/dashCloseBtn"
                 style="@style/ActionButton"
                 android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:minHeight="36dp"
+                android:layout_height="48dp"
+                android:minHeight="48dp"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
-                android:text="✕ Cerrar"
+                android:text="@string/close_plain"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -70,7 +70,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="VELOCIDAD GPS"
-                    android:textSize="11sp"
+                    android:textSize="12sp"
                     android:letterSpacing="0.1" />
 
                 <LinearLayout
@@ -86,7 +86,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
                         android:text="@string/sensor_value_unknown"
-                        android:textColor="#FFFFFFFF"
+                        android:textColor="@color/ui_text"
                         android:textSize="44sp" />
 
                     <TextView
@@ -130,7 +130,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/oem_power_title"
-                    android:textSize="11sp"
+                    android:textSize="12sp"
                     android:letterSpacing="0.1" />
 
                 <LinearLayout
@@ -146,7 +146,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
                         android:text="@string/sensor_value_unknown"
-                        android:textColor="#FFFFFFFF"
+                        android:textColor="@color/ui_text"
                         android:textSize="44sp" />
 
                     <TextView
@@ -199,7 +199,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/device_acceleration_title"
-                    android:textSize="11sp"
+                    android:textSize="12sp"
                     android:letterSpacing="0.1" />
 
                 <LinearLayout
@@ -219,7 +219,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/device_axis_x"
-                            android:textSize="11sp" />
+                            android:textSize="12sp" />
 
                         <TextView
                             android:id="@+id/dashGForceLat"
@@ -241,7 +241,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/device_axis_y"
-                            android:textSize="11sp" />
+                            android:textSize="12sp" />
 
                         <TextView
                             android:id="@+id/dashGForceLong"
@@ -260,7 +260,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="@string/device_gyro_unknown"
-                    android:textSize="11sp" />
+                    android:textSize="12sp" />
             </LinearLayout>
 
             <!-- Card: Doors & Temperature -->
@@ -278,7 +278,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="ESTADO DE PUERTAS Y TEMPERATURA"
-                    android:textSize="11sp"
+                    android:textSize="12sp"
                     android:letterSpacing="0.1" />
 
                 <TextView
@@ -288,7 +288,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="@string/door_state_unknown"
-                    android:textColor="#8E99A8"
+                    android:textColor="@color/ui_muted"
                     android:textSize="18sp" />
 
                 <TextView
@@ -309,7 +309,7 @@
                     android:minHeight="38dp"
                     android:layout_marginTop="8dp"
                     android:text="Consultar temp exterior OEM"
-                    android:textSize="11sp" />
+                    android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>
 
@@ -327,7 +327,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/oem_apps_status_title"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 android:letterSpacing="0.1" />
 
             <TextView
@@ -349,7 +349,7 @@
                     android:id="@+id/dashOpenCarBtn"
                     style="@style/ActionButton"
                     android:layout_width="0dp"
-                    android:layout_height="44dp"
+                    android:layout_height="48dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="6dp"
                     android:text="OriginalCar"
@@ -359,7 +359,7 @@
                     android:id="@+id/dashOpenCarMateBtn"
                     style="@style/ActionButton"
                     android:layout_width="0dp"
-                    android:layout_height="44dp"
+                    android:layout_height="48dp"
                     android:layout_weight="1"
                     android:layout_marginHorizontal="6dp"
                     android:text="CarMate"
@@ -369,7 +369,7 @@
                     android:id="@+id/dashOpenFordSettingsBtn"
                     style="@style/ActionButton"
                     android:layout_width="0dp"
-                    android:layout_height="44dp"
+                    android:layout_height="48dp"
                     android:layout_weight="1"
                     android:layout_marginStart="6dp"
                     android:text="Ajustes Ford"

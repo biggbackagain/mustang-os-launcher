@@ -6,13 +6,20 @@ android {
         applicationId = "com.mustangos.launcher"
         minSdk = 26
         targetSdk = 35
-        versionCode = 8
-        versionName = "0.3.7"
+        versionCode = 9
+        versionName = "0.4.0"
     }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     buildFeatures { viewBinding = true }
     testOptions { unitTests.isIncludeAndroidResources = true }
-    buildTypes { release { isMinifyEnabled = true; proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt")) } }
+    buildTypes {
+        release {
+            isDebuggable = false
+            isMinifyEnabled = false
+            // Preserve updates for this personal installation; never replace or export its existing key.
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
 }
 kotlin {
     compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) }

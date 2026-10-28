@@ -34,6 +34,7 @@ import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.shadow.api.Shadow
 import org.robolectric.shadows.ShadowAlertDialog
+import org.robolectric.shadows.ShadowDialog
 import org.robolectric.util.ReflectionHelpers
 
 @RunWith(RobolectricTestRunner::class)
@@ -104,7 +105,7 @@ class DashboardInteractionTest {
         controller.pause().stop().destroy()
     }
 
-    @Test fun carPlayRouteButtonDoesNotRequireAnAndroidMapsApp() {
+    @Test fun mapButtonExpandsAndRestoresTheNativeMapWithoutLaunchingCarPlay() {
         val zlink = install("com.zjinnova.zlink")
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup().visible()
         val activity = controller.get()
@@ -114,12 +115,24 @@ class DashboardInteractionTest {
         shadowOf(Looper.getMainLooper()).idle()
         assertEquals(zlink, model.apps.selected("zlink"))
         assertTrue(activity.findViewById<View>(R.id.openMaps).hasOnClickListeners())
-        assertEquals("Ver mapa en CarPlay", activity.findViewById<TextView>(R.id.openMaps).text.toString())
+        assertEquals("Ampliar mapa", activity.findViewById<TextView>(R.id.openMaps).text.toString())
+        val host = activity.findViewById<android.view.ViewGroup>(R.id.mapHost)
+        val map = host.getChildAt(0)
         assertTrue(activity.findViewById<View>(R.id.openMaps).performClick())
         shadowOf(Looper.getMainLooper()).idle()
-        val opened = shadowOf(app).nextStartedActivity
-        assertNotNull("tap did not open CarPlay; failure=${model.apps.lastFailure}", opened)
-        assertEquals("failure=${model.apps.lastFailure}; opened=$opened", zlink, opened?.component)
+        val dialog = ShadowDialog.getLatestDialog()
+        assertTrue(dialog.isShowing)
+        assertEquals(0, host.childCount)
+        assertNotNull(map.parent)
+        assertNull(shadowOf(app).nextStartedActivity)
+        dialog.dismiss()
+        shadowOf(Looper.getMainLooper()).idle()
+        assertSame(map, host.getChildAt(0))
+        activity.findViewById<View>(R.id.openMaps).performClick()
+        assertTrue(ShadowDialog.getLatestDialog().isShowing)
+        ShadowDialog.getLatestDialog().dismiss()
+        shadowOf(Looper.getMainLooper()).idle()
+        assertSame(map, host.getChildAt(0))
         controller.pause().stop().destroy()
     }
 
@@ -153,6 +166,23 @@ class DashboardInteractionTest {
         assertTrue(report.contains("texto_secundario_origen=DISPLAY_SUBTITLE"))
         assertFalse(report.contains("Private display"))
         controller.pause().stop().destroy()
+    }
+
+    @Test fun screenPreferenceCanBeChangedFromTheProductSettings() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup().visible()
+        val activity = controller.get()
+        val model = ViewModelProvider(activity)[LauncherViewModel::class.java]
+        assertTrue(activity.window.attributes.flags and android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON != 0)
+        activity.findViewById<View>(R.id.topSettings).performClick()
+        val dialog = ShadowDialog.getLatestDialog()
+        val rows = dialog.findViewById<android.view.ViewGroup>(R.id.settingsRows)
+        val control = (0 until rows.childCount).mapNotNull { rows.getChildAt(it) as? android.view.ViewGroup }
+            .flatMap { row -> (0 until row.childCount).map { row.getChildAt(it) } }
+            .filterIsInstance<android.widget.Switch>().first { it.contentDescription == "Mantener pantalla encendida" }
+        control.performClick()
+        assertFalse(model.settings.keepScreenOn)
+        assertEquals(0, activity.window.attributes.flags and android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        dialog.dismiss(); controller.pause().stop().destroy()
     }
 
     @Test fun androidBatteryAndAbsentGpsAreNotPresentedAsVehicleMeasurements() {

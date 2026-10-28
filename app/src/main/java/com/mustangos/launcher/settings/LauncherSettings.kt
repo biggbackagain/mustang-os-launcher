@@ -16,4 +16,13 @@ class LauncherSettings(context: Context) {
     var oemInterrupted: Boolean
         get() = prefs.getBoolean("oem_interrupted", false)
         set(value) { prefs.edit().putBoolean("oem_interrupted", value).commit() }
+    var mapNetworkEnabled: Boolean
+        get() = prefs.getBoolean("map_network", false)
+        set(value) { prefs.edit().putBoolean("map_network", value).apply() }
+    var keepScreenOn: Boolean
+        get() = prefs.getBoolean("keep_screen_on", true)
+        set(value) { prefs.edit().putBoolean("keep_screen_on", value).apply() }
+    var gpsPermissionPrompted: Boolean
+        get() = prefs.getBoolean("gps_permission_prompted", false)
+        set(value) { prefs.edit().putBoolean("gps_permission_prompted", value).apply() }
 }

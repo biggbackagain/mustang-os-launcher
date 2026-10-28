@@ -30,7 +30,7 @@ class SpeedGaugeView @JvmOverloads constructor(context: Context, attrs: Attribut
         paint.style = Paint.Style.STROKE; paint.strokeCap = Paint.Cap.ROUND; paint.strokeWidth = size * 0.021f; paint.color = Color.rgb(44, 50, 62)
         arc.set(cx-radius, cy-radius, cx+radius, cy+radius)
         canvas.drawArc(arc, 150f, 240f, false, paint)
-        paint.color = Color.rgb(255, 53, 74)
+        paint.color = Color.rgb(123, 217, 255)
         if (speed != null && displayed > 0) canvas.drawArc(arc, 150f, (displayed / 240f).coerceIn(0f, 1f) * 240f, false, paint)
         paint.strokeWidth = size * 0.004f
         for (i in 0..24) {

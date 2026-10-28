@@ -1,14 +1,36 @@
 <resources>
-    <dimen name="brand_logo_width">40dp</dimen><dimen name="brand_logo_height">20dp</dimen>
-    <dimen name="toolbar_height">56dp</dimen><dimen name="dock_height">96dp</dimen>
-    <dimen name="card_padding">12dp</dimen><dimen name="card_header_height">26dp</dimen>
-    <dimen name="title_size">18sp</dimen><dimen name="muted_size">12sp</dimen>
-    <dimen name="art_margin_top">6dp</dimen><dimen name="art_margin_bottom">4dp</dimen>
-    <dimen name="progress_margin">6dp</dimen><dimen name="control_size">48dp</dimen>
-    <dimen name="play_size">48dp</dimen><dimen name="control_spacing">8dp</dimen>
-    <dimen name="media_status_height">28dp</dimen><dimen name="navigation_icon">32dp</dimen>
-    <dimen name="navigation_title_margin">10dp</dimen><dimen name="navigation_text_margin">8dp</dimen>
-    <dimen name="navigation_status_margin">8dp</dimen><dimen name="navigation_footer_height">32dp</dimen>
+    <dimen name="brand_logo_width">40dp</dimen>
+    <dimen name="brand_logo_height">20dp</dimen>
+    <dimen name="toolbar_height">52dp</dimen>
+    <dimen name="dock_height">80dp</dimen>
+    <dimen name="card_padding">12dp</dimen>
+    <dimen name="card_header_height">48dp</dimen>
+    <dimen name="title_size">18sp</dimen>
+    <dimen name="muted_size">12sp</dimen>
+    <dimen name="art_margin_top">6dp</dimen>
+    <dimen name="art_margin_bottom">4dp</dimen>
+    <dimen name="progress_margin">6dp</dimen>
+    <dimen name="control_size">48dp</dimen>
+    <dimen name="play_size">52dp</dimen>
+    <dimen name="control_spacing">4dp</dimen>
+    <dimen name="media_status_height">32dp</dimen>
+    <dimen name="navigation_icon">32dp</dimen>
+    <dimen name="navigation_title_margin">10dp</dimen>
+    <dimen name="navigation_text_margin">8dp</dimen>
+    <dimen name="navigation_status_margin">8dp</dimen>
+    <dimen name="navigation_footer_height">32dp</dimen>
     <dimen name="art_placeholder_icon">32dp</dimen>
     <bool name="compact_dashboard">true</bool>
+    <dimen name="action_text_size">13sp</dimen>
+    <dimen name="dock_text_size">12sp</dimen>
+    <dimen name="media_art_size">72dp</dimen>
+    <dimen name="media_title_size">17sp</dimen>
+    <dimen name="media_artist_size">14sp</dimen>
+    <dimen name="dashboard_gap">8dp</dimen>
+    <dimen name="dashboard_outer_padding">12dp</dimen>
+    <dimen name="map_header_height">32dp</dimen>
+    <dimen name="map_caption_height">0dp</dimen>
+    <dimen name="map_controls_margin">6dp</dimen>
+    <dimen name="map_controls_vertical_gap">0dp</dimen>
+    <dimen name="map_controls_horizontal_gap">4dp</dimen>
 </resources>

@@ -12,7 +12,7 @@ class DiagnosticReporter(private val context: Context, private val model: Launch
         val mem = ActivityManager.MemoryInfo().also { context.getSystemService(ActivityManager::class.java).getMemoryInfo(it) }
         val d = context.resources.displayMetrics
         return buildString {
-            appendLine("MUSTANG OS 0.3.7 · diagnóstico básico")
+            appendLine("MUSTANG OS 0.4.0 · diagnóstico básico")
             appendLine("SDK real: ${Build.VERSION.SDK_INT}; etiqueta RELEASE: ${Build.VERSION.RELEASE}")
             appendLine("Identificación declarada del equipo: fabricante=${Build.MANUFACTURER}; marca=${Build.BRAND}; modelo=${Build.MODEL}; placa=${Build.BOARD}; hardware=${Build.HARDWARE}")
             appendLine("API 29 corresponde a Android 10; API 32 a Android 12L; API 33 a Android 13. La etiqueta del fabricante puede diferir.")
@@ -31,6 +31,8 @@ class DiagnosticReporter(private val context: Context, private val model: Launch
             appendLine("Campos multimedia principales extraídos: título=${mediaFacts.title != null}; artista=${mediaFacts.artist != null}; álbum=${mediaFacts.album != null}; duración=${mediaFacts.durationMs > 0}; portada=${model.media.state.value.artwork != null}")
             appendLine(model.media.sessionDiagnostics())
             appendLine("Navegación: ${model.navigation.status}")
+            appendLine("Mapa Android por Internet habilitado: ${model.settings.mapNetworkEnabled}; caché de imágenes del área vista; sin rutas ni coordenadas en este informe")
+            appendLine("Portada seleccionada: ${model.media.state.value.coverStatus}")
             appendLine("Datos del vehículo: ${model.vehicle.status}")
             val oem = model.oem.state.value
             appendLine("Lectura OEM: ${oem.status}; eventos=${oem.frames}; activa por el usuario=${model.settings.oemReadEnabled}")
