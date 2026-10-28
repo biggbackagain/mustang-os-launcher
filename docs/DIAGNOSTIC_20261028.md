@@ -1,5 +1,7 @@
 # Diagnóstico recibido el 28 de octubre de 2026
 
+**Actualización:** después de esta captura se recibieron nueve APK completos, incluido Tema. Los hallazgos y las pruebas físicas posteriores están en [OEM_APPS_20261028.md](OEM_APPS_20261028.md). El apartado «Archivo pertinente que falta» conserva el estado histórico de esta primera revisión.
+
 ZIP 0.4.0: `20261028-065553-2546fb47.zip`, 16 967 467 bytes, 39 entradas y 44 076 668 bytes sin comprimir. SHA-256 `a1ef35e2db9b8da864bfe2e786f7c6c6391c3938228df71579a0e584256e383b`. Se validaron rutas, duplicados, tamaños y tipo antes de extraer únicamente manifiestos/DEX y textos permitidos. El ZIP, APK reconstruidos y decompilaciones permanecen fuera de Git y no se ejecutaron.
 
 ## Evidencia multimedia
