@@ -17,6 +17,7 @@ import java.lang.reflect.Modifier
 
 interface OemSubscription {
     fun open(codes: ShortArray, handler: Handler): Boolean
+    fun requestMcuProtocol(): Int? = null
     fun requestAmbientTemperature(): Int? = null
     fun pollMcu() = Unit
     fun close()
@@ -40,6 +41,12 @@ class TwReadOnlySubscription(private val loadClass: () -> Class<*> = { Class.for
         catch (failure: Exception) { close(); throw failure }
         // The static factory starts its own client; calling start() again is not part of this route.
         return true
+    }
+    override fun requestMcuProtocol(): Int? {
+        val value = instance ?: return null
+        // SystemUI StatusBarViewInit and TWCore request the existing MCU version with this fixed read.
+        return type?.getMethod("write", Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
+            ?.invoke(value, 266, 255) as? Int
     }
     override fun requestAmbientTemperature(): Int? {
         val value = instance ?: return null
@@ -168,6 +175,10 @@ class OemReadOnlyManager(
             if (!candidate.open(OemEventDiagnostics.CODES.map(Int::toShort).toShortArray(), ownedHandler)) {
                 stop(); publish(mutable.value.copy(status = "El firmware rechazó la suscripción de lectura OEM")); return
             }
+            // Optional initial read only. A rejected version request must leave the other channels listening.
+            try { candidate.requestMcuProtocol() }
+            catch (_: Exception) { /* Protocol remains unknown until an actual event arrives. */ }
+            catch (_: LinkageError) { /* This optional request is unsupported by the vendor adapter. */ }
             pollVoltage()
             requestAmbientTemperature()
             // Guard only initialization. A normal power cut after success must not disable the next ignition.

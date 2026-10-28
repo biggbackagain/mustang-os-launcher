@@ -25,10 +25,16 @@ class OemReadOnlyTest {
     private lateinit var settings: LauncherSettings
     private val app: Application get() = RuntimeEnvironment.getApplication()
     @Before fun setup() { app.getSharedPreferences("launcher", 0).edit().clear().commit(); settings = LauncherSettings(app) }
-    private class Feed(val allowed: Boolean = true) : OemSubscription {
+    private class Feed(val allowed: Boolean = true, val rejectProtocol: Boolean = false) : OemSubscription {
         var calls = 0; var closed = false; var handler: Handler? = null
         var temperatureQueries = 0
         var voltageQueries = 0
+        var protocolQueries = 0
+        override fun requestMcuProtocol(): Int {
+            protocolQueries++
+            if (rejectProtocol) throw SecurityException("fixture unsupported protocol read")
+            return 0
+        }
         override fun requestAmbientTemperature(): Int { temperatureQueries++; return 0 }
         override fun pollMcu() { voltageQueries++ }
         override fun open(codes: ShortArray, handler: Handler): Boolean {
@@ -51,6 +57,37 @@ class OemReadOnlyTest {
         settings.oemReadEnabled = true
         val feed = Feed(false); val reader = OemReadOnlyManager(app, settings) { feed }
         reader.start(); assertNull(reader.state.value.voltage); assertTrue(feed.closed); assertFalse(settings.oemInterrupted)
+        assertEquals(0, feed.protocolQueries)
+    }
+    @Test fun protocolReadOccursOncePerSuccessfulOpenAndNeverDuringPolling() {
+        val feed = Feed(); val reader = OemReadOnlyManager(app, settings) { feed }
+        reader.start(); assertEquals(0, feed.protocolQueries)
+        reader.setEnabled(true)
+        assertEquals(1, feed.protocolQueries)
+        assertNull("The request's return value is not a received protocol", reader.state.value.protocol)
+        reader.start()
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(16))
+        assertTrue(feed.voltageQueries > 1)
+        assertEquals(1, feed.protocolQueries)
+        reader.stop(); reader.start(); reader.start()
+        assertEquals(2, feed.protocolQueries)
+        reader.stop()
+    }
+    @Test fun rejectedProtocolReadKeepsVoltageTemperatureAndSubscriptionOperational() {
+        settings.oemReadEnabled = true
+        val feed = Feed(rejectProtocol = true)
+        val reader = OemReadOnlyManager(app, settings) { feed }
+        reader.start()
+        assertEquals(1, feed.protocolQueries)
+        assertEquals(1, feed.voltageQueries); assertEquals(1, feed.temperatureQueries)
+        assertTrue(reader.state.value.sourceActive); assertTrue(settings.oemReadEnabled)
+        assertFalse(feed.closed); assertFalse(settings.oemInterrupted)
+        feed.voltage(); feed.send(1288, data = byteArrayOf(0, 22))
+        assertEquals(12.1f, reader.state.value.voltage!!, 0.001f)
+        assertEquals(22f, reader.state.value.temperatureC!!, 0.001f)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6))
+        assertTrue(feed.voltageQueries > 1); assertEquals(1, feed.protocolQueries)
+        reader.stop(); assertTrue(feed.closed)
     }
     @Test fun onlyReceivedValuesAreDisplayedAndStopReleasesClient() {
         settings.oemReadEnabled = true
@@ -217,7 +254,7 @@ class OemReadOnlyTest {
         fun write(code: Int): Int { fail("Write must never be used"); return 0 }
         fun write(code: Int, argument: Int): Int {
             assertEquals(255, argument)
-            calls.add(when (code) { 1288 -> "temperature-query"; 1292 -> "voltage-query"; else -> error("Unverified OEM query $code") })
+            calls.add(when (code) { 266 -> "protocol-query"; 1288 -> "temperature-query"; 1292 -> "voltage-query"; else -> error("Unverified OEM query $code") })
             return 0
         }
     }
@@ -237,6 +274,16 @@ class OemReadOnlyTest {
         subscription.close()
         assertNull(subscription.requestAmbientTemperature())
         assertEquals(listOf("open","add","temperature-query","remove","stop","close"), PublicVendorApi.calls)
+    }
+    @Test fun reflectiveProtocolQueryUsesOnlyVerifiedTwoArgumentRequestAndOwnedClient() {
+        PublicVendorApi.calls.clear()
+        val subscription = TwReadOnlySubscription { PublicVendorApi::class.java }
+        assertNull(subscription.requestMcuProtocol())
+        subscription.open(shortArrayOf(266), Handler(Looper.getMainLooper()))
+        assertEquals(0, subscription.requestMcuProtocol())
+        subscription.close()
+        assertNull(subscription.requestMcuProtocol())
+        assertEquals(listOf("open", "add", "protocol-query", "remove", "stop", "close"), PublicVendorApi.calls)
     }
     @Test fun reflectiveVoltagePollUsesOnlyFixedReadRequestAndOwnedClient() {
         PublicVendorApi.calls.clear()
