@@ -39,6 +39,7 @@ class MustangProfileSheet(
         fun label(text: String) { content.addView(TextView(context).apply { this.text = text; setTextAppearance(R.style.Body); setPadding(0, dp(14), 0, dp(6)) }) }
         fun spinner(labels: List<String>, selected: Int) = Spinner(context).also {
             it.adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, labels)
+            it.setPopupBackgroundDrawable(context.getDrawable(R.drawable.bg_dialog))
             it.minimumHeight = dp(48); it.setSelection(selected)
             content.addView(it, LinearLayout.LayoutParams(-1, dp(52)))
         }
@@ -68,10 +69,10 @@ class MustangProfileSheet(
         label("Imagen de referencia")
         content.addView(TextView(context).apply {
             setTextAppearance(R.style.Muted)
-            text = "Selecciona una foto que coincida con el año y color de tu auto. Cambiar el perfil no transforma la imagen incluida. Los faros animados están calibrados para esa imagen incluida."
+            text = "El catálogo elige automáticamente una referencia por año, versión, carrocería y color disponible. Si no hay coincidencia exacta se indica como aproximada. Puedes usar tu propia foto. Los faros animados se reservan para la imagen original calibrada."
         })
         val choose = Button(context, null, 0, R.style.ActionButton).apply { text = if (hasPhoto) "Guardar y cambiar foto" else "Guardar y elegir foto" }
-        val clear = Button(context, null, 0, R.style.ActionButton).apply { text = "Guardar y usar imagen incluida"; isEnabled = hasPhoto }
+        val clear = Button(context, null, 0, R.style.ActionButton).apply { text = "Guardar y usar fotos automáticas"; isEnabled = hasPhoto }
         content.addView(choose, LinearLayout.LayoutParams(-1, dp(52)).apply { topMargin = dp(12) })
         content.addView(clear, LinearLayout.LayoutParams(-1, dp(52)).apply { topMargin = dp(8) })
         val dialog = AlertDialog.Builder(context).setTitle("Mi Mustang")

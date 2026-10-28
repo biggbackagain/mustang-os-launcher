@@ -1,6 +1,26 @@
-# Registro de verificación · Mustang OS 0.4.1
+# Registro de verificación · Mustang OS 0.5.0
 
-## Resultado actual 0.4.1
+## Resultado actual 0.5.0
+
+**237 pruebas app/núcleo y once del servidor pasadas; cero fallos/errores/omitidas.** Verificación integral con `scripts/verify.ps1`: pruebas, lint debug/release y ambos instaladores; `BUILD SUCCESSFUL` en 1 minuto 27 segundos. Lint: cero errores y 146 advertencias en ambas variantes, sin baseline ni supresiones nuevas. Permanecen avisos de textos, layout/accesibilidad y APIs deprecadas; la comprobación física en la pantalla sigue pendiente.
+
+- Release: `output/MustangOS-0.5.0.apk`, alias `output/MustangOS.apk`, 8 264 317 bytes.
+- Paquete `com.mustangos.launcher`, versión 0.5.0 / código 11, min SDK 26 / target 35.
+- SHA-256 release: `C72DA5915DFF015B1D8D9DF422CA1F6793B028DD418F1B0BFD476F94EF15D0F4`.
+- Firma v2 verificada, mismo certificado SHA-256 `ea344a9b8f345999a123c89eb450bb97a95aba40857febd43177282ab9a24117`. Release sin depuración; único permiso añadido: `com.tw.carinfoservice.permission.USE_AIDL`, declarado normal por el APK OEM inspeccionado. Sin generar/copiar llaves. Las APK históricas 0.4.0 y 0.4.1 conservan sus hashes.
+- Debug: `output/MustangOS-0.5.0-debug.apk`, 9 026 638 bytes; SHA-256 `69991148D8FA0D4D16DC697C6A551DCB25F0F7ED0FF6DE2D883399A0AB6BC430`.
+- Página HTTP 200 en `http://192.168.100.2:8766/?v=0.5.0`, versión y enlace al mapa comprobados. La APK descargada coincide por SHA-256 con la release firmada. El ayudante conserva recepción APK/ZIP y caduca dos horas después de iniciarse.
+- Mapa México: `output/offline-maps/mexico.map`, 719 418 229 bytes, SHA-256 `2e3d24665b0b050637dcaa08536119aabed6478804c615fd39e34e81bc66b77f`. HEAD HTTP confirma tamaño y reanudación; dos GET parciales devuelven 206 y bytes idénticos al archivo local, incluido el encabezado Mapsforge. No se duplicó una transferencia completa de 686 MiB para esta comprobación.
+
+Las nuevas regresiones cubren referencias fotográficas y créditos, importación de mapa válida/rechazada conservando el anterior, fondo común, vínculo de caché CarInfoService, lectura y controles de radio condicionados a fuente activa, decodificación/caducidad de velocidad y RPM OEM y atribución de fuente del velocímetro. No se ejecutaron los APK OEM recibidos ni se enviaron comandos para activar velocidad/RPM.
+
+El archivo real de México se abrió con Mapsforge y devolvió calles/objetos en Guadalajara, Colima, Morelia y Ciudad de México sin solicitar cartografía de red. El paquete es independiente de la APK y contiene los tres estados solicitados dentro de México completo. Su copia preparada por el proveedor es del 28 de junio de 2026. Ofrece cartografía offline; no cálculo de rutas ni voz.
+
+Renders nativos revisados: dashboard 1280×720 y 853×480, Apps y Ajustes 1280×720; fondo azul/caballo común y fotografías legibles, sin recortes materiales observados. El catálogo incluye 30 fotografías con atribución/licencia y avisa cuando la referencia es aproximada. Los valores no disponibles no se inventan.
+
+Los controles musicales CarPlay confirmados se conservan; título, artista, portada, tiempo y superficie/ruta del iPhone siguen sin contrato externo compatible verificado. [Cambios e instalación](docs/RELEASE_050.md), [interfaces adicionales inspeccionadas](docs/OEM_APPS_20261028_ADDITIONAL.md).
+
+## Historial 0.4.1
 
 **188 pruebas app/núcleo y ocho del servidor pasadas; cero fallos/errores/omitidas.** Verificación integral con `scripts/verify.ps1`: pruebas, lint debug/release y ambos instaladores; `BUILD SUCCESSFUL` en 1 minuto 7 segundos. Lint: cero errores y 118 advertencias en ambas variantes, sin baseline ni supresiones nuevas. Las dos advertencias añadidas frente a la revisión local anterior son las etiquetas de referencia de imagen de 10sp. Permanecen pendientes avisos de textos, layout/accesibilidad y APIs deprecadas.
 

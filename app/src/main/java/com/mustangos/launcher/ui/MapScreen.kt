@@ -2,7 +2,6 @@ package com.mustangos.launcher.ui
 
 import android.app.Dialog
 import android.content.Context
-import android.graphics.Color
 import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.Button
@@ -26,7 +25,7 @@ class MapScreen(
     private val originalParams = map.layoutParams
     val status = TextView(context).apply { text = initialStatus; setTextAppearance(R.style.Muted) }
     private val content = LinearLayout(context).apply {
-        orientation = LinearLayout.VERTICAL; setBackgroundColor(Color.rgb(7, 11, 16))
+        orientation = LinearLayout.VERTICAL; setBackgroundResource(R.drawable.bg_mustang_theme)
     }
     private fun dp(value: Int) = (value * context.resources.displayMetrics.density).toInt()
     private fun button(context: Context, label: String, action: () -> Unit) = Button(context, null, 0, R.style.ActionButton).apply {

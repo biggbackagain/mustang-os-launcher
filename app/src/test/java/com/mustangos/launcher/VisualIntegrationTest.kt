@@ -11,6 +11,7 @@ import android.widget.GridView
 import android.widget.ImageView
 import android.widget.TextView
 import com.mustangos.launcher.ui.MustangCarView
+import com.mustangos.launcher.ui.MustangBackgroundDrawable
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,13 +27,13 @@ import java.io.File
 class VisualIntegrationTest {
     private val context: Context get() = RuntimeEnvironment.getApplication()
 
-    @Test fun drawerUsesTheCarPhotoAndHeaderHasVisiblePony() {
+    @Test fun drawerUsesTheCommonThemeAndHeaderHasVisiblePony() {
         val inflater = LayoutInflater.from(context)
         val drawer = inflater.inflate(R.layout.dialog_app_drawer, null)
         val wallpaper = drawer.findViewById<ImageView>(R.id.drawerWallpaper)
-        assertNotNull(wallpaper.drawable)
-        assertEquals(ImageView.ScaleType.CENTER_CROP, wallpaper.scaleType)
-        assertNotNull(drawer.findViewById<View>(R.id.drawerScrim).background)
+        assertTrue(drawer.background is MustangBackgroundDrawable)
+        assertEquals(View.GONE, wallpaper.visibility)
+        assertNull(wallpaper.drawable)
         val dashboard = inflater.inflate(R.layout.activity_main, null)
         val pony = dashboard.findViewById<ImageView>(R.id.brandLogo)
         assertNotNull(pony.drawable)
@@ -59,7 +60,7 @@ class VisualIntegrationTest {
         off.recycle(); on.recycle(); reset.recycle()
     }
 
-    @Test fun renderAppsDrawerWithActualPhotoAndNativeFixtureTiles() {
+    @Test fun renderAppsDrawerWithCommonThemeAndNativeFixtureTiles() {
         val inflater = LayoutInflater.from(context)
         val drawer = inflater.inflate(R.layout.dialog_app_drawer, null)
         val labels = listOf("CarPlay", "Navegación", "Música", "Teléfono", "Radio", "Ajustes", "Archivos", "Calendario", "Cámara", "Bluetooth", "Clima", "Vídeo", "Ecualizador", "OriginalCar", "CarMate", "Ayuda")

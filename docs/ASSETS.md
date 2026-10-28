@@ -1,5 +1,7 @@
 # Recursos visuales
 
+La 0.5.0 extiende el fondo tribar/pony al resto de superficies propias y añade 30 fotos de referencia reutilizables. El catálogo completo con autor, licencia, fuente y hash está en `app/src/main/assets/cars/catalog.json`, y sus avisos en `app/src/main/assets/licenses/car-photos-NOTICE.txt`. Se descargaron las miniaturas de Commons sin modificar su contenido; la presentación conserva la identidad real de la foto aunque el perfil elegido requiera una referencia aproximada. Los archivos `.map` y las teselas no se empaquetan como recursos visuales.
+
 La 0.4.1 utiliza azul medianoche y pictogramas propios de trazo 1.65; conserva el caballo atribuido, ampliado con tribar en Ajustes. Las fotos seleccionadas por el usuario se copian únicamente al almacenamiento privado de la app; no se incluyen en Git, ZIP de compatibilidad ni estos assets. La imagen incluida se identifica como referencia del Mustang 2010 rojo aunque se elija otro perfil.
 
 La 0.4.0 utiliza el lenguaje grafito/azul hielo del [cockpit S650 descrito por Ford](https://mustang.fordmedia.eu/) como inspiración, sin copiar su software ni incorporar imágenes del fabricante. La cartografía se solicita a OpenStreetMap en ejecución con atribución visible; no se empaquetan teselas reales en el APK/código fuente. `docs/map-local-raster-night.png` es un raster sintético generado por el fixture de pruebas para comprobar Canvas, color, posición y atribución; no representa una calle ni una ruta real.

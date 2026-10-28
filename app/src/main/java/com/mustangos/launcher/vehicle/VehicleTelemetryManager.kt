@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import android.os.Environment
 import android.os.StatFs
 import android.provider.Settings
+import com.mustangos.launcher.settings.LauncherSettings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -21,6 +22,7 @@ data class BatteryFacts(val voltage: Float? = null, val percent: Int? = null, va
 interface VehicleTelemetrySource { suspend fun read(): VehicleTelemetry }
 
 class VehicleTelemetryManager(private val context: Context) {
+    val carInfo = CarInfoReadOnlyManager(context, LauncherSettings(context))
     private val mutable = MutableStateFlow(VehicleTelemetry())
     val state = mutable.asStateFlow()
     private val batteryMutable = MutableStateFlow(BatteryFacts())
@@ -37,7 +39,8 @@ class VehicleTelemetryManager(private val context: Context) {
             }
         }
     }
-    val status = "Motor (RPM, refrigerante y kilometraje): sin interfaz verificada"
+    val status: String get() = if (carInfo.state.value.sourceActive) "CarInfoService · caché OEM sin fecha de medición; RPM y refrigerante sin verificar"
+        else "Motor (RPM, refrigerante y kilometraje): sin interfaz de lectura activa"
 
     init {
         poll()
@@ -58,10 +61,15 @@ class VehicleTelemetryManager(private val context: Context) {
     }
 
     fun stop() {
+        stopReadings()
         if (observingAccessory) runCatching { context.unregisterReceiver(accessoryReceiver) }
         observingAccessory = false
         accessoryMutable.value = null
     }
+
+    /** Separate from the passive ACC observer: these cache reads run only while the dashboard is visible. */
+    fun startReadings() = carInfo.start()
+    fun stopReadings() = carInfo.stop()
 
     fun poll() {
         try {

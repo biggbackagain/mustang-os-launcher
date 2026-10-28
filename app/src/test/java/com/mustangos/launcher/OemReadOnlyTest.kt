@@ -39,19 +39,33 @@ class OemReadOnlyTest {
         override fun pollMcu() { voltageQueries++ }
         override fun open(codes: ShortArray, handler: Handler): Boolean {
             calls++; this.handler = handler
-            assertArrayEquals(shortArrayOf(266,514,1281,1285,1288,1292), codes)
+            assertArrayEquals(shortArrayOf(266,514,1281,1285,1288,1291,1292), codes)
             return allowed
         }
         override fun close() { closed = true }
         fun voltage() { handler!!.sendMessage(Message.obtain().apply { what = 1292; arg1 = 0; obj = byteArrayOf(4,0xBA.toByte()) }); shadowOf(Looper.getMainLooper()).idle() }
-        fun send(code: Int, arg: Int = 0, data: Any? = null) {
-            handler!!.sendMessage(Message.obtain().apply { what = code; arg1 = arg; obj = data })
+        fun send(code: Int, arg: Int = 0, data: Any? = null, second: Int = 0) {
+            handler!!.sendMessage(Message.obtain().apply { what = code; arg1 = arg; arg2 = second; obj = data })
             shadowOf(Looper.getMainLooper()).idle()
         }
     }
     @Test fun disabledDoesNotOpenAnything() {
         val feed = Feed(); val reader = OemReadOnlyManager(app, settings) { feed }
         reader.start(); assertEquals(0, feed.calls); assertNull(reader.state.value.voltage)
+    }
+    @Test fun powertrainRequiresActualEventsAndExpiresWithoutRequestingItsStream() {
+        settings.oemReadEnabled = true
+        val feed = Feed(); val reader = OemReadOnlyManager(app, settings) { feed }
+        reader.start(); assertNull(reader.state.value.speedKmh); assertNull(reader.state.value.rpm)
+        feed.send(1291, 7234, second = 2200)
+        assertEquals(72.34f, reader.state.value.speedKmh!!, 0.001f)
+        assertEquals(2200, reader.state.value.rpm)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6))
+        assertNull(reader.state.value.speedKmh); assertNull(reader.state.value.rpm)
+        feed.send(1291, 1000, second = 800)
+        feed.send(1291, 65535, second = 65535)
+        assertNull(reader.state.value.speedKmh); assertNull(reader.state.value.rpm)
+        reader.stop()
     }
     @Test fun rejectedSubscriptionDoesNotInventMeasurements() {
         settings.oemReadEnabled = true

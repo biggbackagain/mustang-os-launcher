@@ -26,10 +26,12 @@ class DownloadServerTest(unittest.TestCase):
         if not cls.root.resolve().is_relative_to(cls.base_temp): raise RuntimeError("Temporary path outside workspace")
         cls.apk = cls.root / "test.apk"
         cls.apk.write_bytes(b"test APK bytes only")
+        cls.map = cls.root / "mexico.map"
+        cls.map.write_bytes(b'mapsforge binary OSM' + bytes(range(256)) * 16)
         with socket.socket() as sock:
             sock.bind(("127.0.0.1", 0)); cls.port = sock.getsockname()[1]
         cls.base = f"http://127.0.0.1:{cls.port}"
-        cls.proc = subprocess.Popen([sys.executable, str(Path(__file__).with_name("serve-apk.py")), "--host", "127.0.0.1", "--port", str(cls.port), "--apk", str(cls.apk), "--uploads", str(cls.root / "uploads")], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        cls.proc = subprocess.Popen([sys.executable, str(Path(__file__).with_name("serve-apk.py")), "--host", "127.0.0.1", "--port", str(cls.port), "--apk", str(cls.apk), "--uploads", str(cls.root / "uploads"), "--offline-map", str(cls.map)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
         for _ in range(100):
             try:
                 with urllib.request.urlopen(cls.base, timeout=1) as response: cls.page = response.read().decode()
@@ -55,6 +57,28 @@ class DownloadServerTest(unittest.TestCase):
             self.assertEqual("no-store", response.headers.get("Cache-Control"))
             self.assertIn('filename="MustangOS.apk"', response.headers.get("Content-Disposition", ""))
             self.assertEqual(hashlib.sha256(response.read()).digest(), hashlib.sha256(self.apk.read_bytes()).digest())
+
+    def test_optional_offline_map_is_downloaded_verbatim(self):
+        self.assertIn('/maps/mexico.map', self.page)
+        with urllib.request.urlopen(self.base + '/maps/mexico.map') as response:
+            self.assertEqual('bytes', response.headers['Accept-Ranges'])
+            self.assertEqual(self.map.read_bytes(), response.read())
+
+    def test_offline_map_supports_resume_and_suffix_ranges(self):
+        for value, expected in [('bytes=19-99', self.map.read_bytes()[19:100]),
+                                ('bytes=100-', self.map.read_bytes()[100:]),
+                                ('bytes=-25', self.map.read_bytes()[-25:])]:
+            req = urllib.request.Request(self.base + '/maps/mexico.map', headers={'Range': value})
+            with urllib.request.urlopen(req) as response:
+                self.assertEqual(206, response.status)
+                self.assertEqual(expected, response.read())
+                self.assertEqual(len(expected), int(response.headers['Content-Length']))
+
+    def test_offline_map_rejects_bad_or_multiple_ranges(self):
+        for value in ['bytes=999999-', 'bytes=10-1', 'bytes=-0', 'bytes=0-1,2-3', 'invalid']:
+            with self.assertRaises(urllib.error.HTTPError) as caught:
+                urllib.request.urlopen(urllib.request.Request(self.base + '/maps/mexico.map', headers={'Range': value}))
+            self.assertEqual(416, caught.exception.code)
 
     def test_server_closes_after_two_hours_without_waiting_in_real_time(self):
         script = Path(__file__).with_name("serve-apk.py")

@@ -6,31 +6,34 @@ from time import monotonic
 from urllib.parse import urlsplit
 from datetime import datetime, timezone
 import json
+import re
 import secrets
 import shutil
 import uuid
 
 PAGE = """<!doctype html><html lang="es"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mustang OS 0.4.1 · Mi Mustang</title>
+<title>Mustang OS 0.5.0 · México offline</title>
 <style>body{background:#061b37;color:#f4f5f7;font:20px system-ui;margin:0;padding:32px}
 main{max-width:760px;margin:24px auto;padding:32px;border:1px solid #303e57;border-radius:24px;background:#0b2342}
 h1{font-size:36px;margin:0 0 12px}span{color:#93d8ff}p,li{line-height:1.6}small{color:#b0b5c0}
 a{display:block;background:#93d8ff;color:#07131c;text-decoration:none;padding:22px;text-align:center;border-radius:16px;font-weight:bold;margin:28px 0;font-size:22px}li{margin:12px 0}
 .badge{background:#1f2530;padding:4px 10px;border-radius:8px;font-size:14px;color:#93d8ff;font-weight:bold}summary{cursor:pointer;padding:16px 0}</style>
-<main><h1>MUSTANG <span>OS</span> <span class="badge">v0.4.1</span></h1>
-<small>Mi Mustang · azul medianoche y ajustes con caballo tribar</small>
-<a href="/MustangOS.apk?v=0.4.1" download="MustangOS.apk">Descargar Mustang OS 0.4.1</a>
+<main><h1>MUSTANG <span>OS</span> <span class="badge">v0.5.0</span></h1>
+<small>Fondo Mustang común · México offline · radio y datos OEM</small>
+<a href="/MustangOS.apk?v=0.5.0" download="MustangOS.apk">Descargar Mustang OS 0.5.0</a>
 <ol><li>Descarga <b>MustangOS.apk</b>.</li>
 <li>Abre el archivo y pulsa <b>Instalar / Actualizar</b>, conservando la aplicación anterior.</li>
 <li>Abre <b>MUSTANG OS</b> con el vehículo estacionado.</li></ol>
+OFFLINE_PACK
 <h2>Qué incluye</h2>
 <ul>
 <li><b>Mapa Android en el panel:</b> desplazar, zoom, centrar GPS y ampliar a pantalla completa. Pulsa <b>Centrar</b> para activar la cartografía por Internet; usa el receptor de la pantalla.</li>
 <li><b>Audio:</b> conserva los controles CarPlay confirmados y mejora la selección de sesiones de la fuente elegida. Los datos actuales de canción y portada de CarPlay siguen pendientes de una interfaz compatible de ZLink.</li>
-<li><b>Mi Mustang:</b> elige año, versión, carrocería, color y una foto de referencia en Ajustes. La foto se selecciona aparte; el perfil no transforma la imagen incluida.</li>
-<li><b>Apps y ajustes:</b> azul medianoche, pictogramas refinados y caballo grande tribar en Ajustes. Conserva búsqueda y preferencia de pantalla encendida.</li>
-<li><b>Lectura OEM:</b> consulta inicial del perfil MCU y lecturas recibidas con su antigüedad. La disponibilidad de datos depende del firmware.</li>
+<li><b>Mi Mustang:</b> 30 fotografías de referencia seleccionadas automáticamente por perfil. Si no hay coincidencia exacta se indica como aproximada. También admite tu foto propia.</li>
+<li><b>Interfaz:</b> caballo tribar y azul medianoche en todas las pantallas y menús de Mustang OS.</li>
+<li><b>Radio:</b> panel propio con frecuencia, banda, RDS y controles disponibles cuando el equipo confirma radio activa. No cambia el audio de CarPlay automáticamente.</li>
+<li><b>Motor:</b> lecturas TW y valores guardados por CarInfoService con su origen. Velocidad y RPM solo aparecen si el equipo emite eventos vigentes.</li>
 </ul>
 <p><small>El mapa del panel es Android, independiente de la ruta del iPhone. Necesita Internet en la pantalla y una ubicación válida para centrarla. La superficie CarPlay sigue dentro de ZLink. La APK principal es release con depuración desactivada y la firma anterior para actualizar.</small></p>
 <details open><summary>Enviar diagnóstico o APK al PC</summary>
@@ -55,18 +58,50 @@ if(!response.ok)throw Error();result.textContent='Recibido en el PC.';
 </main></html>"""
 
 
+def requested_range(value: str | None, size: int):
+    """Return one inclusive byte range; reject invalid/multiple ranges."""
+    if value is None:
+        return 0, size - 1, False
+    match = re.fullmatch(r"bytes=(\d*)-(\d*)", value)
+    if not match or not any(match.groups()) or size < 1:
+        raise ValueError("Invalid range")
+    first, last = match.groups()
+    if not first:
+        count = int(last)
+        if count <= 0: raise ValueError("Invalid suffix")
+        return max(0, size - count), size - 1, True
+    start = int(first)
+    end = min(int(last), size - 1) if last else size - 1
+    if start >= size or start > end:
+        raise ValueError("Unsatisfiable range")
+    return start, end, True
+
+
 def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--host", required=True, help="IPv4 local del PC")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--apk", type=Path, default=Path(__file__).resolve().parents[1] / "output" / "MustangOS.apk")
     parser.add_argument("--uploads", type=Path, default=Path(__file__).resolve().parents[1] / "output" / "device-reports")
+    parser.add_argument("--offline-map", type=Path, help="Paquete MAP de México preparado para descargar por LAN")
     args = parser.parse_args()
 
     apk = args.apk.resolve(strict=True)
 
+    offline_map = args.offline_map.resolve(strict=True) if args.offline_map else None
+    if offline_map:
+        with offline_map.open('rb') as stream:
+            if stream.read(20) != b'mapsforge binary OSM': raise ValueError('El paquete no es un mapa Mapsforge')
+        if not 20 <= offline_map.stat().st_size <= 2_000_000_000: raise ValueError('Tamaño de mapa no permitido')
+        pack_section = f'''<h2>México sin conexión</h2>
+<p>Paquete completo de cartografía para el panel: {offline_map.stat().st_size / 1048576:.0f} MiB. Descárgalo una vez y en Mustang OS entra a <b>Ajustes → Mapas sin conexión → Importar .map</b>. Después podrás explorar el mapa sin Internet.</p>
+<a href="/maps/mexico.map" download="Mexico-MustangOS.map">Descargar mapa de México</a>
+<p><small>Datos OpenStreetMap, licencia ODbL; paquete distribuido por Mapsforge. Es cartografía offline; no incorpora el vídeo de CarPlay ni cálculo de rutas.</small></p>'''
+    else:
+        pack_section = ''
+
     token = secrets.token_urlsafe(24)
-    page = PAGE.replace("UPLOAD_TOKEN", token).encode("utf-8")
+    page = PAGE.replace("UPLOAD_TOKEN", token).replace("OFFLINE_PACK", pack_section).encode("utf-8")
     upload_dir = args.uploads.resolve()
 
     class Handler(BaseHTTPRequestHandler):
@@ -139,6 +174,35 @@ def main():
                 if send_body:
                     with apk.open("rb") as stream:
                         shutil.copyfileobj(stream, self.wfile)
+                return
+
+            if path == "/maps/mexico.map" and offline_map:
+                size = offline_map.stat().st_size
+                try:
+                    start, end, partial = requested_range(self.headers.get('Range'), size)
+                except ValueError:
+                    self.send_response(416)
+                    self.send_header('Content-Range', f'bytes */{size}')
+                    self.send_header('Content-Length', '0')
+                    self.end_headers()
+                    return
+                self.send_response(206 if partial else 200)
+                self.send_header('Content-Type', 'application/octet-stream')
+                self.send_header('Content-Disposition', 'attachment; filename="Mexico-MustangOS.map"')
+                self.send_header('Cache-Control', 'no-store')
+                self.send_header('Accept-Ranges', 'bytes')
+                self.send_header('Content-Length', str(end - start + 1))
+                if partial: self.send_header('Content-Range', f'bytes {start}-{end}/{size}')
+                self.end_headers()
+                if send_body:
+                    with offline_map.open('rb') as stream:
+                        stream.seek(start)
+                        remaining = end - start + 1
+                        while remaining:
+                            chunk = stream.read(min(65536, remaining))
+                            if not chunk: break
+                            self.wfile.write(chunk)
+                            remaining -= len(chunk)
                 return
 
             self.send_error(404)

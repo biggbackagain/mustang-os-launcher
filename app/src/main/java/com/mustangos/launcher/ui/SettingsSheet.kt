@@ -32,11 +32,13 @@ class SettingsSheet(private val context: Context, onDismiss: () -> Unit) {
         dialog.setOnDismissListener { owner?.lifecycle?.removeObserver(observer); onDismiss() }
     }
     private fun dp(value: Int) = (value * context.resources.displayMetrics.density).toInt()
-    fun profile(profile: MustangProfile, photo: Bitmap?): SettingsSheet = apply {
+    fun profile(profile: MustangProfile, photo: Bitmap?, caption: String? = null, description: String? = null): SettingsSheet = apply {
         view.findViewById<TextView>(R.id.settingsCarProfile).text = "${profile.year} · ${profile.subtitle}"
         view.findViewById<TextView>(R.id.settingsImageReference).setText(if (photo != null) R.string.vehicle_custom_image_caption else R.string.vehicle_stock_image_caption)
+        caption?.let { view.findViewById<TextView>(R.id.settingsImageReference).text = it }
         view.findViewById<ImageView>(R.id.settingsCarImage).apply {
             contentDescription = context.getString(if (photo != null) R.string.vehicle_custom_image_caption else R.string.vehicle_description)
+            description?.let { contentDescription = it }
             if (photo != null) setImageBitmap(photo)
         }
     }

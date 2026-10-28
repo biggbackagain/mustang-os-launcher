@@ -1,379 +1,60 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/bg_midnight_blue"
-    android:fillViewport="true">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
-
-        <!-- Header with Mustang branding -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingBottom="16dp">
-
-            <ImageView
-                android:layout_width="48dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_mustang_pony"
-                android:importantForAccessibility="no" />
-
-            <TextView
-                style="@style/Title"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:paddingStart="12dp"
-                android:paddingEnd="0dp"
-                android:text="TELEMETRÍA Y SENSORES · MUSTANG 2010"
-                android:textSize="18sp"
-                android:textColor="@color/ui_text" />
-
-            <Button
-                android:id="@+id/dashCloseBtn"
-                style="@style/ActionButton"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:minHeight="48dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:text="@string/close_plain"
-                android:textSize="12sp" />
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/bg_mustang_theme" android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:paddingBottom="16dp">
+            <ImageView android:layout_width="48dp" android:layout_height="24dp" android:src="@drawable/ic_mustang_pony" android:importantForAccessibility="no" />
+            <TextView style="@style/Title" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:paddingStart="12dp" android:paddingEnd="0dp" android:text="TELEMETRÍA Y SENSORES · MUSTANG 2010" android:textSize="18sp" android:textColor="@color/ui_text" />
+            <Button android:id="@+id/dashCloseBtn" style="@style/ActionButton" android:layout_width="wrap_content" android:layout_height="48dp" android:minHeight="48dp" android:paddingStart="16dp" android:paddingEnd="16dp" android:text="@string/close_plain" android:textSize="12sp" />
         </LinearLayout>
-
-        <!-- Row 1: Speed & Electrical System -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:baselineAligned="false">
-
-            <!-- Card: Speedometer & GPS -->
-            <LinearLayout
-                style="@style/Card"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    style="@style/Muted"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="VELOCIDAD GPS"
-                    android:textSize="12sp"
-                    android:letterSpacing="0.1" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="bottom"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="4dp">
-
-                    <TextView
-                        android:id="@+id/dashSpeed"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-black"
-                        android:text="@string/sensor_value_unknown"
-                        android:textColor="@color/ui_text"
-                        android:textSize="44sp" />
-
-                    <TextView
-                        android:id="@+id/dashSpeedUnit"
-                        style="@style/Muted"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:layout_marginBottom="8dp"
-                        android:text="km/h"
-                        android:textSize="14sp" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false">
+            <LinearLayout style="@style/Card" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="8dp" android:orientation="vertical" android:padding="16dp">
+                <TextView style="@style/Muted" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="VELOCIDAD GPS" android:textSize="12sp" android:letterSpacing="0.1" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="bottom" android:orientation="horizontal" android:layout_marginTop="4dp">
+                    <TextView android:id="@+id/dashSpeed" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:text="@string/sensor_value_unknown" android:textColor="@color/ui_text" android:textSize="44sp" />
+                    <TextView android:id="@+id/dashSpeedUnit" style="@style/Muted" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_marginBottom="8dp" android:text="km/h" android:textSize="14sp" />
                 </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@color/ui_border"
-                    android:layout_marginVertical="8dp" />
-
-                <TextView
-                    android:id="@+id/dashGpsDetails"
-                    style="@style/Muted"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Rumbo: --° · Altitud: -- m · Precisión: -- m"
-                    android:textSize="12sp" />
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/ui_border" android:layout_marginVertical="8dp" />
+                <TextView android:id="@+id/dashGpsDetails" style="@style/Muted" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Rumbo: --° · Altitud: -- m · Precisión: -- m" android:textSize="12sp" />
             </LinearLayout>
-
-            <!-- Card: Battery / Alternator Voltage -->
-            <LinearLayout
-                style="@style/Card"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    style="@style/Muted"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/oem_power_title"
-                    android:textSize="12sp"
-                    android:letterSpacing="0.1" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="bottom"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="4dp">
-
-                    <TextView
-                        android:id="@+id/dashVoltage"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-black"
-                        android:text="@string/sensor_value_unknown"
-                        android:textColor="@color/ui_text"
-                        android:textSize="44sp" />
-
-                    <TextView
-                        style="@style/Muted"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:layout_marginBottom="8dp"
-                        android:text="V"
-                        android:textSize="14sp" />
+            <LinearLayout style="@style/Card" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="8dp" android:orientation="vertical" android:padding="16dp">
+                <TextView style="@style/Muted" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/oem_power_title" android:textSize="12sp" android:letterSpacing="0.1" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="bottom" android:orientation="horizontal" android:layout_marginTop="4dp">
+                    <TextView android:id="@+id/dashVoltage" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:text="@string/sensor_value_unknown" android:textColor="@color/ui_text" android:textSize="44sp" />
+                    <TextView style="@style/Muted" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_marginBottom="8dp" android:text="V" android:textSize="14sp" />
                 </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@color/ui_border"
-                    android:layout_marginVertical="8dp" />
-
-                <TextView
-                    android:id="@+id/dashVoltageStatus"
-                    style="@style/Title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/oem_power_unknown"
-                    android:textColor="@color/ui_muted"
-                    android:textSize="12sp" />
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/ui_border" android:layout_marginVertical="8dp" />
+                <TextView android:id="@+id/dashVoltageStatus" style="@style/Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/oem_power_unknown" android:textColor="@color/ui_muted" android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>
-
-        <!-- Row 2: Dynamic G-Force & Inclinometer Sensors -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="12dp"
-            android:baselineAligned="false">
-
-            <!-- Card: G-Force Meter -->
-            <LinearLayout
-                style="@style/Card"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    style="@style/Muted"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/device_acceleration_title"
-                    android:textSize="12sp"
-                    android:letterSpacing="0.1" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="8dp">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            style="@style/Muted"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/device_axis_x"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:id="@+id/dashGForceLat"
-                            style="@style/Title"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/sensor_value_unknown"
-                            android:textSize="20sp" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="12dp" android:baselineAligned="false">
+            <LinearLayout style="@style/Card" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="8dp" android:orientation="vertical" android:padding="16dp">
+                <TextView style="@style/Muted" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/device_acceleration_title" android:textSize="12sp" android:letterSpacing="0.1" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp">
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <TextView style="@style/Muted" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/device_axis_x" android:textSize="12sp" />
+                        <TextView android:id="@+id/dashGForceLat" style="@style/Title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sensor_value_unknown" android:textSize="20sp" />
                     </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            style="@style/Muted"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/device_axis_y"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:id="@+id/dashGForceLong"
-                            style="@style/Title"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/sensor_value_unknown"
-                            android:textSize="20sp" />
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <TextView style="@style/Muted" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/device_axis_y" android:textSize="12sp" />
+                        <TextView android:id="@+id/dashGForceLong" style="@style/Title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sensor_value_unknown" android:textSize="20sp" />
                     </LinearLayout>
                 </LinearLayout>
-
-                <TextView
-                    android:id="@+id/dashGyroDetails"
-                    style="@style/Muted"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/device_gyro_unknown"
-                    android:textSize="12sp" />
+                <TextView android:id="@+id/dashGyroDetails" style="@style/Muted" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="@string/device_gyro_unknown" android:textSize="12sp" />
             </LinearLayout>
-
-            <!-- Card: Doors & Temperature -->
-            <LinearLayout
-                style="@style/Card"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    style="@style/Muted"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="ESTADO DE PUERTAS Y TEMPERATURA"
-                    android:textSize="12sp"
-                    android:letterSpacing="0.1" />
-
-                <TextView
-                    android:id="@+id/dashDoorStatus"
-                    style="@style/Title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/door_state_unknown"
-                    android:textColor="@color/ui_muted"
-                    android:textSize="18sp" />
-
-                <TextView
-                    android:id="@+id/dashTempDetails"
-                    style="@style/Muted"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/oem_temperatures_unknown"
-                    android:textSize="12sp" />
-
-                <Button
-                    android:id="@+id/dashQueryTempBtn"
-                    android:enabled="false"
-                    style="@style/ActionButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="38dp"
-                    android:minHeight="38dp"
-                    android:layout_marginTop="8dp"
-                    android:text="Consultar temp exterior OEM"
-                    android:textSize="12sp" />
+            <LinearLayout style="@style/Card" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="8dp" android:orientation="vertical" android:padding="16dp">
+                <TextView style="@style/Muted" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ESTADO DE PUERTAS Y TEMPERATURA" android:textSize="12sp" android:letterSpacing="0.1" />
+                <TextView android:id="@+id/dashDoorStatus" style="@style/Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="@string/door_state_unknown" android:textColor="@color/ui_muted" android:textSize="18sp" />
+                <TextView android:id="@+id/dashTempDetails" style="@style/Muted" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/oem_temperatures_unknown" android:textSize="12sp" />
+                <Button android:id="@+id/dashQueryTempBtn" android:enabled="false" style="@style/ActionButton" android:layout_width="match_parent" android:layout_height="38dp" android:minHeight="38dp" android:layout_marginTop="8dp" android:text="Consultar temp exterior OEM" android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>
-
-        <!-- Row 3: MCU CAN Live Stream & Native OEM Apps -->
-        <LinearLayout
-            style="@style/Card"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="12dp"
-            android:padding="16dp">
-
-            <TextView
-                style="@style/Muted"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/oem_apps_status_title"
-                android:textSize="12sp"
-                android:letterSpacing="0.1" />
-
-            <TextView
-                android:id="@+id/dashMcuStatus"
-                style="@style/Muted"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="OEM TWUtil · Tramas recibidas: 0"
-                android:textSize="12sp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="12dp">
-
-                <Button
-                    android:id="@+id/dashOpenCarBtn"
-                    style="@style/ActionButton"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="6dp"
-                    android:text="OriginalCar"
-                    android:textSize="12sp" />
-
-                <Button
-                    android:id="@+id/dashOpenCarMateBtn"
-                    style="@style/ActionButton"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:layout_marginHorizontal="6dp"
-                    android:text="CarMate"
-                    android:textSize="12sp" />
-
-                <Button
-                    android:id="@+id/dashOpenFordSettingsBtn"
-                    style="@style/ActionButton"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:layout_marginStart="6dp"
-                    android:text="Ajustes Ford"
-                    android:textSize="12sp" />
+        <LinearLayout style="@style/Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="12dp" android:padding="16dp">
+            <TextView style="@style/Muted" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/oem_apps_status_title" android:textSize="12sp" android:letterSpacing="0.1" />
+            <TextView android:id="@+id/dashMcuStatus" style="@style/Muted" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="OEM TWUtil · Tramas recibidas: 0" android:textSize="12sp" />
+            <TextView android:id="@+id/dashCarInfoStatus" style="@style/Muted" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="Datos del servicio del vehículo · sin consultar" android:textSize="13sp" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="12dp">
+                <Button android:id="@+id/dashOpenCarBtn" style="@style/ActionButton" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:layout_marginEnd="6dp" android:text="OriginalCar" android:textSize="12sp" />
+                <Button android:id="@+id/dashOpenCarMateBtn" style="@style/ActionButton" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:layout_marginHorizontal="6dp" android:text="CarMate" android:textSize="12sp" />
+                <Button android:id="@+id/dashOpenFordSettingsBtn" style="@style/ActionButton" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:layout_marginStart="6dp" android:text="Ajustes Ford" android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

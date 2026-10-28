@@ -42,6 +42,10 @@ import com.mustangos.launcher.diagnostics.CompatibilityExporter
 import com.mustangos.launcher.media.MediaUiState
 import com.mustangos.launcher.navigation.NativeMapView
 import com.mustangos.launcher.settings.ReferenceImageStore
+import com.mustangos.launcher.settings.CarPhotoCatalog
+import com.mustangos.launcher.settings.PhotoPresentation
+import com.mustangos.launcher.navigation.OfflineMapStore
+import com.mustangos.launcher.radio.RadioIntegrationManager
 import kotlinx.coroutines.*
 import kotlin.math.roundToInt
 
@@ -56,10 +60,21 @@ class MainActivity : ComponentActivity() {
     private var appDrawerJob: Job? = null
     private val mediaLabels = mutableMapOf<String, String>()
     private val referenceImageStore by lazy { ReferenceImageStore(applicationContext) }
+    private val photoCatalog by lazy { CarPhotoCatalog(applicationContext) }
+    private val radio by lazy { RadioIntegrationManager(applicationContext) }
+    private var photoPresentation: PhotoPresentation? = null
     private var profilePhoto: Bitmap? = null
     private var profilePhotoLoaded = false
     private var profilePhotoJob: Job? = null
     private var profileImportJob: Job? = null
+    private val chooseOfflineMap = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) lifecycleScope.launch {
+            toast("Importando mapa de México…")
+            val saved = OfflineMapStore.get(applicationContext).import(uri)
+            nativeMap.refreshOfflineMap()
+            toast(if (saved) "Mapa de México listo sin conexión" else "No se pudo importar el mapa. Revisa Mapas sin conexión.")
+        }
+    }
     private val chooseReferenceImage = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             profileImportJob?.cancel()
@@ -145,7 +160,8 @@ class MainActivity : ComponentActivity() {
         binding.openMaps.setOnClickListener { showMapScreen() }
         binding.dockNavigation.setOnClickListener { navigationChooser() }
         binding.dockPhone.setOnClickListener { openRole("phone") }
-        binding.dockRadio.setOnClickListener { openRole("radio") }
+        binding.dockRadio.setOnClickListener { showRadio() }
+        binding.carImage.setOnLongClickListener { showPhotoCredits(); true }
         binding.dockApps.setOnClickListener { showAppDrawer() }
         binding.dockEngine.setOnClickListener { showVehicleData() }
         binding.topBattery.setOnClickListener { showVehicleData() }
@@ -166,16 +182,17 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    model.gps.state.collect { state ->
-                        binding.gauge.setSpeed(state.kmh)
+                    kotlinx.coroutines.flow.combine(model.gps.state, model.oem.state) { state, oem ->
+                        binding.gauge.setSpeed(oem.speedKmh ?: state.kmh, if (oem.speedKmh != null) "OEM" else "GPS")
                         binding.gpsStatus.text = when {
+                            oem.speedKmh != null -> "Velocidad OEM · GPS para el mapa"
                             !model.gps.hasPermission() -> "Permitir GPS"
                             state.latitude != null -> "${if (state.provider == android.location.LocationManager.GPS_PROVIDER) "GPS" else "Ubicación"} · ${state.accuracyMeters?.roundToInt() ?: "—"} m"
                             state.status.contains("apagado", true) -> "GPS apagado"
                             else -> "Buscando GPS"
                         }
                         nativeMap.setLocation(state.latitude, state.longitude, state.accuracyMeters, state.bearingDegrees)
-                    }
+                    }.collect { }
                 }
                 launch { model.media.state.collect { renderMedia(it) } }
                 launch {
@@ -259,28 +276,28 @@ class MainActivity : ComponentActivity() {
         binding.vehicleProfileTitle.text = profile.title
         binding.vehicleProfileSubtitle.text = profile.subtitle
         binding.vehicleProfileHeader.text = profile.header
-        bindReferenceImageLabels(profilePhoto != null)
-        binding.carImage.lampOverlayEnabled = !referenceImageStore.hasImage()
-        refreshProfilePhoto()
+        binding.carImage.lampOverlayEnabled = false
+        refreshProfilePhoto(force = true)
     }
 
     private fun refreshProfilePhoto(force: Boolean = false) {
         if (!force && (profilePhotoLoaded || profilePhotoJob?.isActive == true)) return
         profilePhotoJob?.cancel()
         profilePhotoJob = lifecycleScope.launch {
-            val photo = referenceImageStore.load()
-            profilePhoto = photo; profilePhotoLoaded = true
-            binding.carImage.lampOverlayEnabled = photo == null
-            if (photo == null) binding.carImage.setImageResource(R.drawable.mustang_2010)
-            else binding.carImage.setImageBitmap(photo)
-            bindReferenceImageLabels(photo != null)
+            val profile = model.settings.mustangProfile
+            val custom = referenceImageStore.load()
+            val presentation = if (custom != null) PhotoPresentation(custom,
+                getString(R.string.vehicle_custom_image_caption), getString(R.string.vehicle_custom_image_caption),
+                false, null, "custom") else photoCatalog.load(profile)
+            photoPresentation = presentation
+            profilePhoto = presentation.bitmap; profilePhotoLoaded = true
+            binding.carImage.lampOverlayEnabled = presentation.usesCalibratedStock
+            if (presentation.bitmap == null) binding.carImage.setImageResource(R.drawable.mustang_2010)
+            else binding.carImage.setImageBitmap(presentation.bitmap)
+            binding.vehicleImageReference.text = presentation.referenceCaption
+            binding.carImage.contentDescription = if (presentation.usesCalibratedStock) getString(R.string.vehicle_description) else presentation.description
             model.vehicle.accessoryOn.value?.let { binding.carImage.setHeadlightsOn(it) }
         }
-    }
-
-    private fun bindReferenceImageLabels(custom: Boolean) {
-        binding.vehicleImageReference.setText(if (custom) R.string.vehicle_custom_image_caption else R.string.vehicle_stock_image_caption)
-        binding.carImage.contentDescription = getString(if (custom) R.string.vehicle_custom_image_caption else R.string.vehicle_description)
     }
 
     private fun showMustangProfile() {
@@ -294,8 +311,10 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun followMap() {
-        model.settings.mapNetworkEnabled = true
-        nativeMap.setNetworkEnabled(true)
+        if (!nativeMap.isUsingOfflineMap()) {
+            model.settings.mapNetworkEnabled = true
+            nativeMap.setNetworkEnabled(true)
+        }
         nativeMap.followLocation()
         if (!model.gps.hasPermission()) requestGps()
     }
@@ -425,7 +444,6 @@ class MainActivity : ComponentActivity() {
             if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return@launch
 
             val view = layoutInflater.inflate(R.layout.dialog_app_drawer, null)
-            profilePhoto?.let { view.findViewById<ImageView>(R.id.drawerWallpaper).setImageBitmap(it) }
             val dialog = AlertDialog.Builder(this@MainActivity, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
                 .setView(view)
                 .create()
@@ -582,14 +600,18 @@ class MainActivity : ComponentActivity() {
     private fun showSettings() {
         pauseMapForMenu()
         SettingsSheet(this, ::restoreMapAfterMenu)
-            .profile(model.settings.mustangProfile, profilePhoto)
+            .profile(model.settings.mustangProfile, profilePhoto, photoPresentation?.referenceCaption,
+                photoPresentation?.let { if (it.usesCalibratedStock) getString(R.string.vehicle_description) else it.description })
             .section("MI MUSTANG")
             .action("Mi Mustang", "Año, versión, carrocería, color e imagen", ::showMustangProfile)
+            .action("Créditos de fotografías", "Referencias del catálogo y sus autores", ::showPhotoCredits)
             .section("CONEXIONES")
             .action("CarPlay", "Aplicación de conexión del iPhone") { chooseApp("zlink", false) }
             .action("Audio", "Fuente de reproducción y acceso multimedia", ::mediaSources)
+            .action("Radio del equipo", "Frecuencia, RDS y controles disponibles", ::showRadio)
             .action("Navegación", "Elegir aplicación de mapas Android") { chooseApp("maps", false) }
             .section("PANTALLA Y MAPA")
+            .action("Mapas sin conexión", "México completo · importar o descargar por Wi-Fi", ::showOfflineMaps)
             .toggle("Mapa por Internet", "OpenStreetMap · carga el área que estás viendo", model.settings.mapNetworkEnabled) {
                 model.settings.mapNetworkEnabled = it; nativeMap.setNetworkEnabled(it)
             }
@@ -604,6 +626,34 @@ class MainActivity : ComponentActivity() {
             .action("Diagnóstico y exportación", "Información de compatibilidad y soporte", ::showDiagnostics)
             .action("Ajustes del equipo", "Configuración original de Android") { safeSettings(Intent(Settings.ACTION_SETTINGS)) }
             .show()
+    }
+
+    private fun showRadio() {
+        pauseMapForMenu()
+        RadioSheet(this, radio, { openRole("radio") }, ::restoreMapAfterMenu).show()
+    }
+
+    private fun showOfflineMaps() {
+        pauseMapForMenu()
+        OfflineMapsSheet(this, onImport = {
+            runCatching { chooseOfflineMap.launch(arrayOf("*/*")) }
+                .onFailure { toast("El selector de archivos no está disponible") }
+        }, onReady = { nativeMap.refreshOfflineMap() }, onDismiss = ::restoreMapAfterMenu,
+            onRegion = { latitude, longitude, zoom -> nativeMap.focusOffline(latitude, longitude, zoom) }).show()
+    }
+
+    private fun showPhotoCredits() {
+        pauseMapForMenu()
+        lifecycleScope.launch {
+            val text = photoCatalog.credits().joinToString("\n\n") {
+                "${it.title}\n${it.author} · ${it.license}\n${it.licenseUrl}\n${it.source}\n${it.changes}"
+            }
+            if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) { restoreMapAfterMenu(); return@launch }
+            AlertDialog.Builder(this@MainActivity).setTitle("Fotografías de referencia")
+                .setView(ScrollView(this@MainActivity).apply {
+                    addView(TextView(this@MainActivity).apply { this.text = text; textSize = 14f; setPadding(24,16,24,16); setTextIsSelectable(true) })
+                }).setPositiveButton("Cerrar", null).setOnDismissListener { restoreMapAfterMenu() }.show()
+        }
     }
 
     private fun showAdvancedSettings() {
@@ -687,10 +737,10 @@ class MainActivity : ComponentActivity() {
             .setView(view)
             .setPositiveButton("Cerrar", null)
             .setNegativeButton(if (model.settings.oemReadEnabled) "Detener lectura OEM" else "Activar lectura OEM") { _, _ ->
-                if (model.settings.oemReadEnabled) model.oem.setEnabled(false)
+                if (model.settings.oemReadEnabled) { model.oem.setEnabled(false); model.vehicle.stopReadings() }
                 else AlertDialog.Builder(this).setTitle("Lectura OEM")
                     .setMessage(getString(R.string.oem_read_explanation))
-                    .setPositiveButton("Activar escucha") { _, _ -> model.oem.setEnabled(true); showVehicleData() }
+                    .setPositiveButton("Activar escucha") { _, _ -> model.oem.setEnabled(true); model.vehicle.startReadings(); showVehicleData() }
                     .setNegativeButton("Cancelar", null).show()
             }
             .setNeutralButton("Apps OEM") { _, _ ->
@@ -710,6 +760,7 @@ class MainActivity : ComponentActivity() {
         val dashTempDetails = view.findViewById<TextView>(R.id.dashTempDetails)
         val dashQueryTempBtn = view.findViewById<Button>(R.id.dashQueryTempBtn)
         val dashMcuStatus = view.findViewById<TextView>(R.id.dashMcuStatus)
+        val dashCarInfoStatus = view.findViewById<TextView>(R.id.dashCarInfoStatus)
         view.findViewById<Button>(R.id.dashCloseBtn).setOnClickListener { dialog.dismiss() }
         view.findViewById<Button>(R.id.dashOpenCarBtn).setOnClickListener { openKnownPackage("com.tw.car") }
         view.findViewById<Button>(R.id.dashOpenCarMateBtn).setOnClickListener { openKnownPackage("com.dofun.carassistant.car") }
@@ -747,6 +798,18 @@ class MainActivity : ComponentActivity() {
         }
         val job = lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    model.vehicle.carInfo.state.collect { data ->
+                        dashCarInfoStatus.text = buildString {
+                            appendLine(data.status)
+                            appendLine("Valores guardados por el equipo; antigüedad de medición no disponible.")
+                            appendLine("Voltaje OEM guardado: " + (data.voltage?.let { "%.1f V".format(it.value) + if (!it.available) " · última consulta" else "" } ?: "—"))
+                            appendLine("Odómetro OEM guardado: " + (data.odometerKm?.let { "%.0f km".format(it.value) + if (!it.available) " · última consulta" else "" } ?: "—"))
+                            appendLine("Temperatura OEM (sensor sin identificar): " + (data.vehicleTemperatureC?.let { "%.1f °C".format(it.value) } ?: "—"))
+                            append("Señal de iluminación OEM: " + (data.illuminationSignal?.let { if (it.value) "activa" else "inactiva" } ?: "—"))
+                        }
+                    }
+                }
                 dashGForceLat.text = "—"
                 dashGForceLong.text = "—"
                 dashGyroDetails.text = accelerationLabel + "\n" + getString(
@@ -756,7 +819,7 @@ class MainActivity : ComponentActivity() {
                 try {
                     kotlinx.coroutines.flow.combine(model.oem.state, model.gps.state, model.vehicle.battery,
                         model.vehicle.accessoryOn) { oem, gps, battery, accessory ->
-                        dashSpeed.text = gps.kmh?.let { "%.0f".format(it) } ?: "—"
+                        dashSpeed.text = (oem.speedKmh ?: gps.kmh)?.let { "%.0f".format(it) } ?: "—"
                         val bearing = gps.bearingDegrees?.let { "Rumbo %.0f°".format(it) } ?: "Rumbo —"
                         val altitude = gps.altitudeMeters?.let { "Altitud %.0f m".format(it) } ?: "Altitud —"
                         val accuracy = gps.accuracyMeters?.let { "Precisión %.0f m".format(it) } ?: "Precisión —"
@@ -777,7 +840,8 @@ class MainActivity : ComponentActivity() {
                         val accessoryText = when (accessory) { true -> "ACC OEM activo"; false -> "ACC OEM inactivo"; null -> "ACC OEM sin evento" }
                         dashMcuStatus.text = "${oem.status} · Eventos: ${oem.frames}\n${oem.ageSummary}\n" +
                             "${oem.voltageRequestStatus}\n${oem.temperatureRequestStatus}\n$profile · $accessoryText\n" +
-                            getString(R.string.engine_data_unknown)
+                            "Velocidad OEM: ${oem.speedKmh?.let { "%.1f km/h".format(it) } ?: "—"} · RPM OEM: ${oem.rpm ?: "—"}\n" +
+                            "La velocidad OEM y las RPM solo aparecen con eventos vigentes del equipo."
                     }.collect { }
                 } finally { sm?.unregisterListener(listener) }
             }

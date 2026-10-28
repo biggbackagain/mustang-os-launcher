@@ -27,5 +27,5 @@ class OemEventDiagnostics {
         if (omitted > 0) appendLine("Cabeceras adicionales omitidas: $omitted")
         append("Un evento sin interpretar no se presenta como estado del coche.")
     }
-    companion object { val CODES = listOf(266, 514, 1281, 1285, 1288, 1292) }
+    companion object { val CODES = listOf(266, 514, 1281, 1285, 1288, 1291, 1292) }
 }

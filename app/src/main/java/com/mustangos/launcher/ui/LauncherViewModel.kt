@@ -23,8 +23,8 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     val vehicle = VehicleTelemetryManager(application)
     val oem = OemReadOnlyManager(application, settings)
     var lastDiagnostic = ""
-    fun start() { vehicle.start(); media.start(); gps.start(); oem.start() }
-    fun stop() { media.stop(); gps.stop(); oem.stop(); zlinkProbe.stop() }
+    fun start() { vehicle.start(); media.start(); gps.start(); oem.start(); vehicle.startReadings() }
+    fun stop() { vehicle.stopReadings(); media.stop(); gps.stop(); oem.stop(); zlinkProbe.stop() }
     // Keep the passive ACC observer while ZLink is in front; it owns only the Application context.
     override fun onCleared() { stop(); vehicle.stop() }
 }

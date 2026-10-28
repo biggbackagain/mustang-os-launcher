@@ -1,6 +1,4 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/launcherSettingsRoot" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/bg_midnight_blue">
-    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/bg_mustang_wallpaper" android:scaleType="fitCenter" android:importantForAccessibility="no" />
-    <View android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/bg_settings_scrim" android:importantForAccessibility="no" />
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/launcherSettingsRoot" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/bg_mustang_theme">
     <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="@dimen/settings_outer_padding" android:background="@android:color/transparent">
         <LinearLayout android:layout_width="match_parent" android:layout_height="56dp" android:gravity="center_vertical">
             <ImageView android:layout_width="48dp" android:layout_height="24dp" android:layout_marginEnd="16dp" android:src="@drawable/ic_mustang_pony" android:importantForAccessibility="no" />
@@ -14,7 +12,7 @@
                 <ImageView android:layout_width="match_parent" android:layout_height="@dimen/settings_vehicle_height" android:src="@drawable/mustang_2010" android:scaleType="fitCenter" android:contentDescription="Mustang convertible rojo" android:id="@+id/settingsCarImage" />
                 <TextView android:id="@+id/settingsImageReference" style="@style/Muted" android:layout_width="match_parent" android:layout_height="16dp" android:textSize="10sp" android:maxLines="1" android:ellipsize="end" android:text="@string/vehicle_stock_image_caption" />
                 <TextView style="@style/Muted" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="2010 · V6 4.0 · Convertible\nConfigura tus preferencias estando estacionado." android:lineSpacingExtra="4dp" android:id="@+id/settingsCarProfile" />
-                <TextView style="@style/Muted" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Versión 0.4.1" android:layout_marginTop="16dp" />
+                <TextView style="@style/Muted" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Versión 0.5.0" android:layout_marginTop="16dp" />
             </LinearLayout>
             <ScrollView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="2" android:fillViewport="true" android:scrollbarStyle="outsideOverlay">
                 <LinearLayout android:id="@+id/settingsRows" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingEnd="8dp" android:paddingStart="0dp" />

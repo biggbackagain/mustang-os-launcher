@@ -25,6 +25,8 @@ Sustituye `IP_DEL_PC` por una dirección que pertenezca al PC. En este entorno t
 
 El servidor solo permite la página `/` y la descarga `/MustangOS.apk`; no publica carpetas, diagnósticos ni código fuente. No registra direcciones de clientes, cookies ni parámetros de consultas. La respuesta APK lleva su tipo MIME y nombre de archivo de descarga. No modifica reglas de firewall ni opciones de la pantalla.
 
+Desde 0.5.0 se puede añadir `--offline-map RUTA_AL_MAPA` al iniciar el servidor. Publica únicamente ese archivo en `/maps/mexico.map`, con cabecera de formato comprobada y descargas reanudables por rangos. El botón de la página indica cómo importarlo en Mustang OS desde Descargas. La APK y el mapa son descargas separadas; los paquetes de mapa no se reciben por el formulario de APK/ZIP.
+
 Desde la 0.2.0, la página también permite al usuario seleccionar y enviar un ZIP de compatibilidad mediante `/upload`; también admite APK extraídos para análisis. El servidor exige el token de la página, rechaza orígenes diferentes, limita a 128 MiB y comprueba la cabecera ZIP. Se guarda en `output/device-reports/` con nombre generado, sin extraerlo ni servirlo a otros clientes. La recepción se realiza desde el navegador; Mustang OS usa Internet únicamente si se activa su mapa Android. El límite de dos horas también se aplica a la recepción.
 
 Pruebas del servidor: `python scripts/test_download_server.py`.

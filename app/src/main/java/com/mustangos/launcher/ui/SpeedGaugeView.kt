@@ -13,12 +13,15 @@ class SpeedGaugeView @JvmOverloads constructor(context: Context, attrs: Attribut
     private val numberMetrics = Paint.FontMetrics()
     private val unitMetrics = Paint.FontMetrics()
     private var speed: Float? = null
+    private var sourceLabel = "GPS"
     private var displayed = 0f
     private var animator: ValueAnimator? = null
-    fun setSpeed(value: Float?) {
-        if (value == speed) return
+    fun setSpeed(value: Float?, source: String = "GPS") {
+        val label = if (source == "OEM") "OEM" else "GPS"
+        if (value == speed && sourceLabel == label) return
+        sourceLabel = label
         speed = value; animator?.cancel()
-        contentDescription = value?.let { "Velocidad GPS ${it.roundToInt()} kilómetros por hora" } ?: "Velocidad GPS sin señal"
+        contentDescription = value?.let { "Velocidad $sourceLabel ${it.roundToInt()} kilómetros por hora" } ?: "Velocidad $sourceLabel sin señal"
         if (value == null || !ValueAnimator.areAnimatorsEnabled()) { displayed = value ?: 0f; invalidate(); return }
         animator = ValueAnimator.ofFloat(displayed, value).apply { duration = 280; addUpdateListener { displayed = it.animatedValue as Float; invalidate() }; start() }
     }

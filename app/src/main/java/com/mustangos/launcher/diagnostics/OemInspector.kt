@@ -134,7 +134,7 @@ class OemInspector(
             "com.android.settings" to "com.android.settings.FallbackHome",
             "com.google.android.gms" to "com.google.android.gms.kids.SyncTailTrapperActivity"
         )
-        val PACKAGES = listOf("com.zjinnova.zlink", "com.tw.service", "com.tw.uart", "com.tw.car", "com.tw.ac", "com.tw.bt", "com.tw.music", "com.dofun.carassistant.car", "com.dofun.carsetting", "com.android.systemui")
+        val PACKAGES = listOf("com.zjinnova.zlink", "com.tw.service", "com.tw.uart", "com.tw.car", "com.tw.ac", "com.tw.bt", "com.tw.music", "com.dofun.carassistant.car", "com.dofun.carsetting", "com.android.systemui", "com.tw.carinfoservice")
 
         internal fun declaredLibraryNames(xml: XmlPullParser): List<String> {
             val names = sortedSetOf<String>()

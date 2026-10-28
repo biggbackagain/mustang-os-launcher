@@ -1,18 +1,18 @@
-# MUSTANG OS · 0.4.1 · Mi Mustang
+# MUSTANG OS · 0.5.0 · México offline
 
-**Entrega 0.4.1 para probar avances:** azul medianoche, Mi Mustang con foto propia y correcciones de sesiones y lectura MCU. El usuario autorizó esta APK para revisarla en el equipo; los metadatos y la superficie CarPlay siguen pendientes de una interfaz compatible. [Cambios y primer uso](docs/RELEASE_041.md), [investigación OEM](docs/OEM_APPS_20261028.md).
+**Entrega 0.5.0:** México completo offline dentro del panel, fondo Mustang común, radio propia, fotos automáticas por perfil y nuevas lecturas OEM. El mapa se descarga una vez aparte de la APK; incluye Jalisco, Colima y Michoacán. [Cambios e instalación del mapa](docs/RELEASE_050.md), [interfaces OEM adicionales](docs/OEM_APPS_20261028_ADDITIONAL.md). Los metadatos y la superficie CarPlay siguen pendientes de una interfaz compatible.
 
 Launcher Android nativo para Ford Mustang con perfil personalizable. Incluye una imagen de referencia del Mustang 2010 V6 convertible rojo con capota negra. Cockpit azul medianoche inspirado en el Mustang reciente, con mapa Android dentro del panel, multimedia, datos OEM y aplicaciones. Kotlin, Views/XML y Canvas, pensado para 2 GB de RAM. Es software independiente, no una instalación de Ford SYNC.
 
 ![Interfaz Android renderizada en pruebas, sin datos CarPlay simulados](docs/dashboard-1280x720.png)
 
-La imagen anterior documenta la presentación 0.4.0. La 0.4.1 incorpora el rediseño y el perfil descritos en su nota de entrega.
+La imagen anterior documenta la presentación 0.4.0. La 0.5.0 incorpora el fondo común, el catálogo y el mapa offline descritos en su nota de entrega.
 
 La 0.4.0 añade mapa nativo con zoom, desplazamiento, centrado y pantalla completa; lectura de portadas de contenido local; búsqueda de aplicaciones; ajustes propios y presentación uniforme. Conserva los controles CarPlay confirmados por el usuario en 0.3.6, sin teclas globales ni cambios en ZLink. [Funciones, primer uso y límites de integración](docs/RELEASE_040.md).
 
 Se conservan las modificaciones del usuario de 0.3.5 y las correcciones de [0.3.6](docs/UPDATE_036.md) y [0.3.7](docs/UPDATE_037.md). Los informes del equipo confirmaron SDK 29 pese a la etiqueta Android 13, voltaje OEM y recepción de aperturas. Temperatura, calidad GPS, metadatos de ZLink y ACC siguen requiriendo comprobación completa en la unidad.
 
-**El mapa del panel es Android y usa la ubicación de la pantalla; no es la ruta del iPhone.** La superficie CarPlay sigue dependiendo de una interfaz de ZLink que aún no tenemos. El botón Ampliar mapa ahora amplía el mapa nativo; CarPlay mantiene su acceso independiente. [Investigación](NATIVE_INTEGRATION.md).
+**El mapa del panel es Android y usa la ubicación de la pantalla; no es la ruta del iPhone.** Desde 0.5.0 puede usar México vectorial sin conexión o el mapa online anterior. La superficie CarPlay sigue dependiendo de una interfaz de ZLink que aún no tenemos. Ampliar mapa conserva el mismo visor; CarPlay mantiene su acceso independiente. [Investigación](NATIVE_INTEGRATION.md).
 
 **Motor** conserva lecturas con antigüedad y usa únicamente solicitudes fijas de lectura identificadas en el OEM para voltaje y temperatura. No modifica CANBUS, MCU o ZLink. [Datos que solicitar al proveedor para el mapa interno](docs/ZLINK_VENDOR_QUESTIONS.md).
 
@@ -28,7 +28,7 @@ Para instalar **por enlace, sin memoria USB ni ADB**, sirve la APK desde un PC c
 5. Portada y Música abren CarPlay para la fuente del teléfono; una fuente Android elegida en **Fuentes** conserva su reproductor. Radio/teléfono detectan las apps OEM. **Ampliar mapa** muestra el mapa Android en pantalla completa; el dock Navegación permite abrir una app de rutas Android o CarPlay.
 6. Pulsa el estado GPS para conceder ubicación **precisa**. El velocímetro pasa de `—` a una lectura real cuando el receptor entrega una velocidad válida. Sin señal o después de cinco segundos sin lectura válida vuelve a `—`.
 7. En **Fuentes**, puedes autorizar acceso multimedia para descubrir MediaSessions. Los perfiles OEM conocidos sin capacidades declaradas admiten control estándar dirigido; las demás fuentes respetan sus acciones publicadas. Sin estado no se afirma pausa ni se inventa progreso. Los controles del iPhone fueron confirmados en 0.3.6; los metadatos dependen de la publicación de ZLink.
-8. Pulsa **Centrar** para activar el mapa por Internet. Solo solicita imágenes del área vista. Sin posición se puede explorar el mapa global; no se dibuja una ubicación ficticia. Usa Ajustes para desactivar la red o cambiar la preferencia de mantener la pantalla encendida.
+8. Para México completo abre **Ajustes → Mapas sin conexión** e importa el archivo descargado desde la página local. **Centrar** usa una posición GPS válida y conserva el mapa offline cuando está activo. El mapa por Internet sigue disponible como opción y solo solicita imágenes del área vista. Sin posición se puede explorar el mapa sin dibujar una ubicación ficticia.
 
 La entrega usa `MustangOS.apk`, variante release con depuración desactivada, paquete `com.mustangos.launcher` y el mismo certificado local de las versiones anteriores para permitir la actualización. No se genera ni exporta una llave nueva. No se activa R8 en esta entrega para no introducir una transformación adicional en la integración OEM. La variante debug permanece disponible para desarrollo; ambas son independientes de ZLink.
 
@@ -45,7 +45,9 @@ La entrega usa `MustangOS.apk`, variante release con depuración desactivada, pa
 | Función | Implementación | Validación pendiente |
 |---|---|---|
 | Dashboard 1280×720 y compacto | Views/XML/Canvas, grafito/azul hielo, iconos uniformes | Aspecto y densidad reales del T100 |
-| Apps, radio, teléfono y mapas | Selector PackageManager y actividad explícita guardada | Apps OEM concretas y permisos de cada firmware |
+| Apps y teléfono | Selector PackageManager y actividad explícita guardada | Apps OEM concretas y permisos de cada firmware |
+| Radio propia | Frecuencia/RDS y controles XT condicionados a radio activa | Datos, servicio y respuesta del sintonizador de la unidad |
+| México offline | Mapsforge local, zoom, exploración y centrado GPS; paquete separado de 686 MiB | Importación y rendimiento en el equipo; sin rutas ni voz |
 | CarPlay | Abre el ZLink elegido; conserva la tarea existente | Nueva presentación en la pantalla |
 | Multimedia | MediaController, campos DISPLAY, bitmap y content URI acotada | Metadatos que ZLink publique durante CarPlay |
 | Mapa del panel | OpenStreetMap real, zoom/pan/GPS y vista ampliada | Internet y posición de la pantalla |
@@ -53,6 +55,8 @@ La entrega usa `MustangOS.apk`, variante release con depuración desactivada, pa
 | Diagnóstico | SDK, RAM, permisos, sesiones y componentes exportados | Capturar informe en pantalla real |
 | Motor sin OBD | Lecturas OEM retenidas con antigüedad; datos Android separados | Canales/valores que publique la unidad |
 | Ruta CarPlay dentro del panel | No integrada; mapa Android distinguido por origen | Contrato de superficie/ruta de ZLink |
+
+La 0.5.0 añade el permiso normal `com.tw.carinfoservice.permission.USE_AIDL`, comprobado en el APK del equipo, para las lecturas de caché cuando la preferencia OEM está activa. Se añaden dependencias Mapsforge 0.30.0 (JitPack restringido al grupo del proyecto), con licencias y fuentes indicadas en los avisos del mapa. El paquete `.map` y los APK OEM no se incluyen en Git ni en la APK del launcher.
 
 No se inventan temperaturas, kilometraje, rutas ni canciones. No se solicitan root, control de Bluetooth/Wi-Fi, accesibilidad, micrófono, contactos, audio focus ni permisos privilegiados. La 0.4.0 añade INTERNET para el mapa; su red empieza desactivada y las peticiones implican el área visible. No hay analítica ni servicio de GPS en segundo plano. El servicio de acceso multimedia no lee el contenido de las notificaciones.
 

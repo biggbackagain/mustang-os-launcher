@@ -5,6 +5,7 @@ sealed interface OemEvent {
     data class Temperature(val celsius: Float) : OemEvent
     data class Doors(val mask: Int) : OemEvent
     data class Protocol(val profile: OemProtocol) : OemEvent
+    data class Powertrain(val speedKmh: Float?, val rpm: Int?) : OemEvent
     data object Heartbeat : OemEvent
 }
 
@@ -12,6 +13,13 @@ data class OemProtocol(val model: Int, val type: Int)
 
 /** Formats verified against the SystemUI/TWService code exported from the user's T100. */
 object OemEventParser {
+    // CarInfoService 251014 decodes TW 1291: speed in hundredths, RPM in arg2. Never enable/request that stream.
+    fun parsePowertrain(code: Int, arg1: Int, arg2: Int): OemEvent.Powertrain? {
+        if (code != 1291) return null
+        val speed = arg1.takeIf { it in 0..40_000 }?.div(100f)
+        val rpm = arg2.takeIf { it in 0..12_000 }
+        return OemEvent.Powertrain(speed, rpm)
+    }
     // TWService extracts these two protocol fields from event 266. Never retain/export the full version string.
     fun parseProtocol(code: Int, arg1: Int, value: String?): OemEvent.Protocol? {
         if (code != 266 || arg1 != 0 || value == null || value.length > 256) return null

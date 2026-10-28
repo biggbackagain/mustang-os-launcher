@@ -1,0 +1,26 @@
+Mustang OS uses Mapsforge 0.30.0 without modifying its library source.
+Mapsforge copyright: mapsforge.org and the contributors listed in its source files.
+License: GNU Lesser General Public License version 3 or later (LGPL-3.0-or-later).
+Source, build instructions and exact release:
+https://github.com/mapsforge/mapsforge/tree/0.30.0
+https://github.com/mapsforge/mapsforge/blob/0.30.0/docs/Getting-Started-Developers.md
+Dependencies resolved from the official project build on JitPack:
+com.github.mapsforge.mapsforge:mapsforge-map-android:0.30.0
+com.github.mapsforge.mapsforge:mapsforge-map-reader:0.30.0
+com.github.mapsforge.mapsforge:mapsforge-themes:0.30.0
+The matching core/map modules are included transitively under the same license.
+The distributed Mustang OS source can be rebuilt with replaced library versions; library usage is not obfuscated.
+LGPL-3.0.txt and GPL-3.0.txt accompany this notice.
+
+AndroidSVG 1.4, copyright Paul LeBeau and contributors, Apache License 2.0.
+https://github.com/BigBadaboom/androidsvg
+https://www.apache.org/licenses/LICENSE-2.0
+Apache-2.0.txt accompanies this notice.
+
+Map data: © OpenStreetMap contributors, Open Database License 1.0.
+https://www.openstreetmap.org/copyright
+https://opendatacommons.org/licenses/odbl/1-0/
+Mexico package source: https://download.mapsforge.org/maps/v5/north-america/mexico.map
+Prepared snapshot last modified: 2026-06-28; 719418229 bytes.
+SHA-256: 2e3d24665b0b050637dcaa08536119aabed6478804c615fd39e34e81bc66b77f
+The map is distributed separately, without changes to its data, rather than inside the APK.

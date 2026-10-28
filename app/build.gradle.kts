@@ -6,8 +6,8 @@ android {
         applicationId = "com.mustangos.launcher"
         minSdk = 26
         targetSdk = 35
-        versionCode = 10
-        versionName = "0.4.1"
+        versionCode = 11
+        versionName = "0.5.0"
     }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     buildFeatures { viewBinding = true }
@@ -31,6 +31,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    implementation("com.github.mapsforge.mapsforge:mapsforge-map-android:0.30.0")
+    implementation("com.github.mapsforge.mapsforge:mapsforge-map-reader:0.30.0")
+    implementation("com.github.mapsforge.mapsforge:mapsforge-themes:0.30.0")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.14.1")
 }

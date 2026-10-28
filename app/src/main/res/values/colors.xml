@@ -1,6 +1,7 @@
 <resources>
     <color name="ui_background">#061B37</color>
     <color name="ui_surface">#0A2444</color>
+    <color name="ui_card_surface">#DB0A2444</color>
     <color name="ui_surface_raised">#153355</color>
     <color name="ui_border">#2B4B70</color>
     <color name="ui_text">#F1F6FF</color>

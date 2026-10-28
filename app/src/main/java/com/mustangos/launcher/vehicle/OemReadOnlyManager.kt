@@ -91,7 +91,8 @@ data class OemReadings(
     val lastDoorMs: Long? = null,
     val ageSummary: String = "Sin lecturas OEM recibidas",
     val voltageRequestStatus: String = "Voltaje OEM sin solicitar",
-    val temperatureQueryAvailable: Boolean = false
+    val temperatureQueryAvailable: Boolean = false,
+    val speedKmh: Float? = null, val rpm: Int? = null, val lastPowertrainMs: Long? = null
 )
 
 class OemReadOnlyManager(
@@ -116,6 +117,7 @@ class OemReadOnlyManager(
             if (!running || msg.what !in OemEventDiagnostics.CODES) return
             val payload = msg.obj as? ByteArray
             val event = OemEventParser.parseProtocol(msg.what, msg.arg1, msg.obj as? String)
+                ?: OemEventParser.parsePowertrain(msg.what, msg.arg1, msg.arg2)
                 ?: OemEventParser.parse(msg.what, msg.arg1, payload,
                     Settings.System.getInt(context.contentResolver, "TEMP_CONVERT", 0) == 1, mutable.value.protocol)
             diagnostics.record(msg.what, msg.arg1, msg.arg2, payload?.size, event != null)
@@ -136,6 +138,7 @@ class OemReadOnlyManager(
                 is OemEvent.Protocol -> current.copy(protocol = event.profile,
                     doorMask = if (current.protocol == event.profile) current.doorMask else null,
                     lastDoorMs = if (current.protocol == event.profile) current.lastDoorMs else null)
+                is OemEvent.Powertrain -> current.copy(speedKmh = event.speedKmh, rpm = event.rpm, lastPowertrainMs = now)
                 OemEvent.Heartbeat, null -> current
             })
         }
@@ -263,7 +266,8 @@ class OemReadOnlyManager(
             value.lastTemperatureMs?.let { "temperatura" to it }, value.lastDoorMs?.let { "aperturas" to it })
         val stale = ages.isNotEmpty() && (!value.sourceActive || ages.any { now - it.second > 15_000 })
         val ageText = ages.joinToString(" · ") { (label, time) -> "$label hace ${((now - time).coerceAtLeast(0) / 1000)} s" }
-        mutable.value = value.copy(stale = stale,
+        val engineFresh = value.sourceActive && value.lastPowertrainMs?.let { now - it <= 5_000 } == true
+        mutable.value = value.copy(stale = stale, speedKmh = value.speedKmh.takeIf { engineFresh }, rpm = value.rpm.takeIf { engineFresh },
             status = if (stale && value.sourceActive) "OEM · últimas lecturas conservadas; esperando actualización" else value.status,
             ageSummary = if (ageText.isEmpty()) "Sin lecturas OEM recibidas" else "Últimas lecturas · $ageText",
             temperatureQueryAvailable = canRequestAmbientTemperature)
