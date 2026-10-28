@@ -46,6 +46,7 @@ import com.mustangos.launcher.settings.CarPhotoCatalog
 import com.mustangos.launcher.settings.PhotoPresentation
 import com.mustangos.launcher.navigation.OfflineMapStore
 import com.mustangos.launcher.radio.RadioIntegrationManager
+import com.mustangos.launcher.carplay.CarPlayBarService
 import kotlinx.coroutines.*
 import kotlin.math.roundToInt
 
@@ -61,12 +62,17 @@ class MainActivity : ComponentActivity() {
     private val mediaLabels = mutableMapOf<String, String>()
     private val referenceImageStore by lazy { ReferenceImageStore(applicationContext) }
     private val photoCatalog by lazy { CarPhotoCatalog(applicationContext) }
+    private val calibratedPreview by lazy { com.mustangos.launcher.settings.CalibratedVehiclePreview(applicationContext) }
     private val radio by lazy { RadioIntegrationManager(applicationContext) }
     private var photoPresentation: PhotoPresentation? = null
     private var profilePhoto: Bitmap? = null
     private var profilePhotoLoaded = false
     private var profilePhotoJob: Job? = null
     private var profileImportJob: Job? = null
+    private val overlayPermission = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if(Settings.canDrawOverlays(this)) launchCarPlayBar()
+        else toast("Android no concedió el permiso de la barra. CarPlay sigue disponible.")
+    }
     private val chooseOfflineMap = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) lifecycleScope.launch {
             toast("Importando mapa de México…")
@@ -188,8 +194,7 @@ class MainActivity : ComponentActivity() {
                             oem.speedKmh != null -> "Velocidad OEM · GPS para el mapa"
                             !model.gps.hasPermission() -> "Permitir GPS"
                             state.latitude != null -> "${if (state.provider == android.location.LocationManager.GPS_PROVIDER) "GPS" else "Ubicación"} · ${state.accuracyMeters?.roundToInt() ?: "—"} m"
-                            state.status.contains("apagado", true) -> "GPS apagado"
-                            else -> "Buscando GPS"
+                            else -> state.status
                         }
                         nativeMap.setLocation(state.latitude, state.longitude, state.accuracyMeters, state.bearingDegrees)
                     }.collect { }
@@ -210,11 +215,7 @@ class MainActivity : ComponentActivity() {
                             append("\n")
                             append(if (oem.voltage != null || oem.temperatureC != null) oem.ageSummary else "Consulta las lecturas en Motor")
                         }
-                    }
-                }
-                launch {
-                    model.vehicle.accessoryOn.collect { on ->
-                        if (on != null) binding.carImage.setHeadlightsOn(on, animate = true)
+                        binding.carImage.setHeadlightsOn(oem.illuminationOn == true && oem.sourceActive, animate = true)
                     }
                 }
                 launch {
@@ -243,10 +244,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
+        stopService(Intent(this,CarPlayBarService::class.java))
         model.start()
         if (::nativeMap.isInitialized) nativeMap.setActive(mapMenuDepth == 0)
-        val accessoryOn = model.vehicle.accessoryOn.value
-        if (accessoryOn != null) binding.carImage.setHeadlightsOn(accessoryOn)
+        val illumination = model.oem.state.value.illuminationOn
+        if (illumination != null) binding.carImage.setHeadlightsOn(illumination)
         else if (!welcomeLightsPlayed) binding.carImage.playWelcomeLights()
         welcomeLightsPlayed = true
         model.zlinkProbe.probe()
@@ -285,6 +287,21 @@ class MainActivity : ComponentActivity() {
         profilePhotoJob?.cancel()
         profilePhotoJob = lifecycleScope.launch {
             val profile = model.settings.mustangProfile
+            if(model.settings.digitalVehicle) {
+                val bitmap=calibratedPreview.load(profile)
+                val caption = if(bitmap != null) "Vista de pintura · referencia 2010 · ${profile.paint.label}"
+                    else "Vista digital · ${com.mustangos.core.MustangGeneration.forYear(profile.year).label} · ${profile.paint.label}"
+                photoPresentation = PhotoPresentation(bitmap,caption,"${profile.description} · representación visual aproximada",true,null,"digital")
+                profilePhoto = bitmap; profilePhotoLoaded = true
+                binding.carImage.digitalProfile = profile.takeIf { bitmap == null }
+                if(bitmap != null) binding.carImage.setImageBitmap(bitmap)
+                binding.carImage.lampOverlayEnabled = true
+                binding.carImage.contentDescription = photoPresentation!!.description
+                binding.vehicleImageReference.text = caption
+                binding.carImage.setHeadlightsOn(model.oem.state.value.let { it.sourceActive && it.illuminationOn == true })
+                return@launch
+            }
+            binding.carImage.digitalProfile = null
             val custom = referenceImageStore.load()
             val presentation = if (custom != null) PhotoPresentation(custom,
                 getString(R.string.vehicle_custom_image_caption), getString(R.string.vehicle_custom_image_caption),
@@ -296,7 +313,7 @@ class MainActivity : ComponentActivity() {
             else binding.carImage.setImageBitmap(presentation.bitmap)
             binding.vehicleImageReference.text = presentation.referenceCaption
             binding.carImage.contentDescription = if (presentation.usesCalibratedStock) getString(R.string.vehicle_description) else presentation.description
-            model.vehicle.accessoryOn.value?.let { binding.carImage.setHeadlightsOn(it) }
+            binding.carImage.setHeadlightsOn(model.oem.state.value.let { it.sourceActive && it.illuminationOn == true })
         }
     }
 
@@ -307,7 +324,8 @@ class MainActivity : ComponentActivity() {
             onChoosePhoto = { runCatching { chooseReferenceImage.launch(arrayOf("image/*")) }
                 .onFailure { toast("El selector de imágenes no está disponible en este equipo") }; Unit },
             onClearPhoto = { profileImportJob?.cancel(); lifecycleScope.launch { referenceImageStore.clear(); refreshProfilePhoto(force = true) } },
-            onDismiss = ::restoreMapAfterMenu).show()
+            onDismiss = ::restoreMapAfterMenu, digital = model.settings.digitalVehicle,
+            onVisualMode = { model.settings.digitalVehicle = it }).show()
     }
 
     private fun followMap() {
@@ -428,12 +446,34 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun openRole(role: String) {
+        if(role == "zlink" && model.settings.carPlayBar) { openCarPlayBar(); return }
         val launched = if (role == "zlink") model.carplay.open() else model.apps.launch(role)
         if (!launched) {
             val failure = model.apps.lastFailure
             if (failure != null && (failure.startsWith("Permiso OEM") || failure.contains("denegó"))) {
                 AlertDialog.Builder(this).setTitle("Acceso restringido por el firmware").setMessage(failure).setPositiveButton("Cerrar", null).show()
             } else chooseApp(role)
+        }
+    }
+
+    private fun openCarPlayBar() {
+        if(Settings.canDrawOverlays(this)) { launchCarPlayBar(); return }
+        AlertDialog.Builder(this).setTitle("CarPlay con barra Mustang")
+            .setMessage("ZLink mostrará sus mapas y música reales. Mustang añade una barra pequeña que puedes arrastrar y cerrar, con Inicio y controles musicales. Para mostrarla debes permitir a Mustang OS aparecer sobre otras aplicaciones. No captura la pantalla ni extrae la portada o ruta hacia las tarjetas.")
+            .setPositiveButton("Permitir barra") { _, _ ->
+                runCatching { overlayPermission.launch(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,android.net.Uri.parse("package:$packageName"))) }
+                    .onFailure { toast("El equipo no ofrece el permiso de ventanas superpuestas") }
+            }.setNeutralButton("Abrir CarPlay") { _, _ -> model.carplay.open() }.setNegativeButton("Cancelar",null).show()
+    }
+
+    private fun launchCarPlayBar() {
+        try {
+            startForegroundService(Intent(this,CarPlayBarService::class.java).setAction(CarPlayBarService.SHOW))
+            if(model.carplay.open()) model.settings.carPlayBar = true
+            else { stopService(Intent(this,CarPlayBarService::class.java)); toast(model.apps.lastFailure ?: "No se encontró ZLink; elige su aplicación en Ajustes") }
+        } catch(_: RuntimeException) {
+            stopService(Intent(this,CarPlayBarService::class.java))
+            toast("Android no permitió iniciar la barra Mustang")
         }
     }
 
@@ -593,7 +633,25 @@ class MainActivity : ComponentActivity() {
                 }
                 .setNegativeButton("Cancelar", null).show()
         } else {
-            safeSettings(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+            val details=TextView(this).apply { setTextAppearance(R.style.Body); setPadding(24,16,24,16) }
+            val dialog=AlertDialog.Builder(this).setTitle("GPS de la pantalla").setView(details)
+                .setPositiveButton("Reintentar",null)
+                .setNeutralButton("Ajustes de ubicación") { _, _ -> safeSettings(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)) }
+                .setNegativeButton("Cerrar",null).create()
+            var observer: Job?=null
+            dialog.setOnDismissListener { observer?.cancel() }
+            dialog.setOnShowListener {
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { model.gps.start() }
+                observer=lifecycleScope.launch {
+                    model.gps.state.collect { state ->
+                        details.text="${state.status}\n\nSatélites visibles: ${state.satellitesVisible ?: "—"} · usados: ${state.satellitesUsed ?: "—"}"+
+                            "\nPrecisión: ${state.accuracyMeters?.let { "%.0f m".format(it) } ?: "sin posición"}"+
+                            "\nLecturas recibidas: ${state.callbacks} · rechazadas: ${state.rejectedCallbacks}"+
+                            "\n\nPrueba a cielo abierto. Si no recibe satélites, revisa la antena GPS de la pantalla. El GPS del iPhone en CarPlay funciona por separado."
+                    }
+                }
+            }
+            dialog.show()
         }
     }
 
@@ -601,12 +659,14 @@ class MainActivity : ComponentActivity() {
         pauseMapForMenu()
         SettingsSheet(this, ::restoreMapAfterMenu)
             .profile(model.settings.mustangProfile, profilePhoto, photoPresentation?.referenceCaption,
-                photoPresentation?.let { if (it.usesCalibratedStock) getString(R.string.vehicle_description) else it.description })
+                photoPresentation?.description, model.settings.digitalVehicle)
             .section("MI MUSTANG")
             .action("Mi Mustang", "Año, versión, carrocería, color e imagen", ::showMustangProfile)
             .action("Créditos de fotografías", "Referencias del catálogo y sus autores", ::showPhotoCredits)
             .section("CONEXIONES")
             .action("CarPlay", "Aplicación de conexión del iPhone") { chooseApp("zlink", false) }
+            .action("CarPlay con barra Mustang", "Mapas y música de ZLink con controles Mustang", ::openCarPlayBar)
+            .toggle("Barra al abrir CarPlay", "Puedes arrastrarla o cerrarla; requiere permiso de Android", model.settings.carPlayBar) { model.settings.carPlayBar = it }
             .action("Audio", "Fuente de reproducción y acceso multimedia", ::mediaSources)
             .action("Radio del equipo", "Frecuencia, RDS y controles disponibles", ::showRadio)
             .action("Navegación", "Elegir aplicación de mapas Android") { chooseApp("maps", false) }
@@ -620,6 +680,10 @@ class MainActivity : ComponentActivity() {
             }
             .action("Ubicación GPS", "Permisos y receptor de la pantalla", ::requestGps)
             .section("VEHÍCULO Y SISTEMA")
+            .toggle("Datos del vehículo y luces", "Lecturas del equipo y sincronización de iluminación", model.settings.oemReadEnabled) {
+                model.oem.setEnabled(it)
+                if(it) model.vehicle.startReadings() else model.vehicle.stopReadings()
+            }
             .action("Motor", "Voltaje, temperatura y lecturas disponibles", ::showVehicleData)
             .action("Aplicaciones predeterminadas", "Teléfono, radio y launcher original", ::showAdvancedSettings)
             .action("Interfaz original", "Volver al launcher del fabricante") { openRole("home") }

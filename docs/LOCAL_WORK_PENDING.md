@@ -1,5 +1,7 @@
 # Avances incorporados y trabajo pendiente
 
+**Actualización 0.6.0:** selector visual por familias, pintura configurable, iluminación TW 516 independiente de ACC, diagnóstico GPS y barra propia sobre el ZLink real. [Entrega y límites](RELEASE_060.md). La APK está firmada y la descarga local verificada; falta validación física de las nuevas funciones. Metadatos y superficie CarPlay dentro de tarjetas continúan pendientes del contrato del proveedor.
+
 **Actualización 0.5.0:** se incorporaron fondo común, catálogo de 30 fotografías, mapa de México sin conexión, radio propia y lecturas adicionales OEM. [Entrega actual](RELEASE_050.md), [interfaces verificadas](OEM_APPS_20261028_ADDITIONAL.md). La entrega autorizada está compilada y sus descargas locales están verificadas. CarPlay mantiene sus límites indicados abajo.
 
 El usuario autorizó el 28 de octubre de 2026 una nueva APK para instalar y revisar los avances, revocando la retención anterior. Los cambios siguientes se incorporan a la [0.4.1](RELEASE_041.md). Los metadatos actuales y la ruta/superficie CarPlay continúan pendientes. El archivo histórico 0.4.0 conserva SHA-256 `205FFCC228C6B923DF2BDA832608EFD66955917A5E4470637F1B6B02058D7399`.

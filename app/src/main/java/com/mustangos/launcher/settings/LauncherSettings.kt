@@ -29,6 +29,12 @@ class LauncherSettings(context: Context) {
     var gpsPermissionPrompted: Boolean
         get() = prefs.getBoolean("gps_permission_prompted", false)
         set(value) { prefs.edit().putBoolean("gps_permission_prompted", value).apply() }
+    var digitalVehicle: Boolean
+        get() = prefs.getBoolean("digital_vehicle", true)
+        set(value) { prefs.edit().putBoolean("digital_vehicle", value).apply() }
+    var carPlayBar: Boolean
+        get() = prefs.getBoolean("carplay_bar", false)
+        set(value) { prefs.edit().putBoolean("carplay_bar", value).apply() }
     var mustangProfile: MustangProfile
         get() = MustangProfile(
             prefs.getInt("profile_year", 2010).takeIf { it in 1964..2099 } ?: 2010,

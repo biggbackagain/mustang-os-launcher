@@ -66,6 +66,20 @@ class MediaRoutingTest {
         }
     }
     private fun manager() = MediaIntegrationManager(app, settings).also { it.refresh() }
+    @Test fun carplayBarPinsItsSessionAndNeverFallsBackToAnotherAudioSource() {
+        settings.mediaPackage="com.tw.bt"
+        controller("com.tw.bt",PlaybackState.ACTION_SKIP_TO_NEXT,PlaybackState.STATE_PLAYING)
+        val media=MediaIntegrationManager(app,settings,"com.zjinnova.zlink")
+        media.refresh()
+        assertNull(media.state.value.facts.source)
+        assertFalse(media.command(MediaCommand.NEXT))
+        controller("com.zjinnova.zlink",PlaybackState.ACTION_SKIP_TO_NEXT,PlaybackState.STATE_PLAYING)
+        media.refresh()
+        assertEquals("com.zjinnova.zlink",media.state.value.facts.source)
+        assertTrue(media.command(MediaCommand.NEXT))
+        assertEquals("com.tw.bt",settings.mediaPackage)
+        media.stop()
+    }
     private fun install(pkg: String, label: String = pkg): ComponentName {
         val component = ComponentName(pkg, "$pkg.Start")
         val info = ActivityInfo().apply {

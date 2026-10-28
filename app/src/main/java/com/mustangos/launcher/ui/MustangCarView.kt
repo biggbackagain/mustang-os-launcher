@@ -12,6 +12,7 @@ import android.util.AttributeSet
 import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import kotlin.math.roundToInt
+import com.mustangos.core.MustangProfile
 
 /** A lightweight lamp layer aligned to the bundled 900x600 Mustang image. No vehicle state is inferred here. */
 class MustangCarView @JvmOverloads constructor(
@@ -21,6 +22,9 @@ class MustangCarView @JvmOverloads constructor(
 ) : ImageView(context, attrs, defStyleAttr) {
     private var lightLevel = 0f
     private var animator: ValueAnimator? = null
+    private var digital: DigitalMustangDrawable? = null
+    var digitalProfile: MustangProfile? = null
+        set(value) { field = value; digital = value?.let(::DigitalMustangDrawable); invalidate() }
     var lampOverlayEnabled: Boolean = true
         set(value) { field = value; if (!value) stopAnimation(); invalidate() }
     private val nearGlow = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -76,6 +80,12 @@ class MustangCarView @JvmOverloads constructor(
     }
 
     override fun onDraw(canvas: Canvas) {
+        digital?.let { illustration ->
+            illustration.setBounds(paddingLeft, paddingTop, width-paddingRight, height-paddingBottom)
+            illustration.lights = lightLevel
+            illustration.draw(canvas)
+            return
+        }
         super.onDraw(canvas)
         val image = drawable ?: return
         if (!lampOverlayEnabled || lightLevel <= 0f || image.intrinsicWidth <= 0 || image.intrinsicHeight <= 0) return

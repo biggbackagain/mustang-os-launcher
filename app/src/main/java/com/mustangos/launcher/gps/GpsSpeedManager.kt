@@ -29,7 +29,8 @@ data class GpsState(
     val fixAgeMs: Long? = null,
     // Volatile position for the visible map only; diagnostic exports must omit coordinates.
     val latitude: Double? = null,
-    val longitude: Double? = null
+    val longitude: Double? = null,
+    val callbacks: Int = 0, val rejectedCallbacks: Int = 0
 )
 
 class GpsSpeedManager(private val context: Context) : LocationListener {
@@ -45,6 +46,9 @@ class GpsSpeedManager(private val context: Context) : LocationListener {
     private var visibleSatellites: Int? = null
     private var gpsRegistrationFailed = false
     private var registeredProviders = emptySet<String>()
+    private var callbacks = 0
+    private var rejectedCallbacks = 0
+    private var startedAtMs = 0L
     private val mutable = MutableStateFlow(GpsState())
     val state = mutable.asStateFlow()
     private val gnss = object : GnssStatus.Callback() {
@@ -69,10 +73,13 @@ class GpsSpeedManager(private val context: Context) : LocationListener {
         stop()
         if (!hasPermission()) { mutable.value = GpsState(); return }
         running = true
+        startedAtMs = SystemClock.elapsedRealtime()
         try {
             val available = manager.allProviders.toSet()
             val registered = mutableSetOf<String>()
-            for (provider in listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)) {
+            // Passive listens to legitimate fixes from another navigation app without inventing a provider.
+            // https://developer.android.com/reference/android/location/LocationManager#PASSIVE_PROVIDER
+            for (provider in listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)) {
                 if (provider !in available) continue
                 try {
                     manager.requestLocationUpdates(provider, 1000L, 0f, this, Looper.getMainLooper())
@@ -107,6 +114,7 @@ class GpsSpeedManager(private val context: Context) : LocationListener {
         runCatching { manager.unregisterGnssStatusCallback(gnss) }
         gpsFix = null; networkFix = null; satellites = null; visibleSatellites = null
         registeredProviders = emptySet(); gpsRegistrationFailed = false
+        callbacks = 0; rejectedCallbacks = 0
         filter.reset()
         mutable.value = GpsState(status = "GPS detenido")
     }
@@ -129,11 +137,12 @@ class GpsSpeedManager(private val context: Context) : LocationListener {
             gpsDetails != null -> "GPS con posición · velocidad no publicada o sin precisión suficiente"
             networkDetails != null -> "Ubicación por red · esperando posición GPS"
             visibleSatellites != null && visibleSatellites!! > 0 -> "GPS: $visibleSatellites satélites visibles, ${satellites ?: 0} usados · esperando posición"
+            now - startedAtMs >= 30_000 -> "GPS sin posición · revisa la antena y prueba a cielo abierto"
             else -> "Buscando señal GPS…"
         }
         mutable.value = GpsState(speed, status, details?.accuracy, details?.altitude, details?.bearing,
             if (gpsEnabled) satellites else null, if (gpsEnabled) visibleSatellites else null,
-            details?.provider, details?.let { now - it.timeMs }, details?.latitude, details?.longitude)
+            details?.provider, details?.let { now - it.timeMs }, details?.latitude, details?.longitude, callbacks, rejectedCallbacks)
     }
 
     private fun fixTime(location: Location, now: Long): Long? {
@@ -149,11 +158,13 @@ class GpsSpeedManager(private val context: Context) : LocationListener {
 
     override fun onLocationChanged(location: Location) {
         if (!running) return
+        callbacks++
         val now = SystemClock.elapsedRealtime()
-        val time = fixTime(location, now) ?: run { publish(); return }
-        if (!location.hasAccuracy() || !location.accuracy.isFinite() || location.accuracy !in 0f..100f ||
+        val time = fixTime(location, now) ?: run { rejectedCallbacks++; publish(); return }
+        // A coarse but real network position is useful to browse the map. SpeedFilter keeps stricter GPS limits.
+        if (!location.hasAccuracy() || !location.accuracy.isFinite() || location.accuracy !in 0f..20_000f ||
             !location.latitude.isFinite() || location.latitude !in -90.0..90.0 ||
-            !location.longitude.isFinite() || location.longitude !in -180.0..180.0) { publish(); return }
+            !location.longitude.isFinite() || location.longitude !in -180.0..180.0) { rejectedCallbacks++; publish(); return }
         val details = FixDetails(location.provider ?: "", time, location.accuracy,
             location.altitude.takeIf { location.hasAltitude() && it.isFinite() },
             location.bearing.takeIf { location.hasBearing() && it.isFinite() }, location.latitude, location.longitude)

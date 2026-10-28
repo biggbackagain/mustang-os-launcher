@@ -40,6 +40,15 @@ class GpsSpeedManagerTest {
         assertEquals(LocationManager.GPS_PROVIDER, gps.state.value.provider)
         gps.stop()
     }
+    @Test fun realCoarseNetworkPositionCanCenterMapWithoutCreatingGpsSpeed() {
+        val gps = GpsSpeedManager(app); gps.start()
+        gps.onLocationChanged(fix(LocationManager.NETWORK_PROVIDER,30f).apply { accuracy = 1500f })
+        assertEquals(19.0,gps.state.value.latitude!!,0.0001)
+        assertEquals(1500f,gps.state.value.accuracyMeters!!,0f); assertNull(gps.state.value.kmh)
+        assertEquals(1,gps.state.value.callbacks); assertEquals(0,gps.state.value.rejectedCallbacks)
+        gps.onLocationChanged(fix(ageMs=20_000)); assertEquals(1,gps.state.value.rejectedCallbacks)
+        gps.stop()
+    }
     @Test fun oldOrInaccurateCallbacksCannotBorrowPreviousAccuracyOrRefreshSpeed() {
         val gps = GpsSpeedManager(app); gps.start(); gps.onLocationChanged(fix())
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(9))
@@ -95,6 +104,7 @@ class GpsSpeedManagerTest {
         val gps = GpsSpeedManager(app); gps.start(); gps.stop()
         assertTrue(shadowOf(manager).getLocationUpdateListeners(LocationManager.GPS_PROVIDER).isEmpty())
         assertTrue(shadowOf(manager).getLocationUpdateListeners(LocationManager.NETWORK_PROVIDER).isEmpty())
+        assertTrue(shadowOf(manager).getLocationUpdateListeners(LocationManager.PASSIVE_PROVIDER).isEmpty())
         gps.onLocationChanged(fix()); assertNull(gps.state.value.kmh)
     }
     @Test fun mapCoordinatesAreVolatileFreshMeasurementsAndDisappearWithFix() {

@@ -18,6 +18,7 @@ import java.lang.reflect.Modifier
 interface OemSubscription {
     fun open(codes: ShortArray, handler: Handler): Boolean
     fun requestMcuProtocol(): Int? = null
+    fun requestIllumination(): Int? = null
     fun requestAmbientTemperature(): Int? = null
     fun pollMcu() = Unit
     fun close()
@@ -47,6 +48,11 @@ class TwReadOnlySubscription(private val loadClass: () -> Class<*> = { Class.for
         // SystemUI StatusBarViewInit and TWCore request the existing MCU version with this fixed read.
         return type?.getMethod("write", Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
             ?.invoke(value, 266, 255) as? Int
+    }
+    override fun requestIllumination(): Int? {
+        val value = instance ?: return null
+        // Fixed read-only query demonstrated in the supplied SystemUI StatusBar; never write brightness.
+        return type?.getMethod("write", Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)?.invoke(value, 516, 255) as? Int
     }
     override fun requestAmbientTemperature(): Int? {
         val value = instance ?: return null
@@ -92,7 +98,8 @@ data class OemReadings(
     val ageSummary: String = "Sin lecturas OEM recibidas",
     val voltageRequestStatus: String = "Voltaje OEM sin solicitar",
     val temperatureQueryAvailable: Boolean = false,
-    val speedKmh: Float? = null, val rpm: Int? = null, val lastPowertrainMs: Long? = null
+    val speedKmh: Float? = null, val rpm: Int? = null, val lastPowertrainMs: Long? = null,
+    val illuminationOn: Boolean? = null, val lastIlluminationMs: Long? = null
 )
 
 class OemReadOnlyManager(
@@ -139,6 +146,7 @@ class OemReadOnlyManager(
                     doorMask = if (current.protocol == event.profile) current.doorMask else null,
                     lastDoorMs = if (current.protocol == event.profile) current.lastDoorMs else null)
                 is OemEvent.Powertrain -> current.copy(speedKmh = event.speedKmh, rpm = event.rpm, lastPowertrainMs = now)
+                is OemEvent.Illumination -> current.copy(illuminationOn = event.on, lastIlluminationMs = now)
                 OemEvent.Heartbeat, null -> current
             })
         }
@@ -168,7 +176,8 @@ class OemReadOnlyManager(
             diagnostics.clear()
             running = true
             publish(mutable.value.copy(status = "OEM suscrito · esperando datos reales", sourceActive = true,
-                frames = 0, protocol = null, eventReport = diagnostics.report(), doorOpenEvents = 0, doorZeroEvents = 0))
+                frames = 0, protocol = null, eventReport = diagnostics.report(), doorOpenEvents = 0, doorZeroEvents = 0,
+                illuminationOn = null, lastIlluminationMs = null))
             val ownedHandler = object : Handler(Looper.getMainLooper()) {
                 override fun handleMessage(msg: Message) {
                     if (running && subscriptionHandler === this) handler.handleMessage(msg)
@@ -182,6 +191,9 @@ class OemReadOnlyManager(
             try { candidate.requestMcuProtocol() }
             catch (_: Exception) { /* Protocol remains unknown until an actual event arrives. */ }
             catch (_: LinkageError) { /* This optional request is unsupported by the vendor adapter. */ }
+            try { candidate.requestIllumination() }
+            catch (_: Exception) { /* Unknown until TW 516 arrives; never substitute ACC. */ }
+            catch (_: LinkageError) { /* Optional fixed read is unavailable on this firmware. */ }
             pollVoltage()
             requestAmbientTemperature()
             // Guard only initialization. A normal power cut after success must not disable the next ignition.

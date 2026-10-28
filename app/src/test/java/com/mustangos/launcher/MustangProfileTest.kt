@@ -120,11 +120,11 @@ class MustangProfileTest {
         val year = children.filterIsInstance<EditText>().first { it.contentDescription == "Año del Mustang" }
         val version = children.filterIsInstance<Spinner>().first { it.contentDescription == "Versión del Mustang" }
         val body = children.filterIsInstance<Spinner>().first { it.contentDescription == "Carrocería del Mustang" }
-        val paint = children.filterIsInstance<Spinner>().first { it.contentDescription == "Color del Mustang" }
+        val paint = children.first { it.contentDescription == "Pintura Negro" }
         year.setText("1200"); dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
         assertNull(saved); assertTrue(dialog.isShowing); assertNotNull(year.error)
         year.setText("2020"); version.setSelection(MustangVersion.GT.ordinal); body.setSelection(MustangBody.COUPE.ordinal)
-        paint.setSelection(MustangPaint.BLACK.ordinal)
+        paint.performClick()
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
         assertEquals(MustangProfile(2020, MustangVersion.GT, MustangBody.COUPE, MustangPaint.BLACK), saved)
     }

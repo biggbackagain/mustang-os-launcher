@@ -12,7 +12,7 @@ class DiagnosticReporter(private val context: Context, private val model: Launch
         val mem = ActivityManager.MemoryInfo().also { context.getSystemService(ActivityManager::class.java).getMemoryInfo(it) }
         val d = context.resources.displayMetrics
         return buildString {
-            appendLine("MUSTANG OS 0.5.0 · diagnóstico básico")
+            appendLine("MUSTANG OS 0.6.0 · diagnóstico básico")
             appendLine("SDK real: ${Build.VERSION.SDK_INT}; etiqueta RELEASE: ${Build.VERSION.RELEASE}")
             appendLine("Identificación declarada del equipo: fabricante=${Build.MANUFACTURER}; marca=${Build.BRAND}; modelo=${Build.MODEL}; placa=${Build.BOARD}; hardware=${Build.HARDWARE}")
             appendLine("API 29 corresponde a Android 10; API 32 a Android 12L; API 33 a Android 13. La etiqueta del fabricante puede diferir.")
@@ -49,6 +49,8 @@ class DiagnosticReporter(private val context: Context, private val model: Launch
             val fix = model.gps.state.value
             appendLine("Calidad GPS: precisión=${fix.accuracyMeters ?: "sin lectura"} m; satélites usados=${fix.satellitesUsed ?: "sin lectura"}")
             appendLine("Proveedor de posición: ${fix.provider ?: "sin lectura"}; edad de posición_ms=${fix.fixAgeMs ?: "sin lectura"}; satélites visibles=${fix.satellitesVisible ?: "sin lectura"}")
+            appendLine("Callbacks de ubicación: ${fix.callbacks}; rechazados por fecha/coordenadas/precisión: ${fix.rejectedCallbacks}")
+            appendLine("Iluminación TW 516: ${oem.illuminationOn ?: "sin evento"}; independiente de ACC")
             appendLine("ACC OEM: ${model.vehicle.accessoryOn.value ?: "sin evento"}; no confirma motor en marcha. Faros de bienvenida: efecto visual.")
             appendLine("Último error al abrir una app: ${model.apps.lastFailure ?: "ninguno"}")
             appendLine("Asignaciones:")

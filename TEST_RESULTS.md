@@ -1,6 +1,25 @@
-# Registro de verificación · Mustang OS 0.5.0
+# Registro de verificación · Mustang OS 0.6.0
 
-## Resultado actual 0.5.0
+## Resultado actual 0.6.0
+
+Verificación integral con `scripts/verify.ps1`: **247 pruebas app/núcleo, cero fallos/errores/omitidas**, lint debug/release y ambos instaladores; `BUILD SUCCESSFUL` en 1 minuto 24 segundos. Una regresión adicional de selección exclusiva de ZLink se añadió después y pasó con toda la clase `MediaRoutingTest`; son 248 casos únicos verificados. El servidor pasó sus once pruebas. Lint final de producción: cero errores y 172 advertencias en ambas variantes, sin baseline ni supresiones nuevas.
+
+- Release: `output/MustangOS-0.6.0.apk`, alias `output/MustangOS.apk`, 8 289 521 bytes. Paquete `com.mustangos.launcher`, versión 0.6.0 / código 12, min SDK 26 / target 35, no debuggable.
+- SHA-256 release: `C6CAAA8FF035D89EADAFE35E6A66A9E4862262408BE43366B2BF1E03905CD840`.
+- Debug: `output/MustangOS-0.6.0-debug.apk`, 9 063 236 bytes; SHA-256 `0DF88EEAC4DECDA12D7C24AC83A2159950FEEDDD3088D369033A4B553F21A56C`.
+- Firma v2 verificada, mismo certificado SHA-256 `ea344a9b8f345999a123c89eb450bb97a95aba40857febd43177282ab9a24117`. La APK histórica 0.5.0 conserva su hash; no se generaron ni copiaron llaves.
+- Permisos añadidos: `SYSTEM_ALERT_WINDOW`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_SPECIAL_USE`. La barra es opcional, exige autorización de superposición en Android y su servicio no está exportado. No se añaden captura, accesibilidad, ubicación de fondo, Bluetooth ni control del sistema.
+- Página HTTP 200 con 0.6.0 en `http://192.168.100.2:8766/?v=0.6.0`; APK descargada idéntica por SHA-256. El mapa de México sigue disponible, con HEAD confirmando 719 418 229 bytes y soporte de rangos. El ayudante caduca dos horas después de iniciarse.
+
+Se probaron permisos ausentes/revocados, notificación, cierre y limpieza de la barra, más su tipo de servicio en API 29 y 35. La nueva regresión comprueba que nunca controla Bluetooth como fallback cuando falta ZLink y conserva la preferencia multimedia del usuario. Los controles anteriores siguen cubiertos por la suite completa.
+
+Para el vehículo se probaron cambio efectivo de rojo a azul conservando capota/ruedas/regiones de faros, original intacto, todas las familias y diez pinturas, borrador hasta confirmar, cancelar sin guardar, validación de año y señal TW 516 separada de ACC. El mapa acepta una posición de red aproximada sin crear velocidad; se verifican caducidad y retirada de listeners, incluido el pasivo.
+
+Renders revisados: selector 1280×720 y compacto 853×480, vista de pintura azul y dashboard 1280×720. En compacto los controles permanecen dentro de un área desplazable y la confirmación queda visible. El dibujo de familias es una ilustración aproximada, no una reproducción exacta de cada Mustang.
+
+**Pendiente físico:** autorización y aspecto de barra sobre ZLink, emisión de iluminación TW 516 y señal/antena GPS de esta pantalla. La captura del usuario prueba que México ya dibuja cartografía, pero no una posición. La nueva entrega no acredita reparar hardware ni extraer la portada/ruta de CarPlay hacia las tarjetas. [Uso y límites](docs/RELEASE_060.md).
+
+## Historial 0.5.0
 
 **237 pruebas app/núcleo y once del servidor pasadas; cero fallos/errores/omitidas.** Verificación integral con `scripts/verify.ps1`: pruebas, lint debug/release y ambos instaladores; `BUILD SUCCESSFUL` en 1 minuto 27 segundos. Lint: cero errores y 146 advertencias en ambas variantes, sin baseline ni supresiones nuevas. Permanecen avisos de textos, layout/accesibilidad y APIs deprecadas; la comprobación física en la pantalla sigue pendiente.
 

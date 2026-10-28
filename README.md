@@ -1,4 +1,6 @@
-# MUSTANG OS · 0.5.0 · México offline
+# MUSTANG OS · 0.6.0 · CarPlay y Mi Mustang
+
+**Entrega 0.6.0:** CarPlay real con barra Mustang opcional, selector por familias con vista previa, pintura configurable, luces por señal OEM y diagnóstico GPS visible. Conserva el mapa de México. [Uso, permisos y límites](docs/RELEASE_060.md). La barra no extrae la portada ni la ruta del iPhone hacia las tarjetas.
 
 **Entrega 0.5.0:** México completo offline dentro del panel, fondo Mustang común, radio propia, fotos automáticas por perfil y nuevas lecturas OEM. El mapa se descarga una vez aparte de la APK; incluye Jalisco, Colima y Michoacán. [Cambios e instalación del mapa](docs/RELEASE_050.md), [interfaces OEM adicionales](docs/OEM_APPS_20261028_ADDITIONAL.md). Los metadatos y la superficie CarPlay siguen pendientes de una interfaz compatible.
 

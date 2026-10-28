@@ -5,6 +5,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="zjinnova.android.permission.ZLINK_SERVICE" />
     <uses-permission android:name="com.tw.carinfoservice.permission.USE_AIDL" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
     <queries>
         <package android:name="com.zjinnova.zlink"/><package android:name="com.tw.radio"/><package android:name="com.tw.bt"/><package android:name="com.tw.music"/>
@@ -24,6 +27,9 @@
         </activity>
         <service android:name=".media.MediaAccessService" android:label="Mustang OS · sesiones multimedia" android:exported="true" android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter><action android:name="android.service.notification.NotificationListenerService" /></intent-filter>
+        </service>
+        <service android:name=".carplay.CarPlayBarService" android:exported="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-started, dismissible floating launcher and media controls alongside the user's existing CarPlay application" />
         </service>
     </application>
 </manifest>

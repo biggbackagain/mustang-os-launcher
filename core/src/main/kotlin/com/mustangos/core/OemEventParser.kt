@@ -6,6 +6,7 @@ sealed interface OemEvent {
     data class Doors(val mask: Int) : OemEvent
     data class Protocol(val profile: OemProtocol) : OemEvent
     data class Powertrain(val speedKmh: Float?, val rpm: Int?) : OemEvent
+    data class Illumination(val on: Boolean) : OemEvent
     data object Heartbeat : OemEvent
 }
 
@@ -30,6 +31,8 @@ object OemEventParser {
 
     fun parse(code: Int, arg1: Int, payload: ByteArray?, fahrenheitSource: Boolean = false, protocol: OemProtocol? = null): OemEvent? = when (code) {
         514 -> OemEvent.Heartbeat
+        // CarInfoService 251014: TW 516 arg1 is the illumination switch, separate from ACC.
+        516 -> when (arg1) { 0 -> OemEvent.Illumination(false); 1 -> OemEvent.Illumination(true); else -> null }
         1292 -> {
             if (arg1 != 0 || payload == null || payload.size < 2 || payload[0].toInt() and 0x80 != 0) null
             else {

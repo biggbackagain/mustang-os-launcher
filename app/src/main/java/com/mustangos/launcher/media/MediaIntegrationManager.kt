@@ -38,7 +38,7 @@ data class MediaUiState(
     val titleOrigin: String? get() = when { facts.title != null -> "TITLE"; fallbackDisplayTitle != null -> "DISPLAY_TITLE"; else -> null }
     val subtitleOrigin: String? get() = when { facts.artist != null -> "ARTIST"; fallbackDisplaySubtitle != null -> "DISPLAY_SUBTITLE"; else -> null }
 }
-class MediaIntegrationManager(private val context: Context, private val settings: LauncherSettings) {
+class MediaIntegrationManager(private val context: Context, private val settings: LauncherSettings, private val forcedPackage: String? = null) {
     private val manager = context.getSystemService(MediaSessionManager::class.java)
     private val component = ComponentName(context, MediaAccessService::class.java)
     private val handler = Handler(Looper.getMainLooper())
@@ -90,7 +90,7 @@ class MediaIntegrationManager(private val context: Context, private val settings
             // A package can own several independent sessions. Only identical tokens are duplicates.
             sessions = manager.getActiveSessions(component).distinctBy { it.sessionToken }
             val candidates = sessions.map { SessionCandidate(it) }
-            val preferred = settings.mediaPackage
+            val preferred = forcedPackage ?: settings.mediaPackage
             val projection = settings.component("zlink")?.packageName ?: VERIFIED_ZLINK_PACKAGE
             var pkg = IntegrationPolicy.selectMedia(candidates.map { it.pkg }, preferred, projection)
             selectionReason = when {

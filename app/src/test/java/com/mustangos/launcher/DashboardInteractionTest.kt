@@ -192,6 +192,7 @@ class DashboardInteractionTest {
 
     @Test fun chosenVehicleProfileAppearsOnHomeAndSettingsAfterRecreation() {
         val selected = MustangProfile(2020, MustangVersion.SHELBY_GT500, MustangBody.FASTBACK, MustangPaint.BLUE)
+        LauncherSettings(app).digitalVehicle = false // Exercise the independent photographic-reference mode.
         LauncherSettings(app).mustangProfile = selected
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup().visible()
         val activity = controller.get()

@@ -39,7 +39,7 @@ class OemReadOnlyTest {
         override fun pollMcu() { voltageQueries++ }
         override fun open(codes: ShortArray, handler: Handler): Boolean {
             calls++; this.handler = handler
-            assertArrayEquals(shortArrayOf(266,514,1281,1285,1288,1291,1292), codes)
+            assertArrayEquals(shortArrayOf(266,514,516,1281,1285,1288,1291,1292), codes)
             return allowed
         }
         override fun close() { closed = true }
@@ -52,6 +52,16 @@ class OemReadOnlyTest {
     @Test fun disabledDoesNotOpenAnything() {
         val feed = Feed(); val reader = OemReadOnlyManager(app, settings) { feed }
         reader.start(); assertEquals(0, feed.calls); assertNull(reader.state.value.voltage)
+    }
+    @Test fun actualIlluminationEventsAreIndependentFromAccessoryPower() {
+        settings.oemReadEnabled = true
+        val feed = Feed(); val reader = OemReadOnlyManager(app, settings) { feed }
+        reader.start(); assertNull(reader.state.value.illuminationOn)
+        feed.send(514,6); assertNull(reader.state.value.illuminationOn)
+        feed.send(516,1); assertEquals(true,reader.state.value.illuminationOn)
+        feed.send(516,255); assertEquals(true,reader.state.value.illuminationOn)
+        feed.send(516,0); assertEquals(false,reader.state.value.illuminationOn)
+        reader.stop()
     }
     @Test fun powertrainRequiresActualEventsAndExpiresWithoutRequestingItsStream() {
         settings.oemReadEnabled = true
