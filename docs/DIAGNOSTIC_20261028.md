@@ -22,7 +22,7 @@ El trabajo local prioriza el HOME de sistema configurado y excluye los seis comp
 
 Para ayudar sin instalar otra versión de Mustang OS: extraer **Tema (`com.dofun.variety`)** con un extractor que muestre apps del sistema y enviar ese APK. [ML Manager, ficha del desarrollador](https://play.google.com/store/apps/details?id=com.javiersantos.mlmanager) documenta extracción de apps de sistema sin root. La página local acepta APK/ZIP como archivos opacos, sin instalarlos ni ejecutarlos. El servidor conserva extensión generada `.zip`; el siguiente archivo puede ser un APK con AndroidManifest en la raíz, no otro diagnóstico con la estructura packages/.
 
-Si el cliente no aporta un contrato legible/utilizable, falta SDK/AIDL Android 6.1.06: callbacks de canción/portada/posición/duración, Surface y entrada táctil, con soporte para APK normal. El fabricante [ofrece documentación de integración](https://zjinnova.com/android-zlink.html) y publica [su contacto oficial](https://zjinnova.com/contact.html). No se ha enviado ningún mensaje a terceros.
+Si el cliente no aporta un contrato legible/utilizable, falta SDK/AIDL de ZLink 6.1.06 para Android API 29: callbacks de canción/portada/posición/duración, Surface y entrada táctil, con soporte para APK normal. El fabricante [ofrece documentación de integración](https://zjinnova.com/android-zlink.html) y publica [su contacto oficial](https://zjinnova.com/contact.html). No se ha enviado ningún mensaje a terceros.
 
 ## Otras lecturas de la captura
 
