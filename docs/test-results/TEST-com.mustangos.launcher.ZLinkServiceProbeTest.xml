@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.mustangos.launcher.ZLinkServiceProbeTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-27T21:51:23.801Z" hostname="DESKTOP-3IU4CK5" time="0.034">
+<testsuite name="com.mustangos.launcher.ZLinkServiceProbeTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-28T03:08:37.966Z" hostname="DESKTOP-3IU4CK5" time="0.031">
   <properties/>
-  <testcase name="privilegedPermissionDoesNotTriggerBinding" classname="com.mustangos.launcher.ZLinkServiceProbeTest" time="0.015"/>
+  <testcase name="privilegedPermissionDoesNotTriggerBinding" classname="com.mustangos.launcher.ZLinkServiceProbeTest" time="0.013"/>
   <testcase name="normalExportedServiceOnlyExposesItsDescriptorAndIsReleased" classname="com.mustangos.launcher.ZLinkServiceProbeTest" time="0.018"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>

@@ -1,0 +1,635 @@
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\diagnostics\ErrorJournal.kt:15: Warning: Consider using apply() instead; commit writes its data to persistent storage immediately, whereas apply will handle it in the background [ApplySharedPref]
+        if (safeCode.startsWith("CRASH_")) edit.commit() else edit.apply()
+                                                ~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\settings\LauncherSettings.kt:18: Warning: Consider using apply() instead; commit writes its data to persistent storage immediately, whereas apply will handle it in the background [ApplySharedPref]
+        set(value) { prefs.edit().putBoolean("oem_interrupted", value).commit() }
+                                                                       ~~~~~~~~
+
+   Explanation for issues of type "ApplySharedPref":
+   Consider using apply() instead of commit on shared preferences. Whereas
+   commit blocks and writes its data to persistent storage immediately, apply
+   will handle it in the background.
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\build.gradle.kts:8: Warning: Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the android.os.Build.VERSION_CODES javadoc for details. [OldTargetApi]
+        targetSdk = 35
+        ~~~~~~~~~~~~~~
+
+   Explanation for issues of type "OldTargetApi":
+   When your application or sdk runs on a version of Android that is more
+   recent than your targetSdkVersion specifies that it has been tested with,
+   various compatibility modes kick in. This ensures that your application
+   continues to work, but it may look out of place. For example, if the
+   targetSdkVersion is less than 14, your app may get an option button in the
+   UI.
+
+   To fix this issue, set the targetSdkVersion to the highest available value.
+   Then test your app to make sure everything works correctly. You may want to
+   consult the compatibility notes to see what changes apply to each version
+   you are adding support for:
+   https://developer.android.com/reference/android/os/Build.VERSION_CODES.html
+   as well as follow this guide:
+   https://developer.android.com/distribute/best-practices/develop/target-sdk.
+   html
+
+   https://developer.android.com/distribute/best-practices/develop/target-sdk.html
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\vehicle\OemReadOnlyManager.kt:26: Warning: Accessing internal APIs via reflection is not supported and may not work on all devices or in the future [PrivateApi]
+class TwReadOnlySubscription(private val loadClass: () -> Class<*> = { Class.forName("android.tw.john.TWUtil") }) : OemSubscription {
+                                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\vehicle\OemReadOnlyManager.kt:26: Warning: Accessing internal APIs via reflection is not supported and may not work on all devices or in the future [PrivateApi]
+class TwReadOnlySubscription(private val loadClass: () -> Class<*> = { Class.forName("android.tw.john.TWUtil") }) : OemSubscription {
+                                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "PrivateApi":
+   Using reflection to access hidden/private Android APIs is not safe; it will
+   often not work on devices from other vendors, and it may suddenly stop
+   working (if the API is removed) or crash spectacularly (if the API behavior
+   changes, since there are no guarantees for compatibility).
+
+   https://developer.android.com/preview/restrictions-non-sdk-interfaces
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\activity_main.xml:22: Warning: Attribute clipToOutline is only used in API level 31 and higher (current min is 26) [UnusedAttribute]
+                <FrameLayout android:layout_width="@dimen/media_art_size" android:layout_height="@dimen/media_art_size" android:background="@drawable/bg_artwork" android:clipToOutline="true" android:layout_marginEnd="12dp">
+                                                                                                                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\activity_main.xml:62: Warning: Attribute clipToOutline is only used in API level 31 and higher (current min is 26) [UnusedAttribute]
+            <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:background="@drawable/bg_map_panel" android:clipToOutline="true" android:layout_marginTop="8dp" android:layout_marginBottom="8dp">
+                                                                                                                                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "UnusedAttribute":
+   This check finds attributes set in XML files that were introduced in a
+   version newer than the oldest version targeted by your application (with
+   the minSdkVersion attribute).
+
+   This is not an error; the application will simply ignore the attribute.
+   However, if the attribute is important to the appearance or functionality
+   of your application, you should consider finding an alternative way to
+   achieve the same result with only available attributes, and then you can
+   optionally create a copy of the layout in a layout-vNN folder which will be
+   used on API NN or higher where you can take advantage of the newer
+   attribute.
+
+   Note: This check does not only apply to attributes. For example, some tags
+   can be unused too, such as the new <tag> element in layouts introduced in
+   API 21.
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\SettingsSheet.kt:21: Warning: Avoid passing null as the view root (needed to resolve layout parameters on the inflated layout's root element) [InflateParams]
+    private val view = LayoutInflater.from(context).inflate(R.layout.dialog_launcher_settings, null)
+                                                                                               ~~~~
+
+   Explanation for issues of type "InflateParams":
+   When inflating a layout, avoid passing in null as the parent view, since
+   otherwise any layout parameters on the root of the inflated layout will be
+   ignored.
+
+   https://www.bignerdranch.com/blog/understanding-androids-layoutinflater-inflate/
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\drawable\bg_mustang_tribar.xml:2: Warning: Limit vector icons sizes to 200×200 to keep icon drawing fast; see https://developer.android.com/studio/write/vector-asset-studio#when for more [VectorRaster]
+    android:width="240dp"
+                   ~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\drawable\bg_mustang_wallpaper.xml:1: Warning: Limit vector icons sizes to 200×200 to keep icon drawing fast; see https://developer.android.com/studio/write/vector-asset-studio#when for more [VectorRaster]
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="1280dp" android:height="720dp" android:viewportWidth="1280" android:viewportHeight="720">
+                                                                                  ~~~~~~
+
+   Explanation for issues of type "VectorRaster":
+   Vector icons require API 21 or API 24 depending on used features, but when
+   minSdkVersion is less than 21 or 24 and Android Gradle plugin 1.4 or higher
+   is used, a vector drawable placed in the drawable folder is automatically
+   moved to drawable-anydpi-v21 or drawable-anydpi-v24 and bitmap images are
+   generated for different screen resolutions for backwards compatibility.
+
+   However, there are some limitations to this raster image generation, and
+   this lint check flags elements and attributes that are not fully supported.
+   You should manually check whether the generated output is acceptable for
+   those older devices.
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\build.gradle.kts:4: Warning: A newer version of compileSdkVersion than 35 is available: 36 [GradleDependency]
+    compileSdk = 35
+    ~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\build.gradle.kts:30: Warning: A newer version of androidx.activity:activity-ktx than 1.10.1 is available: 1.13.0 [GradleDependency]
+    implementation("androidx.activity:activity-ktx:1.10.1")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\build.gradle.kts:31: Warning: A newer version of androidx.lifecycle:lifecycle-viewmodel-ktx than 2.8.7 is available: 2.11.0 [GradleDependency]
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\build.gradle.kts:32: Warning: A newer version of androidx.lifecycle:lifecycle-runtime-ktx than 2.8.7 is available: 2.11.0 [GradleDependency]
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "GradleDependency":
+   This detector looks for usages of libraries where the version you are using
+   is not the current stable release. Using older versions is fine, and there
+   are cases where you deliberately want to stick with an older version.
+   However, you may simply not be aware that a more recent version is
+   available, and that is what this lint check helps find.
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\build.gradle.kts:33: Warning: A newer version of org.jetbrains.kotlinx:kotlinx-coroutines-android than 1.10.2 is available: 1.11.0 [NewerVersionAvailable]
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\build.gradle.kts:35: Warning: A newer version of org.robolectric:robolectric than 4.14.1 is available: 4.17 [NewerVersionAvailable]
+    testImplementation("org.robolectric:robolectric:4.14.1")
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "NewerVersionAvailable":
+   This detector checks with a central repository to see if there are newer
+   versions available for the dependencies used by this project. This is
+   similar to the GradleDependency check, which checks for newer versions
+   available in the Android SDK tools and libraries, but this works with any
+   MavenCentral dependency, and connects to the library every time, which
+   makes it more flexible but also much slower.
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\AndroidManifest.xml:18: Warning: Fixed screen orientations will be ignored in most cases, starting from Android 16. Android is moving toward a model where apps are expected to adapt to various orientations, display sizes, and aspect ratios. [DiscouragedApi]
+        <activity android:name=".ui.MainActivity" android:exported="true" android:screenOrientation="landscape" android:launchMode="singleTask">
+                                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "DiscouragedApi":
+   Discouraged APIs are allowed and are not deprecated, but they may be unfit
+   for common use (e.g. due to slow performance or subtle behavior).
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\navigation\NativeMapView.kt:277: Warning: Avoid object allocations during draw/layout operations (preallocate and reuse instead) [DrawAllocation]
+            val destination = RectF(tile.left, tile.top, tile.left + 256, tile.top + 256)
+                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "DrawAllocation":
+   You should avoid allocating objects during a drawing or layout operation.
+   These are called frequently, so a smooth UI can be interrupted by garbage
+   collection pauses caused by the object allocations.
+
+   The way this is generally handled is to allocate the needed objects up
+   front and to reuse them for each drawing operation.
+
+   Some methods allocate memory on your behalf (such as Bitmap.create), and
+   these should be handled in the same way.
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\activity_main.xml:56: Warning: This tag and its children can be replaced by one <TextView/> and a compound drawable [UseCompoundDrawables]
+            <LinearLayout android:layout_width="match_parent" android:layout_height="@dimen/map_header_height" android:orientation="horizontal" android:gravity="center_vertical">
+             ~~~~~~~~~~~~
+
+   Explanation for issues of type "UseCompoundDrawables":
+   A LinearLayout which contains an ImageView and a TextView can be more
+   efficiently handled as a compound drawable (a single TextView, using the
+   drawableTop, drawableLeft, drawableRight and/or drawableBottom attributes
+   to draw one or more images adjacent to the text).
+
+   If the two widgets are offset from each other with margins, this can be
+   replaced with a drawablePadding attribute.
+
+   There's a lint quickfix to perform this conversion in the Eclipse plugin.
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\drawable\bg_mustang_wallpaper.xml:6: Warning: Very long vector path (3493 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector. [VectorPath]
+            <path android:fillColor="#12FFFFFF" android:pathData="M367.35,545c-.2.5-1.9,4-3.2,6.9-2.4,5.1-3.2,6.8-3.3,7.2l-.3.9,2.8,5.8.4.3c.4.3,9,6.8,24.7,3.9l3-.5-1.4-2.7a62,62,0,0,0-6.3-9.7,108.54,108.54,0,0,0-8-8.6,50,50,0,0,1-3.9-4.1l-1.6-4.9-2.4,4.6-.5.9m95.1-8.1h0a236.09,236.09,0,0,1-35.7,2.2h-1.7l-.5,1.6c-2.8,9.3.2,19.6.4,20l.7,2.3,2.3-.9a1.88,1.88,0,0,1,1.9.2l1,.8,1.1-.4c4.4-1.5,6.2-7.6,7-11.1l32,2-15.4,15.3-10.8,1.9-.5.5a104.52,104.52,0,0,1-9.8,9l-1.5,1.3,1.1,1.7c6.5,9.8,12.7,12.4,12.9,12.5l1.2.5,23.9-19.4L493,575h.9l1.7-2,.1-.2c9-10.7,12.7-15.8,16.5-22.5,2.5-4.4,5.7-13.2,7-16.8.6-1.8,1.8-4.1,3.2-7.1l3.8-7.9-4.6,1.2c-4.5,1.1-15.8,4.9-22.6,7.6a167.71,167.71,0,0,1-36.5,9.6m374.3-95.1c0,7.3-3.3,18.1-19.2,28.3-12.2,7.8-36.2,9.4-43.2,8.7-14.9-1.5-27.8-4.5-38.3-8.8-4-1.6-6.9-1.9-9.5-.9-2.9,1.2-6,4.6-7.7,7.6l-.7,1.2c-1.9,3.4-5.5,9.7-10.1,12.8-5.5,3.8-16.6,5-25,4.6l-12.5-.8c-5.6-.4-9.1-.7-10.4-.6-4.2.3-9.9,1.9-13.1,7.8l-.1.2c-3.5,6.4-9.2,17-11.1,19.5-1.5,2-13,16.5-21.3,22.8-7.7,5.9-14.2,10.7-23.1,15-3.6,1.8-9.4,4.4-14.9,6.9l-.1.1c-9.1,4.1-15.3,6.9-17.2,8.1l-.1.1-.1.1A75.79,75.79,0,0,0,541,597c-1.1,2.1-2,3.7-5.7,2.8l-1.5-.4c-10.2-2.5-24.3-5.8-29.1-5.8h-.3l-3.3.9H501l-1.9.6c-.2.1-18.7,6.2-31.9,14.2l-2.7,1.6,2.3,2,4.5,4,.1.1a4.92,4.92,0,0,0,4.8,1l7.8-1.9c1.4,1.7,15,17.5,19.6,22.9l-22.9-.1a45.29,45.29,0,0,0-10.2-6.5c-5.1-2-7.8-2.4-9.9-2.5a7.79,7.79,0,0,1-6-2.8l-4.7-5.7-2.6,2.1-.2.3c-.5.7-3.3,4.5-6.5,5.8-2.7,1.1-4.6,0-6-.9l-.9-.5-.6-.2c-1.1-.5-3.7-1.6-6.1-.2s-3.6,4.7-4.1,9.9l-33.6.2,16.1-18.4,15.3-.2.7-1a21.61,21.61,0,0,1,3.9-4.6c.5-.4,2.2-1.2,7.4-3.1l3.6-1.4-3-2.5c-3.1-2.5-8-6.3-8.8-6.8l-.5-.3a20.13,20.13,0,0,0-5.1-2.5l-6.2-1.9-2.2-.6c-.6-.2-4.8-2.1-9.9-4.6a21.29,21.29,0,0,0-1.1-3.3h.1l-.9-2.1h-1.5c-8.8.1-37.8.4-40.6.6l-4.4.2-2.8.2a13.37,13.37,0,0,1-5.9-1,83.48,83.48,0,0,1-8.8-6.9,6.8,6.8,0,0,1-2-4.9,7.73,7.73,0,0,1,.8-3.4l3-5.9a119.94,119.94,0,0,0,5.4-11.3c1.6-4.1,6.4-18.9,7.6-30.5l.1-.8-.5-.7c-.9-1.2-3.9-6.4-5.9-20.7l-.1-.7-.5-.5c-5.3-5.5-32.8-32.6-51.6-32.2h-.9l-.6.6c-1,1-5.1,4.2-13.4,6.7l-7.5,2.1c-8.2,2.2-16.8,4.5-24.5,8.8-9.7,5.4-20.5,14.1-24.7,19.9l-.2.3-.1.4c-.3,1-2,4.5-9.6,5.4-5.6-.6-9.5-1.1-9.9-1.2a13.23,13.23,0,0,1-4.2-2.3c-1.1-1.2-3.5-3.6-5.3-9.8l-.1-.2V496a43.73,43.73,0,0,1-2.3-4.9,10.66,10.66,0,0,1-.6-3,8.63,8.63,0,0,1,1.4-4.7,45.23,45.23,0,0,1,5.9-7.2l5.6-5.5,4.3-4a76.78,76.78,0,0,0,6.9-8.2l.9-1.3c2.5-3.4,5.9-8.2,12.4-18.5l.2-.2.1-.3a7.64,7.64,0,0,1,1.5-2.6,29,29,0,0,1,3.4-3.6,32.18,32.18,0,0,0,2.8-2.4l.1-.1,2.7-3.2,2.5-3a87.87,87.87,0,0,1,11.8-11,15.77,15.77,0,0,1,3.9-2.4l.7-.3,2.7-1.1.9-.5,3.4-1.9.3-.6c.9-1.6,5.8-10,17.3-16.4a19.92,19.92,0,0,0,3.3-2.4l.1-.1a2.26,2.26,0,0,1,.9-.4c.2,0,.2.3.3.9a34.4,34.4,0,0,1,.3,4.6,29.75,29.75,0,0,1-2,10.6l-1.7,4,7.4-1.6c2.2-.6,6.3-1.8,16.4-6.8,15.4-7.5,26.4-12.2,30.7-12.9l-.1.2-.6.7c-3.2,4-4.7,6.8-4.7,8.9a2.93,2.93,0,0,0,.4,1.6c1.2,2.3,5.2,2.6,12,.8l.5-.2,8.3-2.4c11.2-3.3,28-8.4,41-7.2h.1c-.1.1-.2.2-.2.3l-.6.6c-2,1.7-3.8,3.5-3.8,5.4a1.27,1.27,0,0,0,.1.6c.5,2.6,4.2,3.9,11.4,4.1,2.5,0,8.2-.4,14.8-.8,11.9-.8,26.7-1.9,33.2-1,.4.1.8.2.8.4a1,1,0,0,1-.4.7,179.46,179.46,0,0,1-18.1,10.3l-3.8,1.9,3.9,2.2.1.1c1,.4,3,1.1,9.2,1.7l.5.1a1.27,1.27,0,0,1,.9.7v.1a1,1,0,0,1-.4.7,26,26,0,0,1-12.8,7.4,103.8,103.8,0,0,1-12.4,2.2c3.2.6,7.5,1.4,12.5,2.2,9.8,1.8,34,6.1,49.2,5.7,18.5-.4,36.8-3.3,46.6-4.9h.2c5.9-.9,36.6-5.3,60.4,1,23,6,34.7,10.9,58.1,27.5,4.2,3,13.8,9.5,21.8,14.5,4.5,2.8,7.6,3.4,12.6,2.3,5.9-1.3,7.5-17.4,7.5-17.5.5-5.8,4-16.6,11-21,8-5.1,14-6.1,29-4.7,11.2,1,27.7,5.8,33.1,7.4l2.1.6c21,6.5,33.4,7.5,40.2,7.2,12-.5,23.7-4.8,36.8-13.2a24.38,24.38,0,0,1,2.1,9.6" />
+                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\drawable\ic_mustang_pony.xml:4: Warning: Very long vector path (3493 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector. [VectorPath]
+        <path android:fillColor="#F4F5F7" android:pathData="M367.35,545c-.2.5-1.9,4-3.2,6.9-2.4,5.1-3.2,6.8-3.3,7.2l-.3.9,2.8,5.8.4.3c.4.3,9,6.8,24.7,3.9l3-.5-1.4-2.7a62,62,0,0,0-6.3-9.7,108.54,108.54,0,0,0-8-8.6,50,50,0,0,1-3.9-4.1l-1.6-4.9-2.4,4.6-.5.9m95.1-8.1h0a236.09,236.09,0,0,1-35.7,2.2h-1.7l-.5,1.6c-2.8,9.3.2,19.6.4,20l.7,2.3,2.3-.9a1.88,1.88,0,0,1,1.9.2l1,.8,1.1-.4c4.4-1.5,6.2-7.6,7-11.1l32,2-15.4,15.3-10.8,1.9-.5.5a104.52,104.52,0,0,1-9.8,9l-1.5,1.3,1.1,1.7c6.5,9.8,12.7,12.4,12.9,12.5l1.2.5,23.9-19.4L493,575h.9l1.7-2,.1-.2c9-10.7,12.7-15.8,16.5-22.5,2.5-4.4,5.7-13.2,7-16.8.6-1.8,1.8-4.1,3.2-7.1l3.8-7.9-4.6,1.2c-4.5,1.1-15.8,4.9-22.6,7.6a167.71,167.71,0,0,1-36.5,9.6m374.3-95.1c0,7.3-3.3,18.1-19.2,28.3-12.2,7.8-36.2,9.4-43.2,8.7-14.9-1.5-27.8-4.5-38.3-8.8-4-1.6-6.9-1.9-9.5-.9-2.9,1.2-6,4.6-7.7,7.6l-.7,1.2c-1.9,3.4-5.5,9.7-10.1,12.8-5.5,3.8-16.6,5-25,4.6l-12.5-.8c-5.6-.4-9.1-.7-10.4-.6-4.2.3-9.9,1.9-13.1,7.8l-.1.2c-3.5,6.4-9.2,17-11.1,19.5-1.5,2-13,16.5-21.3,22.8-7.7,5.9-14.2,10.7-23.1,15-3.6,1.8-9.4,4.4-14.9,6.9l-.1.1c-9.1,4.1-15.3,6.9-17.2,8.1l-.1.1-.1.1A75.79,75.79,0,0,0,541,597c-1.1,2.1-2,3.7-5.7,2.8l-1.5-.4c-10.2-2.5-24.3-5.8-29.1-5.8h-.3l-3.3.9H501l-1.9.6c-.2.1-18.7,6.2-31.9,14.2l-2.7,1.6,2.3,2,4.5,4,.1.1a4.92,4.92,0,0,0,4.8,1l7.8-1.9c1.4,1.7,15,17.5,19.6,22.9l-22.9-.1a45.29,45.29,0,0,0-10.2-6.5c-5.1-2-7.8-2.4-9.9-2.5a7.79,7.79,0,0,1-6-2.8l-4.7-5.7-2.6,2.1-.2.3c-.5.7-3.3,4.5-6.5,5.8-2.7,1.1-4.6,0-6-.9l-.9-.5-.6-.2c-1.1-.5-3.7-1.6-6.1-.2s-3.6,4.7-4.1,9.9l-33.6.2,16.1-18.4,15.3-.2.7-1a21.61,21.61,0,0,1,3.9-4.6c.5-.4,2.2-1.2,7.4-3.1l3.6-1.4-3-2.5c-3.1-2.5-8-6.3-8.8-6.8l-.5-.3a20.13,20.13,0,0,0-5.1-2.5l-6.2-1.9-2.2-.6c-.6-.2-4.8-2.1-9.9-4.6a21.29,21.29,0,0,0-1.1-3.3h.1l-.9-2.1h-1.5c-8.8.1-37.8.4-40.6.6l-4.4.2-2.8.2a13.37,13.37,0,0,1-5.9-1,83.48,83.48,0,0,1-8.8-6.9,6.8,6.8,0,0,1-2-4.9,7.73,7.73,0,0,1,.8-3.4l3-5.9a119.94,119.94,0,0,0,5.4-11.3c1.6-4.1,6.4-18.9,7.6-30.5l.1-.8-.5-.7c-.9-1.2-3.9-6.4-5.9-20.7l-.1-.7-.5-.5c-5.3-5.5-32.8-32.6-51.6-32.2h-.9l-.6.6c-1,1-5.1,4.2-13.4,6.7l-7.5,2.1c-8.2,2.2-16.8,4.5-24.5,8.8-9.7,5.4-20.5,14.1-24.7,19.9l-.2.3-.1.4c-.3,1-2,4.5-9.6,5.4-5.6-.6-9.5-1.1-9.9-1.2a13.23,13.23,0,0,1-4.2-2.3c-1.1-1.2-3.5-3.6-5.3-9.8l-.1-.2V496a43.73,43.73,0,0,1-2.3-4.9,10.66,10.66,0,0,1-.6-3,8.63,8.63,0,0,1,1.4-4.7,45.23,45.23,0,0,1,5.9-7.2l5.6-5.5,4.3-4a76.78,76.78,0,0,0,6.9-8.2l.9-1.3c2.5-3.4,5.9-8.2,12.4-18.5l.2-.2.1-.3a7.64,7.64,0,0,1,1.5-2.6,29,29,0,0,1,3.4-3.6,32.18,32.18,0,0,0,2.8-2.4l.1-.1,2.7-3.2,2.5-3a87.87,87.87,0,0,1,11.8-11,15.77,15.77,0,0,1,3.9-2.4l.7-.3,2.7-1.1.9-.5,3.4-1.9.3-.6c.9-1.6,5.8-10,17.3-16.4a19.92,19.92,0,0,0,3.3-2.4l.1-.1a2.26,2.26,0,0,1,.9-.4c.2,0,.2.3.3.9a34.4,34.4,0,0,1,.3,4.6,29.75,29.75,0,0,1-2,10.6l-1.7,4,7.4-1.6c2.2-.6,6.3-1.8,16.4-6.8,15.4-7.5,26.4-12.2,30.7-12.9l-.1.2-.6.7c-3.2,4-4.7,6.8-4.7,8.9a2.93,2.93,0,0,0,.4,1.6c1.2,2.3,5.2,2.6,12,.8l.5-.2,8.3-2.4c11.2-3.3,28-8.4,41-7.2h.1c-.1.1-.2.2-.2.3l-.6.6c-2,1.7-3.8,3.5-3.8,5.4a1.27,1.27,0,0,0,.1.6c.5,2.6,4.2,3.9,11.4,4.1,2.5,0,8.2-.4,14.8-.8,11.9-.8,26.7-1.9,33.2-1,.4.1.8.2.8.4a1,1,0,0,1-.4.7,179.46,179.46,0,0,1-18.1,10.3l-3.8,1.9,3.9,2.2.1.1c1,.4,3,1.1,9.2,1.7l.5.1a1.27,1.27,0,0,1,.9.7v.1a1,1,0,0,1-.4.7,26,26,0,0,1-12.8,7.4,103.8,103.8,0,0,1-12.4,2.2c3.2.6,7.5,1.4,12.5,2.2,9.8,1.8,34,6.1,49.2,5.7,18.5-.4,36.8-3.3,46.6-4.9h.2c5.9-.9,36.6-5.3,60.4,1,23,6,34.7,10.9,58.1,27.5,4.2,3,13.8,9.5,21.8,14.5,4.5,2.8,7.6,3.4,12.6,2.3,5.9-1.3,7.5-17.4,7.5-17.5.5-5.8,4-16.6,11-21,8-5.1,14-6.1,29-4.7,11.2,1,27.7,5.8,33.1,7.4l2.1.6c21,6.5,33.4,7.5,40.2,7.2,12-.5,23.7-4.8,36.8-13.2a24.38,24.38,0,0,1,2.1,9.6" />
+                                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "VectorPath":
+   Using long vector paths is bad for performance. There are several ways to
+   make the pathData shorter:
+   * Using less precision
+   * Removing some minor details
+   * Using the Android Studio vector conversion tool
+   * Rasterizing the image (converting to PNG)
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_launcher_settings.xml:14: Warning: Set android:baselineAligned="false" on this element for better performance [DisableBaselineAlignment]
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+     ~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_vehicle_dashboard.xml:205: Warning: Set android:baselineAligned="false" on this element for better performance [DisableBaselineAlignment]
+                <LinearLayout
+                 ~~~~~~~~~~~~
+
+   Explanation for issues of type "DisableBaselineAlignment":
+   When a LinearLayout is used to distribute the space proportionally between
+   nested layouts, the baseline alignment property should be turned off to
+   make the layout computation faster.
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\activity_main.xml:15: Warning: Nested weights are bad for performance [NestedWeights]
+        <LinearLayout style="@style/Card" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight=".27" android:orientation="vertical">
+                                                                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\activity_main.xml:21: Warning: Nested weights are bad for performance [NestedWeights]
+            <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:baselineAligned="false" android:layout_marginTop="8dp" android:layout_marginBottom="8dp">
+                                                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\activity_main.xml:29: Warning: Nested weights are bad for performance [NestedWeights]
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                                                                                              ~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_launcher_settings.xml:16: Warning: Nested weights are bad for performance [NestedWeights]
+        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                                                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "NestedWeights":
+   Layout weights require a widget to be measured twice. When a LinearLayout
+   with non-zero weights is nested inside another LinearLayout with non-zero
+   weights, then the number of measurements increase exponentially.
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\activity_main.xml:1: Warning: Possible overdraw: Root element paints background @color/ui_background with a theme that also paints a background (inferred theme is @style/Theme.Mustang) [Overdraw]
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/root" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="@color/ui_background" android:paddingStart="@dimen/dashboard_outer_padding" android:paddingEnd="@dimen/dashboard_outer_padding">
+                                                                                                                                                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_app_drawer.xml:6: Warning: Possible overdraw: Root element paints background @color/ui_background with a theme that also paints a background (inferred theme is @style/Theme.Mustang) [Overdraw]
+    android:background="@color/ui_background">
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_launcher_settings.xml:5: Warning: Possible overdraw: Root element paints background #070B10 with a theme that also paints a background (inferred theme is @style/Theme.Mustang) [Overdraw]
+    android:background="#070B10" android:orientation="vertical" android:padding="20dp">
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_vehicle_dashboard.xml:5: Warning: Possible overdraw: Root element paints background @color/ui_background with a theme that also paints a background (inferred theme is @style/Theme.Mustang) [Overdraw]
+    android:background="@color/ui_background"
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "Overdraw":
+   If you set a background drawable on a root view, then you should use a
+   custom theme where the theme background is null. Otherwise, the theme
+   background will be painted first, only to have your custom background
+   completely cover it; this is called "overdraw".
+
+   NOTE: This detector relies on figuring out which layouts are associated
+   with which activities based on scanning the Java code, and it's currently
+   doing that using an inexact pattern matching algorithm. Therefore, it can
+   incorrectly conclude which activity the layout is associated with and then
+   wrongly complain that a background-theme is hidden.
+
+   If you want your custom background on multiple pages, then you should
+   consider making a custom theme with your custom background and just using
+   that theme instead of a root element background.
+
+   Of course it's possible that your custom drawable is translucent and you
+   want it to be mixed with the background. However, you will get better
+   performance if you pre-mix the background with your drawable and use that
+   resulting image or color as a custom theme background instead.
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\drawable\bg_map_status.xml:1: Warning: The resource R.drawable.bg_map_status appears to be unused [UnusedResources]
+<shape xmlns:android="http://schemas.android.com/apk/res/android"><solid android:color="#E60D151F"/><stroke android:width="1dp" android:color="@color/ui_border"/><corners android:radius="10dp"/></shape>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\drawable\bg_mustang_tribar.xml:1: Warning: The resource R.drawable.bg_mustang_tribar appears to be unused [UnusedResources]
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+^
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\drawable\bg_mustang_wallpaper.xml:1: Warning: The resource R.drawable.bg_mustang_wallpaper appears to be unused [UnusedResources]
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="1280dp" android:height="720dp" android:viewportWidth="1280" android:viewportHeight="720">
+^
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\values\dimens.xml:7: Warning: The resource R.dimen.card_header_height appears to be unused [UnusedResources]
+    <dimen name="card_header_height">48dp</dimen>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\values\dimens.xml:10: Warning: The resource R.dimen.art_margin_top appears to be unused [UnusedResources]
+    <dimen name="art_margin_top">6dp</dimen>
+           ~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\values\dimens.xml:11: Warning: The resource R.dimen.art_margin_bottom appears to be unused [UnusedResources]
+    <dimen name="art_margin_bottom">4dp</dimen>
+           ~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\values\dimens.xml:12: Warning: The resource R.dimen.progress_margin appears to be unused [UnusedResources]
+    <dimen name="progress_margin">6dp</dimen>
+           ~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\values\dimens.xml:16: Warning: The resource R.dimen.media_status_height appears to be unused [UnusedResources]
+    <dimen name="media_status_height">32dp</dimen>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\values\dimens.xml:17: Warning: The resource R.dimen.navigation_icon appears to be unused [UnusedResources]
+    <dimen name="navigation_icon">32dp</dimen>
+           ~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\values\dimens.xml:18: Warning: The resource R.dimen.navigation_title_margin appears to be unused [UnusedResources]
+    <dimen name="navigation_title_margin">10dp</dimen>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\values\dimens.xml:19: Warning: The resource R.dimen.navigation_text_margin appears to be unused [UnusedResources]
+    <dimen name="navigation_text_margin">8dp</dimen>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\values\dimens.xml:20: Warning: The resource R.dimen.navigation_status_margin appears to be unused [UnusedResources]
+    <dimen name="navigation_status_margin">8dp</dimen>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\values\dimens.xml:21: Warning: The resource R.dimen.navigation_footer_height appears to be unused [UnusedResources]
+    <dimen name="navigation_footer_height">32dp</dimen>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\values\strings.xml:14: Warning: The resource R.string.media_play appears to be unused [UnusedResources]
+    <string name="media_play">"Reproducir"</string>
+            ~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\values\strings.xml:25: Warning: The resource R.string.navigation_carplay_title appears to be unused [UnusedResources]
+    <string name="navigation_carplay_title">"Tu ruta, en CarPlay"</string>
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\values\strings.xml:30: Warning: The resource R.string.navigation_no_route appears to be unused [UnusedResources]
+    <string name="navigation_no_route">El mapa Android no muestra la ruta del iPhone</string>
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\values\strings.xml:39: Warning: The resource R.string.request_oem_temperature appears to be unused [UnusedResources]
+    <string name="request_oem_temperature">Solicitar temperatura OEM</string>
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\values\strings.xml:42: Warning: The resource R.string.carplay_maps appears to be unused [UnusedResources]
+    <string name="carplay_maps">CarPlay</string>
+            ~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\values\strings.xml:61: Warning: The resource R.string.carplay_service_available appears to be unused [UnusedResources]
+    <string name="carplay_service_available">Servicio ZLink accesible · Toca para abrir</string>
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "UnusedResources":
+   Unused resources make applications larger and slow down builds.
+
+
+   The unused resource check can ignore tests. If you want to include
+   resources that are only referenced from tests, consider packaging them in a
+   test source set instead.
+
+   You can include test sources in the unused resource check by setting the
+   system property lint.unused-resources.include-tests =true, and to exclude
+   them (usually for performance reasons), use
+   lint.unused-resources.exclude-tests =true.
+   ,
+
+   Available options:
+
+   **skip-libraries** (default is true):
+   Whether the unused resource check should skip reporting unused resources in libraries.
+
+   Many libraries will declare resources that are part of the library surface; other modules depending on the library will also reference the resources. To avoid reporting all these resources as unused (in the context of a library), the unused resource check normally skips reporting unused resources in libraries. Instead, run the unused resource check on the consuming app module (along with `checkDependencies=true`).
+
+   However, there are cases where you want to check that all the resources declared in a library are used; in that case, you can disable the skip option.
+
+   To configure this option, use a `lint.xml` file with an <option> like this:
+
+   ```xml
+   <lint>
+       <issue id="UnusedResources">
+           <option name="skip-libraries" value="true" />
+       </issue>
+   </lint>
+   ```
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\appintegration\AppIntegrationManager.kt:20: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+        val geoApps = query(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("geo:0,0?q=")))
+                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\media\ContentArtworkLoader.kt:107: Warning: Use the KTX extension function Bitmap.scale instead? [UseKtx]
+                Bitmap.createScaledBitmap(bitmap, (bitmap.width * scale).toInt().coerceAtLeast(1),
+                ^
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\settings\LauncherSettings.kt:9: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+    fun setComponent(role: String, value: ComponentName?) { prefs.edit().putString("app_$role", value?.flattenToString()).apply() }
+                                                            ~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\settings\LauncherSettings.kt:12: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        set(value) { prefs.edit().putString("media", value).apply() }
+                     ~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\settings\LauncherSettings.kt:15: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        set(value) { prefs.edit().putBoolean("oem_read", value).apply() }
+                     ~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\settings\LauncherSettings.kt:18: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        set(value) { prefs.edit().putBoolean("oem_interrupted", value).commit() }
+                     ~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\settings\LauncherSettings.kt:21: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        set(value) { prefs.edit().putBoolean("map_network", value).apply() }
+                     ~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\settings\LauncherSettings.kt:24: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        set(value) { prefs.edit().putBoolean("keep_screen_on", value).apply() }
+                     ~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\settings\LauncherSettings.kt:27: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        set(value) { prefs.edit().putBoolean("gps_permission_prompted", value).apply() }
+                     ~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:107: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+            safeSettings(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.openstreetmap.org/copyright")))
+                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:434: Warning: Use the KTX extension function Int.toDrawable instead? [UseKtx]
+                setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:514: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+                    safeSettings(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:$packageName")))
+                                                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:706: Warning: Use the KTX extension function String.toColorInt instead? [UseKtx]
+                        dashVoltageStatus.setTextColor(Color.parseColor("#8E99A8"))
+                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:708: Warning: Use the KTX extension function String.toColorInt instead? [UseKtx]
+                        dashDoorStatus.setTextColor(Color.parseColor(if (oem.doorMask?.let { it != 0 } == true) "#FF354A" else "#8E99A8"))
+                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\media\MediaIntegrationManager.kt:152: Warning: Use the KTX extension function Bitmap.scale instead? [UseKtx]
+                Bitmap.createScaledBitmap(bitmap, (bitmap.width * scale).toInt().coerceAtLeast(1), (bitmap.height * scale).toInt().coerceAtLeast(1), true)
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\media\MediaIntegrationManager.kt:159: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+            metadata?.getString(key)?.takeIf { it.isNotBlank() }?.let { runCatching { Uri.parse(it) }.getOrNull() }
+                                                                                      ~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MustangCarView.kt:78: Warning: Use the KTX extension function Canvas.withClip instead? [UseKtx]
+        val checkpoint = canvas.save()
+                         ~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\navigation\NativeMapView.kt:297: Warning: Use the KTX extension function Canvas.withRotation instead? [UseKtx]
+            canvas.save(); canvas.rotate(it, x, y)
+            ~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\navigation\NativeMapView.kt:338: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.openstreetmap.org/copyright")))
+                                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\SettingsSheet.kt:60: Warning: Use the KTX extension function Context.withStyledAttributes instead? [UseKtx]
+            val attrs = context.obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackground))
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "UseKtx":
+   The Android KTX libraries decorates the Android platform SDK as well as
+   various libraries with more convenient extension functions available from
+   Kotlin, allowing you to use default parameters, named parameters, and
+   more.
+
+   Available options:
+
+   **remove-defaults** (default is true):
+   Whether to skip arguments that match the defaults provided by the extension.
+
+   Extensions often provide default values for some of the parameters. For example:
+   ```kotlin
+   fun Path.readLines(charset: Charset = Charsets.UTF_8): List<String> { return Files.readAllLines(this, charset) }
+   ```
+   This lint check will by default automatically omit parameters that match the default, so if your code was calling
+
+   ```kotlin
+   Files.readAllLines(file, Charset.UTF_8)
+   ```
+   lint would replace this with
+   ```kotlin
+   file.readLines()
+   ```
+   rather than
+
+   ```kotlin
+   file.readLines(Charset.UTF_8
+   ```
+   You can turn this behavior off using this option.
+
+   To configure this option, use a `lint.xml` file with an <option> like this:
+
+   ```xml
+   <lint>
+       <issue id="UseKtx">
+           <option name="remove-defaults" value="true" />
+       </issue>
+   </lint>
+   ```
+
+   **require-present** (default is true):
+   Whether to only offer extensions already available.
+
+   This option lets you only have lint suggest extension replacements if those extensions are already available on the class path (in other words, you're already depending on the library containing the extension method.)
+
+   To configure this option, use a `lint.xml` file with an <option> like this:
+
+   ```xml
+   <lint>
+       <issue id="UseKtx">
+           <option name="require-present" value="true" />
+       </issue>
+   </lint>
+   ```
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:315: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+            binding.songTime.text = "${formatTime(position)} / ${formatTime(m.durationMs)}"
+                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:377: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+            countText.text = "${apps.size} aplicaciones instaladas"
+                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:377: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+            countText.text = "${apps.size} aplicaciones instaladas"
+                                          ~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:674: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                        dashGForceLat.text = "%+.2f G".format(event.values[0] / 9.80665f)
+                                              ~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:675: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                        dashGForceLong.text = "%+.2f G".format(event.values[1] / 9.80665f)
+                                               ~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:677: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+                    Sensor.TYPE_GYROSCOPE -> dashGyroDetails.text = accelerationLabel + "\n" +
+                                                                    ~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:677: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+                    Sensor.TYPE_GYROSCOPE -> dashGyroDetails.text = accelerationLabel + "\n" +
+                                                                    ^
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:678: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                        "Giroscopio del equipo: X %+.1f°/s · Y %+.1f°/s · Z %+.1f°/s".format(
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:689: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+                dashGyroDetails.text = accelerationLabel + "\n" + getString(
+                                       ~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:689: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+                dashGyroDetails.text = accelerationLabel + "\n" + getString(
+                                       ^
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:700: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+                        dashGpsDetails.text = "${gps.status}\n$bearing · $altitude · $accuracy\n" +
+                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:700: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+                        dashGpsDetails.text = "${gps.status}\n$bearing · $altitude · $accuracy\n" +
+                                              ^
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:701: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+                            "Satélites usados: ${gps.satellitesUsed ?: "—"} / visibles: ${gps.satellitesVisible ?: "—"}"
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:701: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                            "Satélites usados: ${gps.satellitesUsed ?: "—"} / visibles: ${gps.satellitesVisible ?: "—"}"
+                             ~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:701: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                            "Satélites usados: ${gps.satellitesUsed ?: "—"} / visibles: ${gps.satellitesVisible ?: "—"}"
+                                                                           ~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:711: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+                        dashTempDetails.text = "Exterior OEM: $temperature\nBatería Android: $androidTemperature"
+                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:711: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                        dashTempDetails.text = "Exterior OEM: $temperature\nBatería Android: $androidTemperature"
+                                                ~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:711: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                        dashTempDetails.text = "Exterior OEM: $temperature\nBatería Android: $androidTemperature"
+                                                                            ~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:715: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+                        dashMcuStatus.text = "${oem.status} · Eventos: ${oem.frames}\n${oem.ageSummary}\n" +
+                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:715: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+                        dashMcuStatus.text = "${oem.status} · Eventos: ${oem.frames}\n${oem.ageSummary}\n" +
+                                             ^
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:715: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+                        dashMcuStatus.text = "${oem.status} · Eventos: ${oem.frames}\n${oem.ageSummary}\n" +
+                                             ^
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:715: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                        dashMcuStatus.text = "${oem.status} · Eventos: ${oem.frames}\n${oem.ageSummary}\n" +
+                                                           ~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MainActivity.kt:716: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+                            "${oem.voltageRequestStatus}\n${oem.temperatureRequestStatus}\n$profile · $accessoryText\n" +
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\java\com\mustangos\launcher\ui\MapScreen.kt:43: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                addView(TextView(context).apply { text = "Mapa de la pantalla"; setTextAppearance(R.style.Title) })
+                                                          ~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "SetTextI18n":
+   When calling TextView#setText
+   * Never call Number#toString() to format numbers; it will not handle
+   fraction separators and locale-specific digits properly. Consider using
+   String#format with proper format specifications (%d or %f) instead.
+   * Do not pass a string literal (e.g. "Hello") to display text. Hardcoded
+   text can not be properly translated to other languages. Consider using
+   Android resource strings instead.
+   * Do not build messages by concatenating text chunks. Such messages can not
+   be properly translated.
+
+   https://developer.android.com/guide/topics/resources/localization.html
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_launcher_settings.xml:10: Warning: Hardcoded string "Tu Mustang", should use @string resource [HardcodedText]
+            android:layout_weight="1" android:text="Tu Mustang" android:textSize="26sp" />
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_launcher_settings.xml:12: Warning: Hardcoded string "Cerrar", should use @string resource [HardcodedText]
+            android:layout_width="128dp" android:layout_height="52dp" android:text="Cerrar" />
+                                                                      ~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_launcher_settings.xml:19: Warning: Hardcoded string "MUSTANG OS", should use @string resource [HardcodedText]
+                android:text="MUSTANG OS" android:letterSpacing="0.16" />
+                ~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_launcher_settings.xml:21: Warning: Hardcoded string "Hecho parantu Mustang.", should use @string resource [HardcodedText]
+                android:text="Hecho para\ntu Mustang." android:textSize="30sp" android:layout_marginTop="12dp" />
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_launcher_settings.xml:23: Warning: Hardcoded string "Mustang convertible rojo", should use @string resource [HardcodedText]
+                android:src="@drawable/mustang_2010" android:scaleType="fitCenter" android:contentDescription="Mustang convertible rojo" />
+                                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_launcher_settings.xml:25: Warning: Hardcoded string "2010 · V6 4.0 · ConvertiblenConfigura tus preferencias estando estacionado.", should use @string resource [HardcodedText]
+                android:text="2010 · V6 4.0 · Convertible\nConfigura tus preferencias estando estacionado."
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_launcher_settings.xml:28: Warning: Hardcoded string "Versión 0.4.0", should use @string resource [HardcodedText]
+                android:text="Versión 0.4.0" android:layout_marginTop="16dp" />
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_vehicle_dashboard.xml:35: Warning: Hardcoded string "TELEMETRÍA Y SENSORES · MUSTANG 2010", should use @string resource [HardcodedText]
+                android:text="TELEMETRÍA Y SENSORES · MUSTANG 2010"
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_vehicle_dashboard.xml:72: Warning: Hardcoded string "VELOCIDAD GPS", should use @string resource [HardcodedText]
+                    android:text="VELOCIDAD GPS"
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_vehicle_dashboard.xml:99: Warning: Hardcoded string "km/h", should use @string resource [HardcodedText]
+                        android:text="km/h"
+                        ~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_vehicle_dashboard.xml:114: Warning: Hardcoded string "Rumbo: --° · Altitud: -- m · Precisión: -- m", should use @string resource [HardcodedText]
+                    android:text="Rumbo: --° · Altitud: -- m · Precisión: -- m"
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_vehicle_dashboard.xml:158: Warning: Hardcoded string "V", should use @string resource [HardcodedText]
+                        android:text="V"
+                        ~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_vehicle_dashboard.xml:280: Warning: Hardcoded string "ESTADO DE PUERTAS Y TEMPERATURA", should use @string resource [HardcodedText]
+                    android:text="ESTADO DE PUERTAS Y TEMPERATURA"
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_vehicle_dashboard.xml:311: Warning: Hardcoded string "Consultar temp exterior OEM", should use @string resource [HardcodedText]
+                    android:text="Consultar temp exterior OEM"
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_vehicle_dashboard.xml:339: Warning: Hardcoded string "OEM TWUtil · Tramas recibidas: 0", should use @string resource [HardcodedText]
+                android:text="OEM TWUtil · Tramas recibidas: 0"
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_vehicle_dashboard.xml:355: Warning: Hardcoded string "OriginalCar", should use @string resource [HardcodedText]
+                    android:text="OriginalCar"
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_vehicle_dashboard.xml:365: Warning: Hardcoded string "CarMate", should use @string resource [HardcodedText]
+                    android:text="CarMate"
+                    ~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_vehicle_dashboard.xml:375: Warning: Hardcoded string "Ajustes Ford", should use @string resource [HardcodedText]
+                    android:text="Ajustes Ford"
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "HardcodedText":
+   Hardcoding text attributes directly in layout files is bad for several
+   reasons:
+
+   * When creating configuration variations (for example for landscape or
+   portrait) you have to repeat the actual text (and keep it up to date when
+   making changes)
+
+   * The application cannot be translated to other languages by just adding
+   new translations for existing string resources.
+
+   There are quickfixes to automatically extract this hardcoded string into a
+   resource lookup.
+
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\activity_main.xml:18: Warning: When you define paddingStart you should probably also define paddingEnd for right-to-left symmetry [RtlSymmetry]
+                <TextView style="@style/Title" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:paddingStart="8dp" android:maxLines="1" android:ellipsize="end" android:text="@string/media_title" />
+                                                                                                                                         ~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\activity_main.xml:58: Warning: When you define paddingStart you should probably also define paddingEnd for right-to-left symmetry [RtlSymmetry]
+                <TextView style="@style/Title" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:paddingStart="8dp" android:maxLines="1" android:text="@string/navigation_title" />
+                                                                                                                                         ~~~~~~~~~~~~~~~~~~~~
+C:\Users\garci\Documents\ChatGPT\mustang OS\app\src\main\res\layout\dialog_launcher_settings.xml:33: Warning: When you define paddingEnd you should probably also define paddingStart for right-to-left symmetry [RtlSymmetry]
+                android:layout_height="wrap_content" android:orientation="vertical" android:paddingEnd="8dp" />
+                                                                                    ~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "RtlSymmetry":
+   If you specify padding or margin on the left side of a layout, you should
+   probably also specify padding on the right side (and vice versa) for
+   right-to-left layout symmetry.
+
+0 errors, 115 warnings

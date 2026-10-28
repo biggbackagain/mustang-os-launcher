@@ -1,6 +1,29 @@
-# Registro de verificación · Mustang OS 0.3.7
+# Registro de verificación · Mustang OS 0.4.0
 
-## Resultado actual 0.3.7
+## Resultado actual 0.4.0
+
+**161 pruebas app/núcleo y siete del servidor pasadas; cero fallos/errores.** Verificación integral con `scripts/verify.ps1`: pruebas, lint debug/release y ambos instaladores; `BUILD SUCCESSFUL` en 1 minuto 16 segundos. Lint: cero errores y 115 advertencias en ambas variantes, sin baseline ni supresiones nuevas. Los avisos pendientes incluyen textos españoles, sugerencias de layout/accesibilidad y APIs deprecadas; no sustituyen la validación física.
+
+- Instalador principal release: `output/MustangOS-0.4.0.apk`, alias `output/MustangOS.apk`.
+- Tamaño: 2 015 682 bytes; paquete `com.mustangos.launcher`, versión 0.4.0 / código 9, min SDK 26 / target 35.
+- SHA-256 release: `205FFCC228C6B923DF2BDA832608EFD66955917A5E4470637F1B6B02058D7399`.
+- Firma v2 verificada, certificado idéntico a 0.3.7; no debuggable según manifest/badging. Se conserva el certificado local existente para permitir actualización, sin generar/copiar llaves. R8 desactivado.
+- Variante debug: 2 644 117 bytes, SHA-256 `568812CD9EF10B47714E6F70E37D971F5D25484480056F603267602820B3CE70`.
+- Único permiso añadido: INTERNET para el mapa. No se añade GPS de fondo, permisos de Bluetooth/Wi-Fi, captura, accesibilidad ni privilegios OEM.
+
+Distribución local comprobada: página HTTP 200 con 0.4.0 y APK descargada por `http://192.168.100.2:8766/` idéntica por SHA-256 a la release firmada. Página/APK usan no-store para evitar versiones o tokens anteriores en caché; ayudante limitado a dos horas. La instalación desde la pantalla queda por comprobar.
+
+La suite cubre lectura/cancelación de portadas content URI (18 casos), identidad estable frente a copias Binder, cambio de fuente/canción, límites de bytes/dimensiones/tiempo, API multimedia existente, geodesia, caché HTTP, backoff, viewport, cancelación fuera de Main y rechazo de callbacks tardíos. Las regresiones de fallo parcial del mapa y recuperación por caché fallaban antes de su corrección. La cola cancelada se purga y las imágenes vencidas se retiran de memoria al reactivar.
+
+También se comprueban la ampliación/restauración de la misma vista de mapa, preferencias de pantalla y búsqueda sin acentos. Los fixtures modelan visibilidad WindowManager de Robolectric y esperan el callback asincrónico onDismiss; no se relaja el ciclo de vida de producción. Se retiró un atributo de estilo API 27 de la base min 26 en lugar de suprimir lint.
+
+Ninguna prueba automatizada solicita teselas de OpenStreetMap: usa transporte/fuente falsos con PNG locales. Una comprobación manual separada solicitó **solo una tesela global**, con UA MustangOS: HTTP 200, PNG de 6 799 bytes y cabecera Cache-Control válida. Esto verifica el proveedor desde el PC, no la conectividad de la pantalla.
+
+Renders revisados: home 1280×720 y 853×480, Apps, Ajustes y faros. Los valores ausentes permanecen ausentes. Apps usa etiquetas de muestra; el raster nocturno es una imagen sintética de prueba, no una ruta/cartografía o posición real. La atribución está dibujada dentro de la vista nativa, también en pantalla completa; no se obstruye con estado/controles.
+
+**Límites físicos pendientes:** GPS/Internet de la unidad, metadatos que publique ZLink y avisos ACC. El mapa Android integrado no extrae la ruta del iPhone ni ofrece giro a giro dentro del panel. No hay un ZIP nuevo 0.3.7/0.4.0 de la pantalla que permita cerrar la investigación del puente OEM. [Entrega y primer uso](docs/RELEASE_040.md).
+
+## Historial 0.3.7
 
 **112 pruebas app/núcleo y siete del servidor pasadas; cero fallos/errores.** Verificación completa con `scripts/verify.ps1`, `BUILD SUCCESSFUL` en 41 segundos. Lint: cero errores y 75 advertencias, sin cambios de permisos. Se conserva firma v2/certificado de 0.3.6.
 

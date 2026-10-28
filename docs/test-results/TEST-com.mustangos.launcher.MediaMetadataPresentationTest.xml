@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.mustangos.launcher.MediaMetadataPresentationTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-27T21:51:16.470Z" hostname="DESKTOP-3IU4CK5" time="0.124">
+<testsuite name="com.mustangos.launcher.MediaMetadataPresentationTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-28T03:08:35.234Z" hostname="DESKTOP-3IU4CK5" time="0.144">
   <properties/>
-  <testcase name="metadataCallbacksReplaceDisplayFallbackAndClearMissingValues" classname="com.mustangos.launcher.MediaMetadataPresentationTest" time="0.022"/>
-  <testcase name="contentArtworkUriIsReportedWithoutLoadingOrExportingItsContents" classname="com.mustangos.launcher.MediaMetadataPresentationTest" time="0.019"/>
-  <testcase name="everySessionIsInspectedWithoutMixingBluetoothMetadataIntoZlink" classname="com.mustangos.launcher.MediaMetadataPresentationTest" time="0.021"/>
-  <testcase name="displayFieldsArePresentationFallbacksWithoutInventingArtistFacts" classname="com.mustangos.launcher.MediaMetadataPresentationTest" time="0.024"/>
-  <testcase name="mainTextAndExistingAlbumBitmapRemainPreferred" classname="com.mustangos.launcher.MediaMetadataPresentationTest" time="0.019"/>
-  <testcase name="genericDescriptionDoesNotBecomeArtistOrSubtitle" classname="com.mustangos.launcher.MediaMetadataPresentationTest" time="0.019"/>
+  <testcase name="contentArtworkUriIsReportedWithoutExportingItsContents" classname="com.mustangos.launcher.MediaMetadataPresentationTest" time="0.037"/>
+  <testcase name="metadataCallbacksReplaceDisplayFallbackAndClearMissingValues" classname="com.mustangos.launcher.MediaMetadataPresentationTest" time="0.024"/>
+  <testcase name="everySessionIsInspectedWithoutMixingBluetoothMetadataIntoZlink" classname="com.mustangos.launcher.MediaMetadataPresentationTest" time="0.022"/>
+  <testcase name="displayFieldsArePresentationFallbacksWithoutInventingArtistFacts" classname="com.mustangos.launcher.MediaMetadataPresentationTest" time="0.02"/>
+  <testcase name="mainTextAndExistingAlbumBitmapRemainPreferred" classname="com.mustangos.launcher.MediaMetadataPresentationTest" time="0.02"/>
+  <testcase name="genericDescriptionDoesNotBecomeArtistOrSubtitle" classname="com.mustangos.launcher.MediaMetadataPresentationTest" time="0.02"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

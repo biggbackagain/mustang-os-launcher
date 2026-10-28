@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.mustangos.launcher.ContentArtworkTest" tests="18" skipped="0" failures="0" errors="0" timestamp="2026-10-28T03:08:05.844Z" hostname="DESKTOP-3IU4CK5" time="8.662">
+  <properties/>
+  <testcase name="permissionDenialProducesGenericStatusWithoutPrivateUri" classname="com.mustangos.launcher.ContentArtworkTest" time="2.941"/>
+  <testcase name="slowProviderTimesOutAndReceivesCancellation" classname="com.mustangos.launcher.ContentArtworkTest" time="4.874"/>
+  <testcase name="artAndDisplayIconUriFieldsAlsoProduceRealArtwork" classname="com.mustangos.launcher.ContentArtworkTest" time="0.139"/>
+  <testcase name="newMetadataWithTheSameUriStartsAFreshReadAndClearsTheOldImage" classname="com.mustangos.launcher.ContentArtworkTest" time="0.042"/>
+  <testcase name="unknownLengthContentStillHasAHardReadLimit" classname="com.mustangos.launcher.ContentArtworkTest" time="0.035"/>
+  <testcase name="sessionChangeInvalidatesOldUriEvenIfItsMetadataArrivesLate" classname="com.mustangos.launcher.ContentArtworkTest" time="0.052"/>
+  <testcase name="equivalentFreshMetadataOnPollDoesNotCancelOrReloadAnInflightCover" classname="com.mustangos.launcher.ContentArtworkTest" time="0.198"/>
+  <testcase name="changingSongCancelsTheOldProviderAndCannotPublishItsLateCover" classname="com.mustangos.launcher.ContentArtworkTest" time="0.028"/>
+  <testcase name="selectedUriPublishesArtworkAndKeepsUrisOutOfDiagnostics" classname="com.mustangos.launcher.ContentArtworkTest" time="0.051"/>
+  <testcase name="truncatedImageHasNoBitmap" classname="com.mustangos.launcher.ContentArtworkTest" time="0.028"/>
+  <testcase name="stoppingMediaClearsAndCancelsAnInflightCover" classname="com.mustangos.launcher.ContentArtworkTest" time="0.028"/>
+  <testcase name="contentProviderImageIsDecodedAndDownsampledWithoutMainThreadIo" classname="com.mustangos.launcher.ContentArtworkTest" time="0.048"/>
+  <testcase name="onlyTheSelectedSessionsUriIsOpened" classname="com.mustangos.launcher.ContentArtworkTest" time="0.028"/>
+  <testcase name="advertisedOversizedContentIsRejectedBeforeReadingPixels" classname="com.mustangos.launcher.ContentArtworkTest" time="0.026"/>
+  <testcase name="metadataCallbackReloadsChangedCoverWithTheSameUriAndIdenticalSongFields" classname="com.mustangos.launcher.ContentArtworkTest" time="0.052"/>
+  <testcase name="oversizedDimensionsAreRejectedBeforePixelDecode" classname="com.mustangos.launcher.ContentArtworkTest" time="0.038"/>
+  <testcase name="bitmapMetadataKeepsPriorityOverContentUri" classname="com.mustangos.launcher.ContentArtworkTest" time="0.027"/>
+  <testcase name="nonContentSchemesNeverReachTheProvider" classname="com.mustangos.launcher.ContentArtworkTest" time="0.025"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

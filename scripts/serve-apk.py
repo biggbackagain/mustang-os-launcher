@@ -1,4 +1,4 @@
-"""Serve only the debug APK on a chosen LAN interface, for at most two hours."""
+"""Serve only the selected APK on a chosen LAN interface, for at most two hours."""
 from argparse import ArgumentParser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -12,27 +12,28 @@ import uuid
 
 PAGE = """<!doctype html><html lang="es"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Descargar Mustang OS 0.3.7</title>
+<title>Mustang OS 0.4.0 · Cockpit</title>
 <style>body{background:#090b0f;color:#f4f5f7;font:20px system-ui;margin:0;padding:32px}
 main{max-width:760px;margin:24px auto;padding:32px;border:1px solid #303540;border-radius:24px;background:#11141a}
-h1{font-size:36px;margin:0 0 12px}span{color:#ff354a}p,li{line-height:1.6}small{color:#b0b5c0}
-a{display:block;background:#d9253b;color:white;text-decoration:none;padding:22px;text-align:center;border-radius:16px;font-weight:bold;margin:28px 0;font-size:22px}li{margin:12px 0}
-.badge{background:#1f2530;padding:4px 10px;border-radius:8px;font-size:14px;color:#ff354a;font-weight:bold}</style>
-<main><h1>MUSTANG <span>OS</span> <span class="badge">v0.3.7</span></h1>
-<small>Lectura multimedia ampliada y diagnóstico de integración CarPlay</small>
-<a href="/MustangOS.apk" download="MustangOS-debug.apk">Descargar Mustang OS 0.3.7</a>
-<ol><li>Descarga <b>MustangOS-debug.apk</b>.</li>
+h1{font-size:36px;margin:0 0 12px}span{color:#93d8ff}p,li{line-height:1.6}small{color:#b0b5c0}
+a{display:block;background:#93d8ff;color:#07131c;text-decoration:none;padding:22px;text-align:center;border-radius:16px;font-weight:bold;margin:28px 0;font-size:22px}li{margin:12px 0}
+.badge{background:#1f2530;padding:4px 10px;border-radius:8px;font-size:14px;color:#93d8ff;font-weight:bold}summary{cursor:pointer;padding:16px 0}</style>
+<main><h1>MUSTANG <span>OS</span> <span class="badge">v0.4.0</span></h1>
+<small>Cockpit · interfaz grafito y azul hielo inspirada en el Mustang reciente</small>
+<a href="/MustangOS.apk" download="MustangOS.apk">Descargar Mustang OS 0.4.0</a>
+<ol><li>Descarga <b>MustangOS.apk</b>.</li>
 <li>Abre el archivo y pulsa <b>Instalar / Actualizar</b>, conservando la aplicación anterior.</li>
 <li>Abre <b>MUSTANG OS</b> con el vehículo estacionado.</li></ol>
-<h2>Qué comprobar</h2>
+<h2>Qué incluye</h2>
 <ul>
-<li><b>Música:</b> conserva los controles que ya confirmaste y añade lectura de título/texto secundario alternativos de la sesión. Depende de lo que ZLink publique; no se conecta a una app de música específica del iPhone.</li>
-<li><b>Diagnóstico:</b> comprueba los campos de todas las sesiones sin exportar canciones. Añade código estático de Bluetooth/Música y del launcher OEM de sistema para investigar las interfaces que faltan.</li>
-<li><b>Mapas:</b> esta revisión todavía no integra el mapa en el panel. Necesitamos identificar la interfaz de superficie y entrada táctil de ZLink 6.1.06.</li>
+<li><b>Mapa Android en el panel:</b> desplazar, zoom, centrar GPS y ampliar a pantalla completa. Pulsa <b>Centrar</b> para activar la cartografía por Internet; usa el receptor de la pantalla.</li>
+<li><b>Audio:</b> conserva los controles CarPlay confirmados y amplía la lectura de portadas locales. Título y portada dependen de lo que publique ZLink para cualquier app del iPhone.</li>
+<li><b>Tu Mustang:</b> foto, caballo, faros de bienvenida y lecturas OEM disponibles con su antigüedad.</li>
+<li><b>Apps y ajustes:</b> búsqueda, iconos uniformes, configuración propia y preferencia de pantalla encendida.</li>
 </ul>
-<p><small>El usuario confirmó los controles de reproducción con el iPhone en 0.3.6. El título, portada y mapa del panel siguen requiriendo comprobación y un canal de datos disponible.</small></p>
-<h2>Enviar diagnóstico al PC</h2>
-<p>Con CarPlay conectado, deja una canción reproduciéndose y una ruta iniciada. Regresa con Home a Mustang OS. Abre <b>Ajustes → Diagnóstico y exportación → Compatibilidad OEM → Guardar ZIP</b>. Selecciona aquí ese ZIP nuevo de 0.3.7:</p>
+<p><small>El mapa del panel es Android, independiente de la ruta del iPhone. Necesita Internet en la pantalla y una ubicación válida para centrarla. La superficie CarPlay sigue dentro de ZLink. La APK principal es release con depuración desactivada y la firma anterior para actualizar.</small></p>
+<details><summary>Enviar diagnóstico al PC (opcional)</summary>
+<p>Con CarPlay conectado, deja una canción reproduciéndose y regresa con Home. Abre <b>Ajustes → Diagnóstico y exportación → Compatibilidad OEM → Guardar ZIP</b> y selecciona aquí el archivo nuevo:</p>
 <input id="report" type="file" accept=".zip,application/zip" style="font-size:18px;max-width:100%">
 <button id="send" style="font-size:20px;background:#1d222b;color:white;padding:20px;border:1px solid #4b5260;border-radius:12px;margin-top:16px">Enviar diagnóstico al PC</button>
 <p id="result" role="status"></p>
@@ -47,6 +48,7 @@ if(!response.ok)throw Error();result.textContent='Recibido en el PC.';
 }catch(error){result.textContent='No se pudo enviar. Comprueba que el PC y la pantalla siguen en la misma red Wi-Fi.';}finally{button.disabled=false;}
 };
 </script>
+</details>
 <p><small>El enlace requiere el PC encendido y la misma red; caduca dos horas después de iniciar el servidor.</small></p>
 </main></html>"""
 
@@ -55,7 +57,7 @@ def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--host", required=True, help="IPv4 local del PC")
     parser.add_argument("--port", type=int, default=8765)
-    parser.add_argument("--apk", type=Path, default=Path(__file__).resolve().parents[1] / "output" / "MustangOS-debug.apk")
+    parser.add_argument("--apk", type=Path, default=Path(__file__).resolve().parents[1] / "output" / "MustangOS.apk")
     parser.add_argument("--uploads", type=Path, default=Path(__file__).resolve().parents[1] / "output" / "device-reports")
     args = parser.parse_args()
 
@@ -117,6 +119,7 @@ def main():
             if path in ("", "/", "/index.html"):
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Cache-Control", "no-store")
                 self.send_header("Content-Length", str(len(page)))
                 self.end_headers()
                 if send_body:
@@ -127,7 +130,8 @@ def main():
                 stat = apk.stat()
                 self.send_response(200)
                 self.send_header("Content-Type", "application/vnd.android.package-archive")
-                self.send_header("Content-Disposition", 'attachment; filename="MustangOS-debug.apk"')
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("Content-Disposition", 'attachment; filename="MustangOS.apk"')
                 self.send_header("Content-Length", str(stat.st_size))
                 self.end_headers()
                 if send_body:

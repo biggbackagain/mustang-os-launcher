@@ -4,6 +4,8 @@ No requiere memoria USB, depuración USB ni contraseña de fábrica. La instalac
 
 ## Usar el enlace
 
+La entrega principal desde 0.4.0 es `MustangOS.apk`, variante release sin depuración y con la firma local anterior. El script toma `output/MustangOS.apk` por defecto; también permite `--apk` para fijar una entrega concreta.
+
 1. Mantén el PC encendido y conectado a la misma red que la pantalla.
 2. En el navegador de la pantalla, introduce `http://IP_DEL_PC:8765/` usando la IPv4 local del PC.
 3. Pulsa **Descargar Mustang OS**, abre la descarga y confirma **Instalar**. Si Android lo solicita, permite al navegador instalar aplicaciones desconocidas.

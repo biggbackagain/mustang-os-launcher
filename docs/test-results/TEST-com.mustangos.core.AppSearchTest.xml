@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.mustangos.core.AppSearchTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-28T02:28:23.812Z" hostname="DESKTOP-3IU4CK5" time="0.028">
+  <properties/>
+  <testcase name="accentsCaseAndWhitespaceDoNotPreventFindingApps" classname="com.mustangos.core.AppSearchTest" time="0.027"/>
+  <testcase name="clearingSearchRestoresAllAppsInOriginalOrder" classname="com.mustangos.core.AppSearchTest" time="0.001"/>
+  <testcase name="searchUsesAppLabelsAndDoesNotMatchHiddenPackageNames" classname="com.mustangos.core.AppSearchTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

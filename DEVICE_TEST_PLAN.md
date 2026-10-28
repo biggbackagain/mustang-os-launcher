@@ -1,5 +1,7 @@
 # Pruebas en el equipo · vehículo estacionado
 
+Entrega **0.4.0**: instalar release sobre la anterior, comprobar mapa Android al pulsar Centrar con Internet/GPS de la unidad, pan/zoom y ampliación/restauración; revisar búsqueda de Apps y preferencias; repetir controles CarPlay conservados y revisar portada/metadatos publicados. El mapa no es la ruta del iPhone. [Primer uso y alcance](docs/RELEASE_040.md). Las pruebas locales y la firma compatible están verificadas; no se marcan estas filas físicas como superadas.
+
 Actualización **0.3.7**: controles CarPlay confirmados por el usuario en 0.3.6. Título/artista/portada siguen ausentes en Mustang OS aunque aparecen dentro de CarPlay. El panel de mapa es un acceso a ZLink y no cumple todavía la navegación integrada solicitada. Se requiere [esta nueva captura de compatibilidad](docs/UPDATE_037.md), que añade campos crudos y clientes HOME/BT/Música. No marcar metadatos ni mapa como verificados por las pruebas locales.
 
 La **0.3.6** requiere la nueva comprobación descrita en [docs/UPDATE_036.md](docs/UPDATE_036.md): pausa/reanudar del iPhone, apertura de portada/Música hacia CarPlay, datos OEM retenidos con edad, estado de GPS y bienvenida/avisos ACC. Sus tests locales no marcan como superadas las filas de hardware. El usuario confirmó que siguiente ya funcionaba en su 0.3.5; debe comprobarse que conserve ese comportamiento con un solo envío por pulsación.

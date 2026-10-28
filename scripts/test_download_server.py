@@ -52,6 +52,8 @@ class DownloadServerTest(unittest.TestCase):
 
     def test_apk_download_is_identical(self):
         with urllib.request.urlopen(self.base + "/MustangOS.apk") as response:
+            self.assertEqual("no-store", response.headers.get("Cache-Control"))
+            self.assertIn('filename="MustangOS.apk"', response.headers.get("Content-Disposition", ""))
             self.assertEqual(hashlib.sha256(response.read()).digest(), hashlib.sha256(self.apk.read_bytes()).digest())
 
     def test_server_closes_after_two_hours_without_waiting_in_real_time(self):

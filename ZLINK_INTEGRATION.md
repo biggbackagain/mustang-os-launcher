@@ -1,5 +1,7 @@
 # ZLink / CarPlay: investigación y contrato de Mustang OS
 
+Actualización 0.4.0: el botón de mapa ya no duplica abrir ZLink: amplía el mapa Android real del panel. Esto sigue siendo independiente de la ruta/superficie del iPhone. Se añade lectura acotada de portadas content URI; no se cambian los controles que el usuario confirmó. [Entrega y límites](docs/RELEASE_040.md).
+
 Actualización 0.3.7: pausa/reanudar y cambios de canción **confirmados por el usuario con el iPhone** en 0.3.6. La información aparece dentro de CarPlay/Apple Music pero no en el launcher. Se corrige la omisión de DISPLAY_TITLE/DISPLAY_SUBTITLE y se inspeccionan todas las sesiones sin contenido privado; también se amplía la exportación a clientes HOME/BT/Música. La independencia de la app del teléfono depende de lo que publique ZLink, sin integración específica con Apple Music. Mapa interactivo aún pendiente del contrato de superficie. [Detalle y nueva evidencia necesaria](docs/UPDATE_037.md).
 
 La 0.3.6 corrige controles y accesos sobre los cambios del usuario: una sola entrega dirigida por pulsación, toggle cuando el estado OEM es desconocido, portada/Música hacia el CarPlay configurado y mapa del panel que abre ZLink. Esto no integra la superficie de CarPlay en el launcher ni demuestra el cambio efectivo de reproducción en el iPhone. [Detalles y comprobación](docs/UPDATE_036.md).

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.mustangos.launcher.navigation.MapTileRepositoryTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-28T03:08:38.004Z" hostname="DESKTOP-3IU4CK5" time="0.141">
+  <properties/>
+  <testcase name="cancellationMarksImmediatelyAndRunsPotentiallyBlockingCloseHookOffCallerThread" classname="com.mustangos.launcher.navigation.MapTileRepositoryTest" time="0.005"/>
+  <testcase name="invalidBodiesAndUnsafeValidatorHeadersAreNotAccepted" classname="com.mustangos.launcher.navigation.MapTileRepositoryTest" time="0.038"/>
+  <testcase name="noStoreDoesNotPersistAndNoCacheNeverServesOfflineWithoutValidation" classname="com.mustangos.launcher.navigation.MapTileRepositoryTest" time="0.015"/>
+  <testcase name="cancellationDropsResponseAndDoesNotWriteTile" classname="com.mustangos.launcher.navigation.MapTileRepositoryTest" time="0.001"/>
+  <testcase name="expiredTilesAreRevalidatedWithEtagAndLastModified" classname="com.mustangos.launcher.navigation.MapTileRepositoryTest" time="0.021"/>
+  <testcase name="rateLimitBackoffAppliesAcrossVisibleTilesWithoutBypassingCache" classname="com.mustangos.launcher.navigation.MapTileRepositoryTest" time="0.004"/>
+  <testcase name="staleMustRevalidateCannotMasqueradeAsOfflineCurrentMap" classname="com.mustangos.launcher.navigation.MapTileRepositoryTest" time="0.017"/>
+  <testcase name="boundedCacheEvictsLeastRecentlyUsedOwnedTilesAndKeepsUnrelatedFiles" classname="com.mustangos.launcher.navigation.MapTileRepositoryTest" time="0.016"/>
+  <testcase name="endpointAndUserAgentMustBeExplicitAndSafe" classname="com.mustangos.launcher.navigation.MapTileRepositoryTest" time="0.003"/>
+  <testcase name="fallbackCacheIsAtLeastSevenDaysAndOfflineDoesNotContactServer" classname="com.mustangos.launcher.navigation.MapTileRepositoryTest" time="0.01"/>
+  <testcase name="dateAndExpiresHonorAgeAndMalformedHeadersUseFallback" classname="com.mustangos.launcher.navigation.MapTileRepositoryTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

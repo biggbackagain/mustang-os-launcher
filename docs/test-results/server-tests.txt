@@ -7,7 +7,7 @@ test_upload_requires_page_token (__main__.DownloadServerTest.test_upload_require
 test_zip_stored_without_extracting_or_executing (__main__.DownloadServerTest.test_zip_stored_without_extracting_or_executing) ... ok
 
 ----------------------------------------------------------------------
-Ran 7 tests in 0.681s
+Ran 7 tests in 0.666s
 
 OK
 Servidor listo en http://127.0.0.1:8765/ sirviendo test.apk (19 bytes)

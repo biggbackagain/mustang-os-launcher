@@ -1,4 +1,6 @@
-# Datos nativos y CarPlay integrado · investigación 0.3.7
+# Datos nativos y CarPlay integrado · investigación 0.4.0
+
+La 0.4.0 ofrece **mapa Android nativo** dentro de la tarjeta y a pantalla completa. Usa la posición Android, no extrae la ruta del iPhone. Incorpora portadas content URI de la fuente y una interfaz de producto renovada. [Funciones y datos de red](docs/RELEASE_040.md). La integración de la superficie CarPlay sigue pendiente del contrato del proveedor.
 
 Los controles CarPlay de 0.3.6 fueron confirmados por el usuario. La 0.3.7 añade campos alternativos y evidencia de todas las sesiones/clientes OEM; metadatos y mapa integrado no están confirmados. [Estado actual y captura necesaria](docs/UPDATE_037.md).
 
@@ -61,4 +63,4 @@ La 0.3.2 mantiene la suscripción pasiva por defecto y añade una acción manual
 
 El ZIP contiene informe técnico, manifiestos y archivos DEX estáticos de una lista limitada de apps OEM visibles. No incluye preferencias, cuentas, datos de activación almacenados, contenidos de notificaciones, coordenadas ni identificadores del equipo. Se limita el tamaño de cada entrada y el total. Si el sistema no permite leer un archivo, queda anotado y se continúa sin elevar permisos.
 
-El servidor guarda el ZIP recibido sin descomprimir ni ejecutar su contenido y no lo publica por HTTP. La recepción exige un token de la página y rechaza peticiones desde otro origen. La APK sigue sin permiso de Internet: el envío lo realiza Chrome después de que el usuario elija el archivo.
+El servidor guarda el ZIP recibido sin descomprimir ni ejecutar su contenido y no lo publica por HTTP. La recepción exige un token de la página y rechaza peticiones desde otro origen. El envío lo realiza el navegador después de que el usuario elija el archivo. Desde 0.4.0 la APK tiene INTERNET para cartografía, pero no envía el ZIP ni coordenadas de diagnóstico por su cuenta.

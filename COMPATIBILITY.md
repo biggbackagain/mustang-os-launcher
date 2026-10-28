@@ -2,6 +2,8 @@
 
 ## Equipo objetivo
 
+Estado **0.4.0**: mapa Android nativo en el panel con zoom/centrado/ampliación, portadas content URI limitadas, búsqueda y ajustes de producto. Se añade INTERNET para cartografía, desactivada hasta Centrar/Ajustes. La ruta del iPhone sigue sin superficie ZLink integrada. [Entrega y límites](docs/RELEASE_040.md).
+
 Estado 0.3.7: controles confirmados con el iPhone en 0.3.6; metadatos y mapa integrado siguen pendientes. Se corrige la omisión de campos DISPLAY y el ZIP añade clientes HOME/BT/Música que faltaban. [Nueva evidencia necesaria y límites](docs/UPDATE_037.md).
 
 Estado 0.3.6: [correcciones actuales](docs/UPDATE_036.md) sobre los cambios del usuario, conservados en `8c31274`. Los datos OEM anteriores se retienen con su antigüedad, sin convertir BatteryManager en voltaje del coche o temperatura exterior. Las consultas usan formatos fijos observados en la unidad. Multimedia evita envíos duplicados y abre CarPlay para la fuente del teléfono. GPS distingue red/GNSS y ACC se observa sin controles de potencia. La verificación física de esta revisión sigue pendiente. La superficie CarPlay dentro del panel continúa sin contrato disponible.
@@ -24,7 +26,7 @@ La app consulta `Build.VERSION.SDK_INT` y muestra también `Build.VERSION.RELEAS
 - Iconos vectoriales propios y una imagen JPEG de 900×600 (~85 KB) en `drawable-nodpi`, sin motor 3D.
 - Animación de velocidad de 280 ms, cancelable y respetando las animaciones del sistema. No hay animaciones continuas de fondo.
 - GPS a intervalos mínimos de un segundo solo con el launcher visible. Lecturas sin velocidad, fuera de orden, con precisión horizontal >50 m, precisión de velocidad >5 m/s o antigüedad >5 s se rechazan. Filtro exponencial y parada a cero cuando existe una medición real <1 km/h. No deriva velocidad por distancia entre coordenadas.
-- Portadas limitadas a 384 px; no se siguen URLs de portada ni se descarga información de Internet.
+- Portadas limitadas a 384 px; bitmap o content URI de la sesión elegida, máximo 4 MiB y sin URLs remotas. El mapa sí descarga imágenes HTTPS del área vista, con caché y límites; no carga recorridos ni mapas por anticipado.
 - No se solicitan audio focus ni capturas de pantalla; no se envían teclas multimedia globales. El único envío de teclas es dirigido al MediaController elegido si este solo admite play/pause combinado.
 
 ## Matriz de estado

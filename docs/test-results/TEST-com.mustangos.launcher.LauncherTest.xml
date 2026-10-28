@@ -1,30 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.mustangos.launcher.LauncherTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-27T21:50:51.254Z" hostname="DESKTOP-3IU4CK5" time="20.414">
+<testsuite name="com.mustangos.launcher.LauncherTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-28T03:08:26.590Z" hostname="DESKTOP-3IU4CK5" time="8.632">
   <properties/>
-  <testcase name="startsWithoutPermissionsAndRestoresAfterExternalApp" classname="com.mustangos.launcher.LauncherTest" time="6.547"/>
-  <testcase name="mapsPickerExcludesUnrelatedAppsAndInvalidSavedAssignment" classname="com.mustangos.launcher.LauncherTest" time="0.071"/>
-  <testcase name="diagnosticsExcludeContentAndIdentifiers" classname="com.mustangos.launcher.LauncherTest" time="0.124"/>
-  <testcase name="absentZlinkCannotLaunchOrClaimConnection" classname="com.mustangos.launcher.LauncherTest" time="0.03"/>
-  <testcase name="mediaWithoutAccessHasNoDataOrControls" classname="com.mustangos.launcher.LauncherTest" time="0.03"/>
-  <testcase name="dashboardLaysOutAtTargetResolutionWithLargeControls" classname="com.mustangos.launcher.LauncherTest" time="5.884"/>
-  <testcase name="motorPrimaryCloseKeepsOemEnabledAndDoesNotRequestTemperature" classname="com.mustangos.launcher.LauncherTest" time="0.671"/>
-  <testcase name="compactDensityKeepsMediaControlsInsideCard" classname="com.mustangos.launcher.LauncherTest" time="0.194"/>
-  <testcase name="detectsInstalledActivityAndLaunchesOnlySelectedComponent" classname="com.mustangos.launcher.LauncherTest" time="0.039"/>
-  <testcase name="startsAtMinimumAndModernApiWithoutPermissions[26]" classname="com.mustangos.launcher.LauncherTest" time="2.641"/>
-  <testcase name="startsAtMinimumAndModernApiWithoutPermissions" classname="com.mustangos.launcher.LauncherTest" time="4.075"/>
-  <testcase name="knownFirmwareAppsOpenWithoutInitialPicker" classname="com.mustangos.launcher.LauncherTest" time="0.034"/>
-  <testcase name="launchFailureExplainsMissingVendorPermission" classname="com.mustangos.launcher.LauncherTest" time="0.023"/>
-  <testcase name="removedPackageReturnsFailure" classname="com.mustangos.launcher.LauncherTest" time="0.028"/>
-  <testcase name="gpsWithoutPermissionKeepsSpeedUnavailable" classname="com.mustangos.launcher.LauncherTest" time="0.02"/>
+  <testcase name="startsWithoutPermissionsAndRestoresAfterExternalApp" classname="com.mustangos.launcher.LauncherTest" time="1.197"/>
+  <testcase name="mapsPickerExcludesUnrelatedAppsAndInvalidSavedAssignment" classname="com.mustangos.launcher.LauncherTest" time="0.045"/>
+  <testcase name="diagnosticsExcludeContentAndIdentifiers" classname="com.mustangos.launcher.LauncherTest" time="0.049"/>
+  <testcase name="absentZlinkCannotLaunchOrClaimConnection" classname="com.mustangos.launcher.LauncherTest" time="0.021"/>
+  <testcase name="mediaWithoutAccessHasNoDataOrControls" classname="com.mustangos.launcher.LauncherTest" time="0.027"/>
+  <testcase name="dashboardLaysOutAtTargetResolutionWithLargeControls" classname="com.mustangos.launcher.LauncherTest" time="0.158"/>
+  <testcase name="motorPrimaryCloseKeepsOemEnabledAndDoesNotRequestTemperature" classname="com.mustangos.launcher.LauncherTest" time="0.484"/>
+  <testcase name="compactDensityKeepsMediaControlsInsideCard" classname="com.mustangos.launcher.LauncherTest" time="0.15"/>
+  <testcase name="detectsInstalledActivityAndLaunchesOnlySelectedComponent" classname="com.mustangos.launcher.LauncherTest" time="0.038"/>
+  <testcase name="startsAtMinimumAndModernApiWithoutPermissions[26]" classname="com.mustangos.launcher.LauncherTest" time="2.474"/>
+  <testcase name="startsAtMinimumAndModernApiWithoutPermissions" classname="com.mustangos.launcher.LauncherTest" time="3.867"/>
+  <testcase name="knownFirmwareAppsOpenWithoutInitialPicker" classname="com.mustangos.launcher.LauncherTest" time="0.039"/>
+  <testcase name="launchFailureExplainsMissingVendorPermission" classname="com.mustangos.launcher.LauncherTest" time="0.026"/>
+  <testcase name="removedPackageReturnsFailure" classname="com.mustangos.launcher.LauncherTest" time="0.033"/>
+  <testcase name="gpsWithoutPermissionKeepsSpeedUnavailable" classname="com.mustangos.launcher.LauncherTest" time="0.021"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[Invalid ID 0x00000000.
-Invalid ID 0x00000000.
-Invalid ID 0x00000000.
-Invalid ID 0x00000000.
-Invalid ID 0x00000000.
-Invalid ID 0x00000000.
-Invalid ID 0x00000000.
-Invalid ID 0x00000000.
 Invalid ID 0x00000000.
 Invalid ID 0x00000000.
 Invalid ID 0x00000000.

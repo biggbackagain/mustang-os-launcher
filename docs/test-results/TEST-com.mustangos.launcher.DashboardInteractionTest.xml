@@ -1,19 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.mustangos.launcher.DashboardInteractionTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-27T21:51:11.683Z" hostname="DESKTOP-3IU4CK5" time="4.003">
+<testsuite name="com.mustangos.launcher.DashboardInteractionTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-28T03:08:14.511Z" hostname="DESKTOP-3IU4CK5" time="3.992">
   <properties/>
-  <testcase name="displayOnlyMetadataReachesDashboardAndExportWithoutExportingSongContents" classname="com.mustangos.launcher.DashboardInteractionTest" time="3.052"/>
-  <testcase name="musicDockAndArtworkOpenCarPlayForThePhoneBridge" classname="com.mustangos.launcher.DashboardInteractionTest" time="0.229"/>
-  <testcase name="unknownPlaybackDoesNotClaimPausedOrFabricateProgress" classname="com.mustangos.launcher.DashboardInteractionTest" time="0.206"/>
-  <testcase name="androidBatteryAndAbsentGpsAreNotPresentedAsVehicleMeasurements" classname="com.mustangos.launcher.DashboardInteractionTest" time="0.371"/>
-  <testcase name="carPlayRouteButtonDoesNotRequireAnAndroidMapsApp" classname="com.mustangos.launcher.DashboardInteractionTest" time="0.145"/>
+  <testcase name="displayOnlyMetadataReachesDashboardAndExportWithoutExportingSongContents" classname="com.mustangos.launcher.DashboardInteractionTest" time="2.643"/>
+  <testcase name="screenPreferenceCanBeChangedFromTheProductSettings" classname="com.mustangos.launcher.DashboardInteractionTest" time="0.42"/>
+  <testcase name="musicDockAndArtworkOpenCarPlayForThePhoneBridge" classname="com.mustangos.launcher.DashboardInteractionTest" time="0.221"/>
+  <testcase name="unknownPlaybackDoesNotClaimPausedOrFabricateProgress" classname="com.mustangos.launcher.DashboardInteractionTest" time="0.169"/>
+  <testcase name="androidBatteryAndAbsentGpsAreNotPresentedAsVehicleMeasurements" classname="com.mustangos.launcher.DashboardInteractionTest" time="0.367"/>
+  <testcase name="mapButtonExpandsAndRestoresTheNativeMapWithoutLaunchingCarPlay" classname="com.mustangos.launcher.DashboardInteractionTest" time="0.172"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[Invalid ID 0x00000000.
-Invalid ID 0x00000000.
-Invalid ID 0x00000000.
 Intent = Intent { act=android.intent.action.BATTERY_CHANGED (has extras) }; Matching wrappers: []
-Invalid ID 0x00000000.
-Invalid ID 0x00000000.
-Invalid ID 0x00000000.
 Invalid ID 0x00000000.
 Invalid ID 0x00000000.
 ]]></system-err>

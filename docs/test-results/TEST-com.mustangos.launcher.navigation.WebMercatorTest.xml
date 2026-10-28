@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.mustangos.launcher.navigation.WebMercatorTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-28T03:08:39.062Z" hostname="DESKTOP-3IU4CK5" time="0.002">
+  <properties/>
+  <testcase name="zoomPreservesCoordinateAndScaleUsesLatitude" classname="com.mustangos.launcher.navigation.WebMercatorTest" time="0.001"/>
+  <testcase name="publishedSlippyMapCoordinatesAndRoundTripRemainAccurate" classname="com.mustangos.launcher.navigation.WebMercatorTest" time="0.0"/>
+  <testcase name="polesClampAndAntimeridianWrapWithoutInvalidTileIndices" classname="com.mustangos.launcher.navigation.WebMercatorTest" time="0.001"/>
+  <testcase name="untrustedNonFiniteCoordinatesAndInvalidKeysAreRejected" classname="com.mustangos.launcher.navigation.WebMercatorTest" time="0.0"/>
+  <testcase name="viewportLoadsOnlyIntersectingTilesAndNeverAddsPrefetchRing" classname="com.mustangos.launcher.navigation.WebMercatorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

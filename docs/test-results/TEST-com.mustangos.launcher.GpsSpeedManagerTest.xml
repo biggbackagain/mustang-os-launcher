@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.mustangos.launcher.GpsSpeedManagerTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-27T21:51:16.223Z" hostname="DESKTOP-3IU4CK5" time="0.128">
+<testsuite name="com.mustangos.launcher.GpsSpeedManagerTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-28T03:08:25.448Z" hostname="DESKTOP-3IU4CK5" time="0.138">
   <properties/>
-  <testcase name="twoPositionsWithoutPublishedSpeedDoNotCreateSpeedFromJitter" classname="com.mustangos.launcher.GpsSpeedManagerTest" time="0.022"/>
+  <testcase name="twoPositionsWithoutPublishedSpeedDoNotCreateSpeedFromJitter" classname="com.mustangos.launcher.GpsSpeedManagerTest" time="0.02"/>
   <testcase name="disablingGpsRemovesSpeedWhileLabelledNetworkPositionCanRemain" classname="com.mustangos.launcher.GpsSpeedManagerTest" time="0.017"/>
-  <testcase name="vendorFixWithoutMonotonicTimeStillRequiresRecentWallClockTime" classname="com.mustangos.launcher.GpsSpeedManagerTest" time="0.017"/>
-  <testcase name="networkPositionNeverDrivesSpeedometerAndGpsDetailsDoNotInheritNetworkFields" classname="com.mustangos.launcher.GpsSpeedManagerTest" time="0.017"/>
+  <testcase name="vendorFixWithoutMonotonicTimeStillRequiresRecentWallClockTime" classname="com.mustangos.launcher.GpsSpeedManagerTest" time="0.016"/>
+  <testcase name="networkPositionNeverDrivesSpeedometerAndGpsDetailsDoNotInheritNetworkFields" classname="com.mustangos.launcher.GpsSpeedManagerTest" time="0.015"/>
   <testcase name="stopReleasesBothProvidersAndRejectsFurtherCallbacks" classname="com.mustangos.launcher.GpsSpeedManagerTest" time="0.022"/>
-  <testcase name="oldOrInaccurateCallbacksCannotBorrowPreviousAccuracyOrRefreshSpeed" classname="com.mustangos.launcher.GpsSpeedManagerTest" time="0.017"/>
+  <testcase name="oldOrInaccurateCallbacksCannotBorrowPreviousAccuracyOrRefreshSpeed" classname="com.mustangos.launcher.GpsSpeedManagerTest" time="0.015"/>
   <testcase name="recentGpsCacheProducesRealReadingWithoutWaitingForNextCallback" classname="com.mustangos.launcher.GpsSpeedManagerTest" time="0.015"/>
+  <testcase name="mapCoordinatesAreVolatileFreshMeasurementsAndDisappearWithFix" classname="com.mustangos.launcher.GpsSpeedManagerTest" time="0.016"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[Intent = Intent { act=android.location.PROVIDERS_CHANGED (has extras) }; Matching wrappers: []
+Intent = Intent { act=android.location.PROVIDERS_CHANGED (has extras) }; Matching wrappers: []
 Intent = Intent { act=android.location.PROVIDERS_CHANGED (has extras) }; Matching wrappers: []
 Intent = Intent { act=android.location.PROVIDERS_CHANGED (has extras) }; Matching wrappers: []
 Intent = Intent { act=android.location.PROVIDERS_CHANGED (has extras) }; Matching wrappers: []

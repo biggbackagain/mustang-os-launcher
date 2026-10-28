@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.mustangos.launcher.MediaRoutingTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-27T21:51:16.615Z" hostname="DESKTOP-3IU4CK5" time="0.281">
+<testsuite name="com.mustangos.launcher.MediaRoutingTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-28T03:08:35.398Z" hostname="DESKTOP-3IU4CK5" time="0.311">
   <properties/>
-  <testcase name="unknownThirdPartySessionCannotReceiveUnadvertisedControls" classname="com.mustangos.launcher.MediaRoutingTest" time="0.025"/>
+  <testcase name="unknownThirdPartySessionCannotReceiveUnadvertisedControls" classname="com.mustangos.launcher.MediaRoutingTest" time="0.021"/>
   <testcase name="stoppingCancelsPostCommandPollsAndDoesNotReselectInBackground" classname="com.mustangos.launcher.MediaRoutingTest" time="0.022"/>
-  <testcase name="btBridgeOpensCarplayAndHonorsConfiguredProjectionComponent" classname="com.mustangos.launcher.MediaRoutingTest" time="0.023"/>
-  <testcase name="missingExplicitAndroidSourceDoesNotLaunchDefaultMusicOrProjection" classname="com.mustangos.launcher.MediaRoutingTest" time="0.024"/>
-  <testcase name="configuredProjectionPermissionFailureDoesNotLaunchAnotherProjection" classname="com.mustangos.launcher.MediaRoutingTest" time="0.022"/>
-  <testcase name="mapCandidateLabelsAloneCannotTurnUnrelatedAppsIntoNavigation" classname="com.mustangos.launcher.MediaRoutingTest" time="0.017"/>
-  <testcase name="unknownOemPlaybackUsesOneToggleWithoutInventingPausedStateOrCapabilities" classname="com.mustangos.launcher.MediaRoutingTest" time="0.021"/>
-  <testcase name="mapCategoryCanIdentifyNavigationWithoutGuessingFromItsLabel" classname="com.mustangos.launcher.MediaRoutingTest" time="0.018"/>
-  <testcase name="revokedAccessIsClearedByPollingAndCannotDispatchControls" classname="com.mustangos.launcher.MediaRoutingTest" time="0.019"/>
-  <testcase name="absentExplicitSourceDoesNotFallBackToAnUnrelatedSession" classname="com.mustangos.launcher.MediaRoutingTest" time="0.022"/>
-  <testcase name="reportedPauseUsesTransportExactlyOnceWithoutMediaKeysOrBroadcasts" classname="com.mustangos.launcher.MediaRoutingTest" time="0.019"/>
-  <testcase name="nextOnLegacyOemUsesOneTransportWithoutDuplicateKeysOrBroadcasts" classname="com.mustangos.launcher.MediaRoutingTest" time="0.02"/>
-  <testcase name="explicitAndroidSourceOpensItselfInsteadOfConfiguredCarplay" classname="com.mustangos.launcher.MediaRoutingTest" time="0.026"/>
+  <testcase name="btBridgeOpensCarplayAndHonorsConfiguredProjectionComponent" classname="com.mustangos.launcher.MediaRoutingTest" time="0.025"/>
+  <testcase name="missingExplicitAndroidSourceDoesNotLaunchDefaultMusicOrProjection" classname="com.mustangos.launcher.MediaRoutingTest" time="0.033"/>
+  <testcase name="configuredProjectionPermissionFailureDoesNotLaunchAnotherProjection" classname="com.mustangos.launcher.MediaRoutingTest" time="0.025"/>
+  <testcase name="mapCandidateLabelsAloneCannotTurnUnrelatedAppsIntoNavigation" classname="com.mustangos.launcher.MediaRoutingTest" time="0.021"/>
+  <testcase name="unknownOemPlaybackUsesOneToggleWithoutInventingPausedStateOrCapabilities" classname="com.mustangos.launcher.MediaRoutingTest" time="0.022"/>
+  <testcase name="mapCategoryCanIdentifyNavigationWithoutGuessingFromItsLabel" classname="com.mustangos.launcher.MediaRoutingTest" time="0.02"/>
+  <testcase name="revokedAccessIsClearedByPollingAndCannotDispatchControls" classname="com.mustangos.launcher.MediaRoutingTest" time="0.02"/>
+  <testcase name="absentExplicitSourceDoesNotFallBackToAnUnrelatedSession" classname="com.mustangos.launcher.MediaRoutingTest" time="0.026"/>
+  <testcase name="reportedPauseUsesTransportExactlyOnceWithoutMediaKeysOrBroadcasts" classname="com.mustangos.launcher.MediaRoutingTest" time="0.021"/>
+  <testcase name="nextOnLegacyOemUsesOneTransportWithoutDuplicateKeysOrBroadcasts" classname="com.mustangos.launcher.MediaRoutingTest" time="0.022"/>
+  <testcase name="explicitAndroidSourceOpensItselfInsteadOfConfiguredCarplay" classname="com.mustangos.launcher.MediaRoutingTest" time="0.031"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

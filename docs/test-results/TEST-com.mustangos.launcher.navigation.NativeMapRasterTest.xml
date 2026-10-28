@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.mustangos.launcher.navigation.NativeMapRasterTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-28T03:08:38.161Z" hostname="DESKTOP-3IU4CK5" time="0.754">
+  <properties/>
+  <testcase name="rasterTilesUseNightPaletteAndPinRequiresAnActualLocation" classname="com.mustangos.launcher.navigation.NativeMapRasterTest" time="0.317"/>
+  <testcase name="returningToFullyCachedViewportClearsFailuresFromAnotherZoomWithoutFetchingAgain" classname="com.mustangos.launcher.navigation.NativeMapRasterTest" time="0.033"/>
+  <testcase name="resumedViewDoesNotFlashExpiredMemoryBeforeCacheRevalidation" classname="com.mustangos.launcher.navigation.NativeMapRasterTest" time="0.356"/>
+  <testcase name="successfulTilesCannotHideAnotherVisibleTileFailure" classname="com.mustangos.launcher.navigation.NativeMapRasterTest" time="0.048"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
