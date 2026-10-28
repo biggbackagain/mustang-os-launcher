@@ -33,4 +33,7 @@
     <dimen name="map_controls_margin">6dp</dimen>
     <dimen name="map_controls_vertical_gap">0dp</dimen>
     <dimen name="map_controls_horizontal_gap">4dp</dimen>
+    <dimen name="settings_outer_padding">16dp</dimen>
+    <dimen name="settings_vehicle_height">112dp</dimen>
+    <dimen name="settings_hero_title_size">26sp</dimen>
 </resources>

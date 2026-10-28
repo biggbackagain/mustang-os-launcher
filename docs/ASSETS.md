@@ -1,5 +1,7 @@
 # Recursos visuales
 
+El trabajo local posterior utiliza azul medianoche y pictogramas propios de trazo 1.65; conserva el caballo atribuido, ampliado con tribar en Ajustes. Las fotos seleccionadas por el usuario se copian únicamente al almacenamiento privado de la app; no se incluyen en Git, ZIP de compatibilidad ni estos assets. No se han publicado nuevos renders/instaladores de este trabajo.
+
 La 0.4.0 utiliza el lenguaje grafito/azul hielo del [cockpit S650 descrito por Ford](https://mustang.fordmedia.eu/) como inspiración, sin copiar su software ni incorporar imágenes del fabricante. La cartografía se solicita a OpenStreetMap en ejecución con atribución visible; no se empaquetan teselas reales en el APK/código fuente. `docs/map-local-raster-night.png` es un raster sintético generado por el fixture de pruebas para comprobar Canvas, color, posición y atribución; no representa una calle ni una ruta real.
 
 - `app/src/main/res/drawable-nodpi/mustang_2010.jpg`: asset generado con la herramienta integrada imagegen. Ford Mustang 2010 V6 4.0L convertible rojo, capota cerrada negra, tres cuartos frontal. JPEG 900×600, unos 85 KB. Se optimizó tamaño y compresión sin alterar el contenido generado. Es una interpretación gráfica del modelo solicitado, no una fotografía del vehículo particular.

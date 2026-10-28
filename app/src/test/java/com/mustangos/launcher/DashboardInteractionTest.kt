@@ -23,6 +23,11 @@ import com.mustangos.launcher.media.MediaAccessService
 import com.mustangos.launcher.diagnostics.DiagnosticReporter
 import com.mustangos.launcher.ui.LauncherViewModel
 import com.mustangos.launcher.ui.MainActivity
+import com.mustangos.launcher.settings.LauncherSettings
+import com.mustangos.core.MustangProfile
+import com.mustangos.core.MustangVersion
+import com.mustangos.core.MustangBody
+import com.mustangos.core.MustangPaint
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -182,6 +187,22 @@ class DashboardInteractionTest {
         control.performClick()
         assertFalse(model.settings.keepScreenOn)
         assertEquals(0, activity.window.attributes.flags and android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        dialog.dismiss(); controller.pause().stop().destroy()
+    }
+
+    @Test fun chosenVehicleProfileAppearsOnHomeAndSettingsAfterRecreation() {
+        val selected = MustangProfile(2020, MustangVersion.SHELBY_GT500, MustangBody.FASTBACK, MustangPaint.BLUE)
+        LauncherSettings(app).mustangProfile = selected
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup().visible()
+        val activity = controller.get()
+        shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(selected.title, activity.findViewById<TextView>(R.id.vehicleProfileTitle).text.toString())
+        assertEquals(selected.subtitle, activity.findViewById<TextView>(R.id.vehicleProfileSubtitle).text.toString())
+        assertFalse(activity.findViewById<TextView>(R.id.vehicleProfileSubtitle).text.contains("4.0"))
+        controller.pause().stop().start().resume().visible()
+        activity.findViewById<View>(R.id.topSettings).performClick()
+        val dialog = ShadowDialog.getLatestDialog()
+        assertEquals("2020 · ${selected.subtitle}", dialog.findViewById<TextView>(R.id.settingsCarProfile).text.toString())
         dialog.dismiss(); controller.pause().stop().destroy()
     }
 

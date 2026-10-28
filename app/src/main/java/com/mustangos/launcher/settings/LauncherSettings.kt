@@ -2,6 +2,10 @@ package com.mustangos.launcher.settings
 
 import android.content.ComponentName
 import android.content.Context
+import com.mustangos.core.MustangProfile
+import com.mustangos.core.MustangVersion
+import com.mustangos.core.MustangBody
+import com.mustangos.core.MustangPaint
 
 class LauncherSettings(context: Context) {
     private val prefs = context.getSharedPreferences("launcher", Context.MODE_PRIVATE)
@@ -25,4 +29,13 @@ class LauncherSettings(context: Context) {
     var gpsPermissionPrompted: Boolean
         get() = prefs.getBoolean("gps_permission_prompted", false)
         set(value) { prefs.edit().putBoolean("gps_permission_prompted", value).apply() }
+    var mustangProfile: MustangProfile
+        get() = MustangProfile(
+            prefs.getInt("profile_year", 2010).takeIf { it in 1964..2099 } ?: 2010,
+            MustangVersion.entries.firstOrNull { it.name == prefs.getString("profile_version", null) } ?: MustangVersion.V6,
+            MustangBody.entries.firstOrNull { it.name == prefs.getString("profile_body", null) } ?: MustangBody.CONVERTIBLE,
+            MustangPaint.entries.firstOrNull { it.name == prefs.getString("profile_paint", null) } ?: MustangPaint.RED
+        )
+        set(value) { prefs.edit().putInt("profile_year", value.year).putString("profile_version", value.version.name)
+            .putString("profile_body", value.body.name).putString("profile_paint", value.paint.name).apply() }
 }

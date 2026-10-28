@@ -10,6 +10,9 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.Switch
 import android.widget.TextView
+import android.widget.ImageView
+import android.graphics.Bitmap
+import com.mustangos.core.MustangProfile
 import com.mustangos.launcher.R
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -29,6 +32,13 @@ class SettingsSheet(private val context: Context, onDismiss: () -> Unit) {
         dialog.setOnDismissListener { owner?.lifecycle?.removeObserver(observer); onDismiss() }
     }
     private fun dp(value: Int) = (value * context.resources.displayMetrics.density).toInt()
+    fun profile(profile: MustangProfile, photo: Bitmap?): SettingsSheet = apply {
+        view.findViewById<TextView>(R.id.settingsCarProfile).text = "${profile.year} · ${profile.subtitle}"
+        view.findViewById<ImageView>(R.id.settingsCarImage).apply {
+            contentDescription = profile.description
+            if (photo != null) setImageBitmap(photo)
+        }
+    }
     fun section(title: String): SettingsSheet = apply {
         rows.addView(TextView(context).apply {
             text = title; setTextAppearance(R.style.Muted); letterSpacing = .1f

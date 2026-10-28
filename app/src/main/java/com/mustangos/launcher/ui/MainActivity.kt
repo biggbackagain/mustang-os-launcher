@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.content.ComponentName
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.Bitmap
 import android.graphics.drawable.ColorDrawable
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -40,6 +41,7 @@ import com.mustangos.launcher.diagnostics.ErrorJournal
 import com.mustangos.launcher.diagnostics.CompatibilityExporter
 import com.mustangos.launcher.media.MediaUiState
 import com.mustangos.launcher.navigation.NativeMapView
+import com.mustangos.launcher.settings.ReferenceImageStore
 import kotlinx.coroutines.*
 import kotlin.math.roundToInt
 
@@ -53,6 +55,21 @@ class MainActivity : ComponentActivity() {
     private var appsDialog: AlertDialog? = null
     private var appDrawerJob: Job? = null
     private val mediaLabels = mutableMapOf<String, String>()
+    private val referenceImageStore by lazy { ReferenceImageStore(applicationContext) }
+    private var profilePhoto: Bitmap? = null
+    private var profilePhotoLoaded = false
+    private var profilePhotoJob: Job? = null
+    private var profileImportJob: Job? = null
+    private val chooseReferenceImage = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            profileImportJob?.cancel()
+            profileImportJob = lifecycleScope.launch {
+                toast("Preparando imagen de referencia…")
+                if (referenceImageStore.import(uri)) { refreshProfilePhoto(force = true); toast("Imagen de referencia guardada") }
+                else toast("No se pudo abrir la imagen. Usa una foto de hasta 12 MB.")
+            }
+        }
+    }
     private val locationPermission = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         model.gps.start()
     }
@@ -91,6 +108,7 @@ class MainActivity : ComponentActivity() {
         }
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        applyMustangProfile()
         applyScreenPreference()
         nativeMap = NativeMapView(this).apply {
             setNetworkEnabled(model.settings.mapNetworkEnabled)
@@ -236,6 +254,39 @@ class MainActivity : ComponentActivity() {
         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
+    private fun applyMustangProfile() {
+        val profile = model.settings.mustangProfile
+        binding.vehicleProfileTitle.text = profile.title
+        binding.vehicleProfileSubtitle.text = profile.subtitle
+        binding.vehicleProfileHeader.text = profile.header
+        binding.carImage.contentDescription = profile.description
+        binding.carImage.lampOverlayEnabled = !referenceImageStore.hasImage()
+        refreshProfilePhoto()
+    }
+
+    private fun refreshProfilePhoto(force: Boolean = false) {
+        if (!force && (profilePhotoLoaded || profilePhotoJob?.isActive == true)) return
+        profilePhotoJob?.cancel()
+        profilePhotoJob = lifecycleScope.launch {
+            val photo = referenceImageStore.load()
+            profilePhoto = photo; profilePhotoLoaded = true
+            binding.carImage.lampOverlayEnabled = photo == null
+            if (photo == null) binding.carImage.setImageResource(R.drawable.mustang_2010)
+            else binding.carImage.setImageBitmap(photo)
+            model.vehicle.accessoryOn.value?.let { binding.carImage.setHeadlightsOn(it) }
+        }
+    }
+
+    private fun showMustangProfile() {
+        pauseMapForMenu()
+        MustangProfileSheet(this, model.settings.mustangProfile, referenceImageStore.hasImage(),
+            onSave = { model.settings.mustangProfile = it; applyMustangProfile() },
+            onChoosePhoto = { runCatching { chooseReferenceImage.launch(arrayOf("image/*")) }
+                .onFailure { toast("El selector de imágenes no está disponible en este equipo") }; Unit },
+            onClearPhoto = { profileImportJob?.cancel(); lifecycleScope.launch { referenceImageStore.clear(); refreshProfilePhoto(force = true) } },
+            onDismiss = ::restoreMapAfterMenu).show()
+    }
+
     private fun followMap() {
         model.settings.mapNetworkEnabled = true
         nativeMap.setNetworkEnabled(true)
@@ -279,7 +330,9 @@ class MainActivity : ComponentActivity() {
         binding.albumArt.visibility = if (ui.artwork == null) View.GONE else View.VISIBLE
         binding.artPlaceholder.visibility = if (ui.artwork == null) View.VISIBLE else View.GONE
         binding.artHint.text = if (m.source == null) "Tu música, en CarPlay" else ui.coverStatus
-        binding.mediaStatus.text = m.source?.let { "Fuente · ${mediaLabel(it)}" } ?: "Elige una fuente multimedia"
+        val sourcePackage = m.source
+        binding.mediaStatus.text = if (sourcePackage != null && ui.status.startsWith("Sesión Android"))
+            "Fuente · ${mediaLabel(sourcePackage)}" else ui.status
         binding.playPause.setImageResource(when {
             !ui.playbackStateKnown -> R.drawable.ic_play_pause
             m.playing -> R.drawable.ic_pause
@@ -366,6 +419,7 @@ class MainActivity : ComponentActivity() {
             if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return@launch
 
             val view = layoutInflater.inflate(R.layout.dialog_app_drawer, null)
+            profilePhoto?.let { view.findViewById<ImageView>(R.id.drawerWallpaper).setImageBitmap(it) }
             val dialog = AlertDialog.Builder(this@MainActivity, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
                 .setView(view)
                 .create()
@@ -522,6 +576,9 @@ class MainActivity : ComponentActivity() {
     private fun showSettings() {
         pauseMapForMenu()
         SettingsSheet(this, ::restoreMapAfterMenu)
+            .profile(model.settings.mustangProfile, profilePhoto)
+            .section("MI MUSTANG")
+            .action("Mi Mustang", "Año, versión, carrocería, color e imagen", ::showMustangProfile)
             .section("CONEXIONES")
             .action("CarPlay", "Aplicación de conexión del iPhone") { chooseApp("zlink", false) }
             .action("Audio", "Fuente de reproducción y acceso multimedia", ::mediaSources)
@@ -620,7 +677,7 @@ class MainActivity : ComponentActivity() {
     private fun showVehicleData() {
         val view = layoutInflater.inflate(R.layout.dialog_vehicle_dashboard, null)
         val dialog = AlertDialog.Builder(this)
-            .setTitle("Telemetría y sensores · Ford Mustang 2010")
+            .setTitle("Motor · Mustang ${model.settings.mustangProfile.year}")
             .setView(view)
             .setPositiveButton("Cerrar", null)
             .setNegativeButton(if (model.settings.oemReadEnabled) "Detener lectura OEM" else "Activar lectura OEM") { _, _ ->

@@ -1,16 +1,5 @@
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="240dp"
-    android:height="120dp"
-    android:viewportWidth="240"
-    android:viewportHeight="120">
-    <!-- Mustang Tri-Bar vertical stripes: Red, White, Blue -->
-    <path
-        android:fillColor="#CCFF1A2A"
-        android:pathData="M 108,0 L 116,0 L 116,120 L 108,120 Z"/>
-    <path
-        android:fillColor="#CCFFFFFF"
-        android:pathData="M 116,0 L 124,0 L 124,120 L 116,120 Z"/>
-    <path
-        android:fillColor="#CC0A58CA"
-        android:pathData="M 124,0 L 132,0 L 132,120 L 124,120 Z"/>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="240dp" android:height="120dp" android:viewportWidth="240" android:viewportHeight="120">
+    <path android:fillColor="@color/ui_brand_wine" android:pathData="M 108,0 L 116,0 L 116,120 L 108,120 Z" />
+    <path android:fillColor="@color/ui_brand_white" android:pathData="M 116,0 L 124,0 L 124,120 L 116,120 Z" />
+    <path android:fillColor="@color/ui_brand_blue" android:pathData="M 124,0 L 132,0 L 132,120 L 124,120 Z" />
 </vector>

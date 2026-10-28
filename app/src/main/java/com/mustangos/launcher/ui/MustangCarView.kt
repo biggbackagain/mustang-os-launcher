@@ -21,6 +21,8 @@ class MustangCarView @JvmOverloads constructor(
 ) : ImageView(context, attrs, defStyleAttr) {
     private var lightLevel = 0f
     private var animator: ValueAnimator? = null
+    var lampOverlayEnabled: Boolean = true
+        set(value) { field = value; if (!value) stopAnimation(); invalidate() }
     private val nearGlow = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         shader = RadialGradient(339f, 306f, 42f,
             intArrayOf(Color.argb(220, 245, 251, 255), Color.argb(120, 182, 218, 255), Color.TRANSPARENT),
@@ -37,6 +39,7 @@ class MustangCarView @JvmOverloads constructor(
     val isLightAnimationRunning: Boolean get() = animator?.isRunning == true
 
     fun setHeadlightsOn(on: Boolean, animate: Boolean = false) {
+        if (!lampOverlayEnabled) { stopAnimation(); return }
         animator?.cancel()
         animator = null
         val target = if (on) 1f else 0f
@@ -52,6 +55,7 @@ class MustangCarView @JvmOverloads constructor(
 
     /** A short welcome effect, distinct from a confirmed ACC or engine reading. */
     fun playWelcomeLights() {
+        if (!lampOverlayEnabled) return
         animator?.cancel()
         animator = ValueAnimator.ofFloat(0f, .9f, .9f, 0f).apply {
             duration = 1600
@@ -74,7 +78,7 @@ class MustangCarView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         val image = drawable ?: return
-        if (lightLevel <= 0f || image.intrinsicWidth <= 0 || image.intrinsicHeight <= 0) return
+        if (!lampOverlayEnabled || lightLevel <= 0f || image.intrinsicWidth <= 0 || image.intrinsicHeight <= 0) return
         val checkpoint = canvas.save()
         canvas.clipRect(paddingLeft, paddingTop, width - paddingRight, height - paddingBottom)
         canvas.translate(paddingLeft.toFloat(), paddingTop.toFloat())

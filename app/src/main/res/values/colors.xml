@@ -1,15 +1,24 @@
 <resources>
-    <color name="ui_background">#05070A</color>
-    <color name="ui_surface">#0D121A</color>
-    <color name="ui_surface_raised">#17212C</color>
-    <color name="ui_border">#2B3848</color>
-    <color name="ui_text">#F2F6FC</color>
-    <color name="ui_muted">#AFBDCE</color>
-    <color name="ui_dim">#8496AA</color>
-    <color name="ui_accent">#93D8FF</color>
-    <color name="ui_accent_surface">#163B50</color>
-    <color name="ui_accent_border">#568CAB</color>
-    <color name="ui_alert">#FF6874</color>
-    <color name="ui_ripple">#3093D8FF</color>
-    <color name="ui_map_background">#111B25</color>
+    <color name="ui_background">#061B37</color>
+    <color name="ui_surface">#0A2444</color>
+    <color name="ui_surface_raised">#153355</color>
+    <color name="ui_border">#2B4B70</color>
+    <color name="ui_text">#F1F6FF</color>
+    <color name="ui_muted">#B9CAE0</color>
+    <color name="ui_dim">#93ABC8</color>
+    <color name="ui_accent">#B1DEFF</color>
+    <color name="ui_accent_surface">#194667</color>
+    <color name="ui_accent_border">#527E9F</color>
+    <color name="ui_alert">#EE8B9B</color>
+    <color name="ui_ripple">#28B1DEFF</color>
+    <color name="ui_map_background">#0A213C</color>
+    <color name="ui_background_high">#0B2B50</color>
+    <color name="ui_background_low">#04132B</color>
+    <color name="ui_button_surface">#DD153355</color>
+    <color name="ui_app_tile">#DB092340</color>
+    <color name="ui_app_tile_border">#6B466789</color>
+    <color name="ui_artwork">#071B33</color>
+    <color name="ui_brand_wine">#8F2E42</color>
+    <color name="ui_brand_white">#E4ECF8</color>
+    <color name="ui_brand_blue">#2F68A4</color>
 </resources>
