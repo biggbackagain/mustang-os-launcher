@@ -2,6 +2,7 @@ package com.mustangos.launcher
 
 import android.app.Application
 import android.content.Intent
+import android.content.ComponentName
 import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
@@ -10,6 +11,7 @@ import android.os.BatteryManager
 import com.mustangos.launcher.diagnostics.CompatibilityExporter
 import com.mustangos.launcher.diagnostics.OemInspector
 import com.mustangos.launcher.vehicle.VehicleTelemetryManager
+import com.mustangos.launcher.settings.LauncherSettings
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -129,6 +131,57 @@ class NativeInspectionTest {
         assertTrue(report.contains("HOME vendor.home5/vendor.home5.Home"))
         assertTrue(report.contains("máximo 4 paquetes"))
         assertFalse(entries.keys.any { it.startsWith("packages/vendor.home5/") })
+    }
+    @Test fun androidAuxiliaryHomesDoNotConsumeTheQuotaOrDisplaceTheVerifiedOemLauncher() {
+        val auxiliaries = listOf(
+            "android" to "com.android.internal.app.SystemUserHomeActivity",
+            "com.android.managedprovisioning" to "com.android.managedprovisioning.preprovisioning.PostEncryptionActivity",
+            "com.android.provision" to "com.android.provision.DefaultActivity",
+            "com.android.settings" to "com.android.settings.CryptKeeper",
+            "com.android.settings" to "com.android.settings.FallbackHome",
+            "com.google.android.gms" to "com.google.android.gms.kids.SyncTailTrapperActivity"
+        )
+        auxiliaries.forEach { (pkg, activity) -> home(staticPackage(pkg, ApplicationInfo.FLAG_SYSTEM), activity) }
+        val original = staticPackage("com.dofun.variety", ApplicationInfo.FLAG_SYSTEM,
+            mapOf("AndroidManifest.xml" to "original launcher manifest", "classes.dex" to "original launcher client",
+                "assets/license.dat" to "private", "lib/arm64-v8a/vendor.so" to "private"))
+        home(original, "com.dofun.overseasvariety.Launcher")
+        home(original, "com.dofun.variety.module.launcher.activity.HomeHelpActivity")
+        val entries = exportEntries()
+        assertEquals("original launcher client", entries["packages/com.dofun.variety/classes.dex"])
+        assertFalse(entries.keys.any { name -> auxiliaries.any { (pkg, _) -> name.startsWith("packages/$pkg/") } })
+        assertFalse(entries.keys.any { it.contains("license") || it.endsWith(".so") })
+        val report = entries.getValue("oem-declarations.txt")
+        assertTrue(report.contains("HOME com.android.settings/com.android.settings.FallbackHome: HOME auxiliar de Android; solo inventario"))
+        assertTrue(report.contains("HOME com.dofun.variety/com.dofun.overseasvariety.Launcher"))
+        assertNull(shadowOf(app).nextStartedService); assertNull(shadowOf(app).nextStartedActivity)
+    }
+    @Test fun configuredSystemOriginalHasPriorityWithinTheFourHomePackages() {
+        repeat(5) { index -> home(staticPackage("vendor.client$index", ApplicationInfo.FLAG_SYSTEM)) }
+        val original = staticPackage("vendor.zzoriginal", ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)
+        home(original)
+        LauncherSettings(app).setComponent("home", ComponentName(original.packageName, "${original.packageName}.Home"))
+        val inspector = OemInspector(app)
+        val homes = inspector.discoverHomes()
+        assertEquals(original.packageName, homes.configuredHomePackage)
+        val selected = inspector.exportPackages(homes).filter { it.startsWith("vendor.") }
+        assertEquals(OemInspector.MAX_HOME_PACKAGES, selected.size)
+        assertEquals(original.packageName, selected.first())
+        val entries = exportEntries()
+        assertNotNull(entries["packages/vendor.zzoriginal/classes.dex"])
+        assertFalse(entries.keys.any { it.startsWith("packages/vendor.client3/") })
+        assertTrue(entries.getValue("oem-declarations.txt").contains("original configurado=true; seleccionado para exportar=true"))
+    }
+    @Test fun configuredUserHomeRemainsInventoryOnlyAndCannotOverrideSystemOnlyExportPolicy() {
+        val user = staticPackage("user.original")
+        home(user)
+        repeat(5) { index -> home(staticPackage("vendor.client$index", ApplicationInfo.FLAG_SYSTEM)) }
+        LauncherSettings(app).setComponent("home", ComponentName(user.packageName, "${user.packageName}.Home"))
+        val entries = exportEntries()
+        assertFalse(entries.keys.any { it.startsWith("packages/user.original/") })
+        assertEquals(OemInspector.MAX_HOME_PACKAGES,
+            entries.keys.count { it.startsWith("packages/vendor.client") && it.endsWith("classes.dex") })
+        assertTrue(entries.getValue("oem-declarations.txt").contains("HOME user.original/user.original.Home: app de usuario; solo inventario; original configurado=true; seleccionado para exportar=false"))
     }
     @Test fun unreadableSystemHomeDoesNotPreventOtherStaticExports() {
         staticPackage("com.tw.bt")

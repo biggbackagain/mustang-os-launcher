@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.content.pm.PermissionInfo
 import android.content.pm.ResolveInfo
 import android.os.Build
+import com.mustangos.launcher.settings.LauncherSettings
 import org.xmlpull.v1.XmlPullParser
 
 /** Reads declarations only. Never constructs TWUtil, binds a service, queries a provider or writes MCU commands. */
@@ -17,9 +18,11 @@ class OemInspector(
     }
 ) {
     data class HomeActivity(val packageName: String, val activityName: String, val systemApp: Boolean, val ownApp: Boolean)
-    data class HomeInventory(val activities: List<HomeActivity> = emptyList(), val truncated: Boolean = false, val unavailable: Boolean = false)
+    data class HomeInventory(val activities: List<HomeActivity> = emptyList(), val truncated: Boolean = false,
+        val unavailable: Boolean = false, val configuredHomePackage: String? = null)
 
     fun discoverHomes(): HomeInventory = try {
+        val configured = LauncherSettings(context).component("home")
         val homes = homeQuery().mapNotNull { result ->
             val activity = result.activityInfo ?: return@mapNotNull null
             val pkg = activity.packageName?.takeIf { it.length <= 255 && it.matches(PACKAGE_NAME) } ?: return@mapNotNull null
@@ -27,12 +30,22 @@ class OemInspector(
             val flags = runCatching { context.packageManager.getApplicationInfo(pkg, 0).flags }.getOrElse { activity.applicationInfo?.flags ?: 0 }
             HomeActivity(pkg, name, flags and (ApplicationInfo.FLAG_SYSTEM or ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0,
                 pkg == context.packageName)
-        }.distinctBy { it.packageName to it.activityName }.sortedWith(compareBy(HomeActivity::packageName, HomeActivity::activityName))
-        HomeInventory(homes.take(MAX_HOME_ACTIVITIES), truncated = homes.size > MAX_HOME_ACTIVITIES)
+        }.distinctBy { it.packageName to it.activityName }
+        val original = configured?.takeIf { choice -> homes.any { it.packageName == choice.packageName && it.activityName == choice.className } }?.packageName
+        // Keep actual clients, especially the configured original HOME, ahead of setup/recovery entries at the inventory bound.
+        val retained = homes.sortedWith(compareBy<HomeActivity>({ !exportableHome(it) }, { it.packageName != original },
+            HomeActivity::packageName, HomeActivity::activityName)).take(MAX_HOME_ACTIVITIES)
+            .sortedWith(compareBy(HomeActivity::packageName, HomeActivity::activityName))
+        HomeInventory(retained, truncated = homes.size > MAX_HOME_ACTIVITIES, configuredHomePackage = original)
     } catch (_: RuntimeException) { HomeInventory(unavailable = true) }
 
     fun exportPackages(homes: HomeInventory): List<String> = (PACKAGES + homes.activities.asSequence()
-        .filter { it.systemApp && !it.ownApp }.map { it.packageName }.distinct().sorted().take(MAX_HOME_PACKAGES).toList()).distinct()
+        .filter(::exportableHome).map { it.packageName }.distinct()
+        .sortedWith(compareBy<String>({ it != homes.configuredHomePackage }, { it }))
+        .take(MAX_HOME_PACKAGES).toList()).distinct()
+
+    private fun auxiliaryHome(home: HomeActivity) = (home.packageName to home.activityName) in AUXILIARY_HOME_COMPONENTS
+    private fun exportableHome(home: HomeActivity) = home.systemApp && !home.ownApp && !auxiliaryHome(home)
 
     fun report(homes: HomeInventory = discoverHomes()): String = buildString {
         appendLine("INSPECCIÓN OEM DE SOLO LECTURA")
@@ -46,11 +59,13 @@ class OemInspector(
         if (homes.unavailable) appendLine("Inventario HOME no permitido; no se deducen clientes del launcher")
         else if (homes.activities.isEmpty()) appendLine("No se encontraron actividades HOME visibles")
         homes.activities.forEach { home ->
-            val classification = when { home.ownApp -> "propia; omitida"; home.systemApp -> "sistema/actualización de sistema"; else -> "app de usuario; solo inventario" }
-            appendLine("HOME ${home.packageName}/${home.activityName}: $classification; seleccionado para exportar=${home.packageName in packages && !home.ownApp}")
+            val classification = when { home.ownApp -> "propia; omitida"; auxiliaryHome(home) -> "HOME auxiliar de Android; solo inventario";
+                home.systemApp -> "sistema/actualización de sistema"; else -> "app de usuario; solo inventario" }
+            appendLine("HOME ${home.packageName}/${home.activityName}: $classification; original configurado=${home.packageName == homes.configuredHomePackage}; seleccionado para exportar=${home.packageName in packages && !home.ownApp && !auxiliaryHome(home)}")
         }
         if (homes.truncated) appendLine("Inventario HOME limitado a $MAX_HOME_ACTIVITIES actividades")
         appendLine("Exportación HOME: máximo $MAX_HOME_PACKAGES paquetes de sistema; APK propia y HOME de usuario excluidas")
+        appendLine("HOME auxiliares de arranque, aprovisionamiento y recuperación: solo inventario; no consumen la cuota de clientes HOME")
         for (pkg in packages) {
             try {
                 val info = context.packageManager.getPackageInfo(pkg, PackageManager.GET_ACTIVITIES or PackageManager.GET_SERVICES or PackageManager.GET_RECEIVERS or PackageManager.GET_PROVIDERS)
@@ -110,6 +125,15 @@ class OemInspector(
         private val ACTIVITY_NAME = Regex("[A-Za-z0-9_.$]+")
         private val LIBRARY_NAME = Regex("[A-Za-z0-9_.-]{1,200}")
         private val LIBRARY_TAGS = setOf("uses-library", "uses-static-library", "uses-sdk-library", "uses-native-library")
+        // Exact auxiliary HOME components observed in the user's API29 export, not a blanket vendor/package-name heuristic.
+        private val AUXILIARY_HOME_COMPONENTS = setOf(
+            "android" to "com.android.internal.app.SystemUserHomeActivity",
+            "com.android.managedprovisioning" to "com.android.managedprovisioning.preprovisioning.PostEncryptionActivity",
+            "com.android.provision" to "com.android.provision.DefaultActivity",
+            "com.android.settings" to "com.android.settings.CryptKeeper",
+            "com.android.settings" to "com.android.settings.FallbackHome",
+            "com.google.android.gms" to "com.google.android.gms.kids.SyncTailTrapperActivity"
+        )
         val PACKAGES = listOf("com.zjinnova.zlink", "com.tw.service", "com.tw.uart", "com.tw.car", "com.tw.ac", "com.tw.bt", "com.tw.music", "com.dofun.carassistant.car", "com.dofun.carsetting", "com.android.systemui")
 
         internal fun declaredLibraryNames(xml: XmlPullParser): List<String> {
