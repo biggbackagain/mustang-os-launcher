@@ -666,6 +666,7 @@ class MainActivity : ComponentActivity() {
             .section("CONEXIONES")
             .action("CarPlay", "Aplicación de conexión del iPhone") { chooseApp("zlink", false) }
             .action("CarPlay con barra Mustang", "Mapas y música de ZLink con controles Mustang", ::openCarPlayBar)
+            .action("Comprobar metadatos de ZLink", "Prueba manual de 8 segundos · diagnóstico de integración", ::showZLinkHudProbe)
             .toggle("Barra al abrir CarPlay", "Puedes arrastrarla o cerrarla; requiere permiso de Android", model.settings.carPlayBar) { model.settings.carPlayBar = it }
             .action("Audio", "Fuente de reproducción y acceso multimedia", ::mediaSources)
             .action("Radio del equipo", "Frecuencia, RDS y controles disponibles", ::showRadio)
@@ -695,6 +696,41 @@ class MainActivity : ComponentActivity() {
     private fun showRadio() {
         pauseMapForMenu()
         RadioSheet(this, radio, { openRole("radio") }, ::restoreMapAfterMenu).show()
+    }
+
+    private fun showZLinkHudProbe() {
+        pauseMapForMenu()
+        val details=TextView(this).apply { setTextAppearance(R.style.Body); setPadding(24,16,24,16) }
+        val dialog=AlertDialog.Builder(this).setTitle("Comprobar canal de metadatos")
+            .setView(ScrollView(this).apply { addView(details) })
+            .setPositiveButton("Leer 8 segundos",null)
+            .setNeutralButton("Probar en CarPlay",null)
+            .setNegativeButton("Cerrar",null).create()
+        var observer: Job?=null
+        val ownerObserver=androidx.lifecycle.LifecycleEventObserver { _,event -> if(event==Lifecycle.Event.ON_DESTROY) dialog.dismiss() }
+        lifecycle.addObserver(ownerObserver)
+        dialog.setOnDismissListener { observer?.cancel(); lifecycle.removeObserver(ownerObserver); restoreMapAfterMenu() }
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                if(model.zlinkHudProbe.state.value.running) model.zlinkHudProbe.stop() else model.zlinkHudProbe.start()
+            }
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
+                model.zlinkHudProbe.start(); dialog.dismiss()
+                if(model.settings.carPlayBar && Settings.canDrawOverlays(this@MainActivity)) launchCarPlayBar()
+                else if(!model.carplay.open()) toast("No se pudo abrir la aplicación de CarPlay elegida")
+            }
+            observer=lifecycleScope.launch {
+                model.zlinkHudProbe.state.collect { state ->
+                    details.text="Conecta el iPhone, reproduce una canción y activa una ruta. Esta prueba experimental lee un canal local identificado en tu APK durante un máximo de 8 segundos. Puede estar ocupado por el HUD de ZLink; no se fuerzan ni desconectan otros clientes.\n\n"+
+                        "${state.status}\nConexión: ${state.connected}\nTramas completas: ${state.frames} · bytes descartados: ${state.bytes}\n"+
+                        state.types.toSortedMap().entries.joinToString(" · ") { "tipo ${it.key}: ${it.value}" }+
+                        "\n\nDespués de «Probar en CarPlay», espera 8 segundos y vuelve aquí. El informe exportado contiene solo conteos. Una conexión no acredita la identidad del servidor ni datos útiles de canción/mapa. No se guardan portadas, canciones o rutas ni se cambia configuración."
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).text=if(state.running) "Detener prueba" else "Leer 8 segundos"
+                    dialog.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled=!state.running
+                }
+            }
+        }
+        dialog.show()
     }
 
     private fun showOfflineMaps() {

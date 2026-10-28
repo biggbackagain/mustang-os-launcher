@@ -1,5 +1,7 @@
 # Avances incorporados y trabajo pendiente
 
+**Actualización 0.6.1:** el usuario confirmó la barra encima de ZLink y descartó la app de iPhone/compilación en nube. Se identificó estáticamente un canal de metadatos y se preparó una observación manual, acotada y sin escrituras. La APK y su descarga están verificadas; falta la muestra física de tramas para decidir si implementar un lector musical/de maniobras. [Investigación actual](INVESTIGACION_ZLINK_20261028.md). La superficie de mapa completa continúa sin contrato externo verificado.
+
 **Actualización 0.6.0:** selector visual por familias, pintura configurable, iluminación TW 516 independiente de ACC, diagnóstico GPS y barra propia sobre el ZLink real. [Entrega y límites](RELEASE_060.md). La APK está firmada y la descarga local verificada; falta validación física de las nuevas funciones. Metadatos y superficie CarPlay dentro de tarjetas continúan pendientes del contrato del proveedor.
 
 **Actualización 0.5.0:** se incorporaron fondo común, catálogo de 30 fotografías, mapa de México sin conexión, radio propia y lecturas adicionales OEM. [Entrega actual](RELEASE_050.md), [interfaces verificadas](OEM_APPS_20261028_ADDITIONAL.md). La entrega autorizada está compilada y sus descargas locales están verificadas. CarPlay mantiene sus límites indicados abajo.

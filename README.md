@@ -1,4 +1,6 @@
-# MUSTANG OS · 0.6.0 · CarPlay y Mi Mustang
+# MUSTANG OS · 0.6.1 · Investigación ZLink
+
+**Entrega 0.6.1:** investigación de capacidades y prueba manual de lectura del canal HUD identificado en ZLink, sin comandos ni cambios de configuración. El usuario confirmó la barra sobre CarPlay. La portada, música y ruta en tarjetas independientes continúan pendientes de recepción y contrato verificados. [Qué podemos integrar y cómo comprobarlo](docs/INVESTIGACION_ZLINK_20261028.md).
 
 **Entrega 0.6.0:** CarPlay real con barra Mustang opcional, selector por familias con vista previa, pintura configurable, luces por señal OEM y diagnóstico GPS visible. Conserva el mapa de México. [Uso, permisos y límites](docs/RELEASE_060.md). La barra no extrae la portada ni la ruta del iPhone hacia las tarjetas.
 

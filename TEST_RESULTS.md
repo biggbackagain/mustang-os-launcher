@@ -1,6 +1,22 @@
-# Registro de verificación · Mustang OS 0.6.0
+# Registro de verificación · Mustang OS 0.6.1
 
-## Resultado actual 0.6.0
+## Resultado actual 0.6.1
+
+**254 pruebas app/núcleo y once del servidor pasadas; cero fallos/errores/omitidas.** Verificación integral con `scripts/verify.ps1`: pruebas, lint debug/release y ambos instaladores; `BUILD SUCCESSFUL` en 1 minuto 19 segundos. Lint: cero errores y 183 advertencias en ambas variantes, sin baseline ni supresiones nuevas.
+
+- Release: `output/MustangOS-0.6.1.apk`, alias `output/MustangOS.apk`, 8 298 549 bytes; paquete `com.mustangos.launcher`, versión 0.6.1 / código 13, min SDK 26 / target 35, sin depuración.
+- SHA-256 release: `44C07CA050A3D2F711402B58A059531FC8BD79010FA425A363A54AF57BAF7C46`.
+- Debug: `output/MustangOS-0.6.1-debug.apk`, 9 076 496 bytes; SHA-256 `2EDD8A67C822D5C884C0FC51780683A2B19DCF85DA2AB235DA128E075343565E`.
+- Firma v2/certificado anterior verificados; permisos idénticos a 0.6.0 y APK histórica 0.6.0 sin cambios. No se generaron ni copiaron llaves.
+- Página HTTP 200 con versión 0.6.1; APK descargada por `http://192.168.100.2:8766/?v=0.6.1` idéntica por SHA-256. El mapa de México permanece disponible con su tamaño anterior. Ayudante limitado a dos horas.
+
+Las nuevas pruebas verifican fragmentación TCP, límites antes de leer contenido, fin de archivo/truncamiento/deadline, endpoint loopback exacto, ausencia de escritura al socket, cancelación de lectura bloqueada, rechazo de resultados tardíos, falta de reintentos y ausencia de contenido en el informe. Usan sockets de prueba; no contactan al equipo ni a ZLink.
+
+Investigación estática: se revalidaron las constantes del cliente y servidor, ambos 1555, sin ejecutar las bibliotecas. Se identificó cabecera de ocho bytes y servidor de un consumidor; el despachador contiene tipos CP de música, portada PNG y maniobras. Son capacidades compiladas, con recepción/identidad/formato útil todavía pendientes en el dispositivo. La prueba manual nueva solo cuenta cabeceras y descarta contenido; no integra todavía una canción o ruta en las tarjetas.
+
+**Evidencia física nueva:** el usuario confirmó que la barra Mustang funciona encima de ZLink. Esto acredita la superposición, no una app del iPhone dentro del menú CarPlay. Se descartó la app complementaria/IPA por indicación del usuario. [Investigación, límites y prueba de ocho segundos](docs/INVESTIGACION_ZLINK_20261028.md).
+
+## Historial 0.6.0
 
 Verificación integral con `scripts/verify.ps1`: **247 pruebas app/núcleo, cero fallos/errores/omitidas**, lint debug/release y ambos instaladores; `BUILD SUCCESSFUL` en 1 minuto 24 segundos. Una regresión adicional de selección exclusiva de ZLink se añadió después y pasó con toda la clase `MediaRoutingTest`; son 248 casos únicos verificados. El servidor pasó sus once pruebas. Lint final de producción: cero errores y 172 advertencias en ambas variantes, sin baseline ni supresiones nuevas.
 
