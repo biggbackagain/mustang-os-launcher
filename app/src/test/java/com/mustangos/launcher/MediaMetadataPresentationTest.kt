@@ -97,12 +97,11 @@ class MediaMetadataPresentationTest {
         assertTrue(media.sessionDiagnostics().contains("description.description=true"))
         media.stop()
     }
-    @Test fun contentArtworkUriIsReportedWithoutLoadingOrExportingItsContents() {
+    @Test fun contentArtworkUriIsReportedWithoutExportingItsContents() {
         controller("com.zjinnova.zlink", MediaMetadata.Builder()
             .putString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, "content://test.private/art/private-name?token=secret")
             .putString("test.private.custom_key", "private-value").build())
         val media = media(); val report = media.sessionDiagnostics()
-        assertNull(media.state.value.artwork)
         assertTrue(report.contains("ALBUM_ART_URI{clave=true,valor=true,content=true}"))
         assertFalse(report.contains("test.private")); assertFalse(report.contains("private-name")); assertFalse(report.contains("secret"))
         media.stop()

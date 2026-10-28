@@ -6,6 +6,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.media.MediaMetadata
 import android.media.session.MediaController
+import android.media.session.MediaSession
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.net.Uri
@@ -28,7 +29,8 @@ data class MediaUiState(
     val status: String = "Acceso multimedia sin conceder",
     val playbackStateKnown: Boolean = false,
     val fallbackDisplayTitle: String? = null,
-    val fallbackDisplaySubtitle: String? = null
+    val fallbackDisplaySubtitle: String? = null,
+    val coverStatus: String = "La fuente no publicó portada"
 ) {
     // Presentation fields do not turn a display subtitle or generic description into artist metadata.
     val displayTitle: String? get() = facts.title ?: fallbackDisplayTitle
@@ -46,9 +48,17 @@ class MediaIntegrationManager(private val context: Context, private val settings
     private var selected: MediaController? = null
     private var listening = false
     private var scope: CoroutineScope? = null
+    private val artworkLoader = ContentArtworkLoader(context.contentResolver)
+    private var artworkScope: CoroutineScope? = null
+    private var artworkJob: Job? = null
+    private var artworkOwner: MediaSession.Token? = null
+    private var artworkKey: ArtworkKey? = null
+    private var artworkRevision = 0L
+    private var currentArtwork: Bitmap? = null
+    private var currentCoverStatus = ArtworkStatus.NONE
     private val sessionListener = MediaSessionManager.OnActiveSessionsChangedListener { refresh() }
     private val callback = object : MediaController.Callback() {
-        override fun onMetadataChanged(metadata: MediaMetadata?) = publish()
+        override fun onMetadataChanged(metadata: MediaMetadata?) { invalidateArtwork(); publish() }
         override fun onPlaybackStateChanged(state: PlaybackState?) = publish()
         override fun onSessionDestroyed() { select(null); mutable.value = MediaUiState(status = "Fuente desconectada") ; handler.post { refresh() } }
     }
@@ -62,6 +72,7 @@ class MediaIntegrationManager(private val context: Context, private val settings
     }
     fun stop() {
         scope?.cancel(); scope = null
+        artworkScope?.cancel(); artworkScope = null
         if (listening) runCatching { manager.removeOnActiveSessionsChangedListener(sessionListener) }
         listening = false
         select(null); handler.removeCallbacksAndMessages(null)
@@ -96,6 +107,7 @@ class MediaIntegrationManager(private val context: Context, private val settings
     }
     private fun select(controller: MediaController?) {
         if (selected?.sessionToken == controller?.sessionToken) return
+        invalidateArtwork()
         selected?.let { runCatching { it.unregisterCallback(callback) } }
         selected = controller
         controller?.registerCallback(callback, handler)
@@ -106,7 +118,7 @@ class MediaIntegrationManager(private val context: Context, private val settings
             val m = controller.metadata
             val p = controller.playbackState
             val image = m?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART) ?: m?.getBitmap(MediaMetadata.METADATA_KEY_ART) ?: m?.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
-            val art = image?.let { if (maxOf(it.width, it.height) > 384) { val scale = 384f / maxOf(it.width, it.height); Bitmap.createScaledBitmap(it, (it.width * scale).toInt().coerceAtLeast(1), (it.height * scale).toInt().coerceAtLeast(1), true) } else it }
+            updateArtwork(controller, m, image)
             val rawActions = p?.actions ?: 0L
             mutable.value = MediaUiState(MediaFacts(controller.packageName,
                 m?.getString(MediaMetadata.METADATA_KEY_TITLE)?.takeIf { it.isNotBlank() },
@@ -114,12 +126,63 @@ class MediaIntegrationManager(private val context: Context, private val settings
                 m?.getString(MediaMetadata.METADATA_KEY_ALBUM)?.takeIf { it.isNotBlank() },
                 m?.getLong(MediaMetadata.METADATA_KEY_DURATION)?.coerceAtLeast(0) ?: 0,
                 p?.position?.coerceAtLeast(0) ?: 0, p?.lastPositionUpdateTime ?: 0,
-                p?.state == PlaybackState.STATE_PLAYING, p?.playbackSpeed ?: 0f, rawActions), art,
+                p?.state == PlaybackState.STATE_PLAYING, p?.playbackSpeed ?: 0f, rawActions), currentArtwork,
                 if (p?.state == PlaybackState.STATE_ERROR) "La fuente reportó un error" else "Sesión Android · ${controller.packageName}",
                 p?.state in listOf(PlaybackState.STATE_PLAYING, PlaybackState.STATE_PAUSED, PlaybackState.STATE_STOPPED),
                 m?.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE)?.takeIf { it.isNotBlank() },
-                m?.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE)?.takeIf { it.isNotBlank() })
-        } catch (_: RuntimeException) { mutable.value = MediaUiState(status = "Fuente multimedia no disponible"); ErrorJournal.record(context, "MEDIA_READ_FAILED") }
+                m?.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE)?.takeIf { it.isNotBlank() }, currentCoverStatus.label)
+        } catch (_: RuntimeException) { invalidateArtwork(); mutable.value = MediaUiState(status = "Fuente multimedia no disponible"); ErrorJournal.record(context, "MEDIA_READ_FAILED") }
+    }
+    private fun invalidateArtwork() {
+        artworkRevision++
+        artworkJob?.cancel(); artworkJob = null
+        artworkOwner = null; artworkKey = null
+        // Published bitmaps may still be displayed by a view; only abandoned loader results are recycled.
+        currentArtwork = null; currentCoverStatus = ArtworkStatus.NONE
+    }
+    private fun updateArtwork(controller: MediaController, metadata: MediaMetadata?, bitmap: Bitmap?) {
+        val owner = controller.sessionToken
+        val key = ArtworkKey(metadata, bitmap)
+        if (artworkOwner == owner && artworkKey == key) return
+        invalidateArtwork()
+        artworkOwner = owner; artworkKey = key
+        if (bitmap != null) {
+            currentArtwork = if (maxOf(bitmap.width, bitmap.height) > 384) {
+                val scale = 384f / maxOf(bitmap.width, bitmap.height)
+                Bitmap.createScaledBitmap(bitmap, (bitmap.width * scale).toInt().coerceAtLeast(1), (bitmap.height * scale).toInt().coerceAtLeast(1), true)
+            } else bitmap
+            currentCoverStatus = ArtworkStatus.BITMAP
+            return
+        }
+        val published = listOf(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, MediaMetadata.METADATA_KEY_ART_URI,
+            MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI).mapNotNull { key ->
+            metadata?.getString(key)?.takeIf { it.isNotBlank() }?.let { runCatching { Uri.parse(it) }.getOrNull() }
+        }
+        val uri = published.firstOrNull { it.scheme == "content" && !it.authority.isNullOrBlank() }
+        if (uri == null) {
+            currentCoverStatus = if (published.isEmpty()) ArtworkStatus.NONE else ArtworkStatus.REJECTED
+            return
+        }
+        currentCoverStatus = ArtworkStatus.LOADING
+        val revision = artworkRevision
+        val currentScope = artworkScope ?: CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate).also { artworkScope = it }
+        artworkJob = currentScope.launch {
+            val result = artworkLoader.load(uri)
+            if (revision == artworkRevision && selected?.sessionToken == owner && artworkOwner == owner &&
+                artworkKey == key) {
+                currentArtwork = result.bitmap; currentCoverStatus = result.status
+                mutable.update { it.copy(artwork = result.bitmap, coverStatus = result.status.label) }
+            } else result.bitmap?.recycle()
+        }
+    }
+    /** Private structural identity survives Binder parcel copies. Values never enter diagnostics. */
+    private data class ArtworkKey(val text: List<String?>, val duration: Long, val bitmapWidth: Int, val bitmapHeight: Int) {
+        constructor(metadata: MediaMetadata?, bitmap: Bitmap?) : this(
+            listOf(MediaMetadata.METADATA_KEY_MEDIA_ID, MediaMetadata.METADATA_KEY_TITLE, MediaMetadata.METADATA_KEY_ARTIST,
+                MediaMetadata.METADATA_KEY_ALBUM, MediaMetadata.METADATA_KEY_DISPLAY_TITLE, MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE,
+                MediaMetadata.METADATA_KEY_ALBUM_ART_URI, MediaMetadata.METADATA_KEY_ART_URI, MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI)
+                .map { metadata?.getString(it) },
+            metadata?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L, bitmap?.width ?: 0, bitmap?.height ?: 0)
     }
     /** Standard-field presence only. Never prints song contents, custom keys, URI values or notification data. */
     fun sessionDiagnostics(): String = buildString {
@@ -152,10 +215,10 @@ class MediaIntegrationManager(private val context: Context, private val settings
                 uri("DISPLAY_ICON_URI", MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI)).joinToString("; "))
             val description = runCatching { m?.description }.getOrNull()
             appendLine("description.title=${description?.title?.isNotBlank() == true}; description.subtitle=${description?.subtitle?.isNotBlank() == true}; description.description=${description?.description?.isNotBlank() == true}; description.bitmap=${description?.iconBitmap != null}; description.uri=${description?.iconUri != null}; description.content=${description?.iconUri?.scheme == "content"}")
-            if (chosen) appendLine("Presentación seleccionada: título_origen=${mutable.value.titleOrigin ?: "ninguno"}; texto_secundario_origen=${mutable.value.subtitleOrigin ?: "ninguno"}")
+            if (chosen) appendLine("Presentación seleccionada: título_origen=${mutable.value.titleOrigin ?: "ninguno"}; texto_secundario_origen=${mutable.value.subtitleOrigin ?: "ninguno"}; portada=${mutable.value.coverStatus}")
         }
         if (sessions.size > currentSessions.size) appendLine("Sesiones adicionales omitidas: ${sessions.size - currentSessions.size}")
-        append("Los datos de una sesión no se combinan con los de otra; las URI no se abren ni se exportan.")
+        append("Los datos de una sesión no se combinan con los de otra. Solo se leen URI content de portada de la sesión seleccionada, con permiso normal y límites de tamaño/tiempo; sus valores no se exportan.")
     }
     fun poll() {
         // Some OEM sessions omit callbacks; refresh still respects an explicit source selection.
