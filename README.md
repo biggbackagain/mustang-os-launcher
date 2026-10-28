@@ -1,5 +1,7 @@
 # MUSTANG OS · 0.4.0 · Cockpit
 
+**Trabajo local posterior sin publicar:** rediseño azul, Mi Mustang e investigación del diagnóstico del 28 de octubre. No se ha generado otra entrega porque faltan interfaces verificadas para metadatos/ruta CarPlay. [Estado del trabajo](docs/LOCAL_WORK_PENDING.md).
+
 Launcher Android nativo para Ford Mustang 2010 V6 4.0L convertible rojo con capota negra. Cockpit grafito/azul hielo inspirado en el Mustang reciente, con mapa Android dentro del panel, multimedia, datos OEM y aplicaciones. Kotlin, Views/XML y Canvas, pensado para 2 GB de RAM. Es software independiente, no una instalación de Ford SYNC.
 
 ![Interfaz Android renderizada en pruebas, sin datos CarPlay simulados](docs/dashboard-1280x720.png)

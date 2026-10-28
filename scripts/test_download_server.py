@@ -82,13 +82,28 @@ class DownloadServerTest(unittest.TestCase):
         self.assertEqual(415, caught.exception.code)
 
     def test_zip_stored_without_extracting_or_executing(self):
+        before = set((self.root / "uploads").glob("*.zip"))
         payload = io.BytesIO()
         with zipfile.ZipFile(payload, "w") as archive: archive.writestr("../must-not-extract.txt", "test")
         with self.post(payload.getvalue(), self.token, self.base) as response: self.assertEqual(200, response.status)
-        received = list((self.root / "uploads").glob("*.zip"))
+        received = list(set((self.root / "uploads").glob("*.zip")) - before)
         self.assertEqual(1, len(received))
         self.assertEqual(payload.getvalue(), received[0].read_bytes())
         self.assertFalse((self.root / "must-not-extract.txt").exists())
+
+    def test_apk_can_be_received_as_an_opaque_archive_without_execution(self):
+        self.assertIn('.apk,application/zip,application/vnd.android.package-archive', self.page)
+        before = set((self.root / "uploads").glob("*.zip"))
+        payload = io.BytesIO()
+        with zipfile.ZipFile(payload, "w") as archive:
+            archive.writestr("AndroidManifest.xml", "fixture manifest")
+            archive.writestr("classes.dex", "fixture static code")
+        with self.post(payload.getvalue(), self.token, self.base) as response:
+            self.assertEqual(200, response.status)
+        received = list(set((self.root / "uploads").glob("*.zip")) - before)
+        self.assertEqual(1, len(received))
+        self.assertEqual(payload.getvalue(), received[0].read_bytes())
+        self.assertFalse((self.root / "classes.dex").exists())
 
 
 if __name__ == "__main__":

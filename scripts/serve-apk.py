@@ -32,15 +32,16 @@ a{display:block;background:#93d8ff;color:#07131c;text-decoration:none;padding:22
 <li><b>Apps y ajustes:</b> búsqueda, iconos uniformes, configuración propia y preferencia de pantalla encendida.</li>
 </ul>
 <p><small>El mapa del panel es Android, independiente de la ruta del iPhone. Necesita Internet en la pantalla y una ubicación válida para centrarla. La superficie CarPlay sigue dentro de ZLink. La APK principal es release con depuración desactivada y la firma anterior para actualizar.</small></p>
-<details><summary>Enviar diagnóstico al PC (opcional)</summary>
+<details open><summary>Enviar diagnóstico o APK al PC</summary>
+<p>Para investigar la integración original también puedes enviar el APK extraído de <b>Tema (com.dofun.variety)</b>. El archivo se guarda para análisis; no se instala ni ejecuta en el PC.</p>
 <p>Con CarPlay conectado, deja una canción reproduciéndose y regresa con Home. Abre <b>Ajustes → Diagnóstico y exportación → Compatibilidad OEM → Guardar ZIP</b> y selecciona aquí el archivo nuevo:</p>
-<input id="report" type="file" accept=".zip,application/zip" style="font-size:18px;max-width:100%">
-<button id="send" style="font-size:20px;background:#1d222b;color:white;padding:20px;border:1px solid #4b5260;border-radius:12px;margin-top:16px">Enviar diagnóstico al PC</button>
+<input id="report" type="file" accept=".zip,.apk,application/zip,application/vnd.android.package-archive" style="font-size:18px;max-width:100%">
+<button id="send" style="font-size:20px;background:#1d222b;color:white;padding:20px;border:1px solid #4b5260;border-radius:12px;margin-top:16px">Enviar archivo al PC</button>
 <p id="result" role="status"></p>
 <script>
 document.getElementById('send').onclick=async()=>{
 const file=document.getElementById('report').files[0], result=document.getElementById('result'), button=document.getElementById('send');
-if(!file){result.textContent='Selecciona primero el ZIP de compatibilidad.';return;}
+if(!file){result.textContent='Selecciona un archivo ZIP o APK.';return;}
 if(file.size>134217728){result.textContent='El archivo supera 128 MiB.';return;}
 button.disabled=true;result.textContent='Enviando por la red local…';
 try{const response=await fetch('/upload',{method:'POST',headers:{'Content-Type':'application/zip','X-Mustang-Upload-Token':'UPLOAD_TOKEN'},body:file});
