@@ -19,6 +19,8 @@
     <string name="gps_unknown_description">"Velocidad GPS sin señal"</string>
     <string name="gps_enable">"Activar velocidad GPS"</string>
     <string name="vehicle_description">"Ford Mustang 2010 V6 convertible rojo con capota de lona negra"</string>
+    <string name="vehicle_stock_image_caption">Referencia · Mustang 2010 rojo</string>
+    <string name="vehicle_custom_image_caption">Foto de referencia propia</string>
     <string name="engine_label">V6 4.0L · CONVERTIBLE</string>
     <string name="gps_disclaimer">"Velocidad orientativa · fuente GPS"</string>
     <string name="navigation_title">Mapa Android</string>

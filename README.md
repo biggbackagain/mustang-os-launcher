@@ -1,10 +1,12 @@
-# MUSTANG OS · 0.4.0 · Cockpit
+# MUSTANG OS · 0.4.1 · Mi Mustang
 
-**Trabajo local posterior sin publicar:** rediseño azul, Mi Mustang e investigación del diagnóstico del 28 de octubre. No se ha generado otra entrega porque faltan interfaces verificadas para metadatos/ruta CarPlay. [Estado del trabajo](docs/LOCAL_WORK_PENDING.md).
+**Entrega 0.4.1 para probar avances:** azul medianoche, Mi Mustang con foto propia y correcciones de sesiones y lectura MCU. El usuario autorizó esta APK para revisarla en el equipo; los metadatos y la superficie CarPlay siguen pendientes de una interfaz compatible. [Cambios y primer uso](docs/RELEASE_041.md), [investigación OEM](docs/OEM_APPS_20261028.md).
 
-Launcher Android nativo para Ford Mustang 2010 V6 4.0L convertible rojo con capota negra. Cockpit grafito/azul hielo inspirado en el Mustang reciente, con mapa Android dentro del panel, multimedia, datos OEM y aplicaciones. Kotlin, Views/XML y Canvas, pensado para 2 GB de RAM. Es software independiente, no una instalación de Ford SYNC.
+Launcher Android nativo para Ford Mustang con perfil personalizable. Incluye una imagen de referencia del Mustang 2010 V6 convertible rojo con capota negra. Cockpit azul medianoche inspirado en el Mustang reciente, con mapa Android dentro del panel, multimedia, datos OEM y aplicaciones. Kotlin, Views/XML y Canvas, pensado para 2 GB de RAM. Es software independiente, no una instalación de Ford SYNC.
 
 ![Interfaz Android renderizada en pruebas, sin datos CarPlay simulados](docs/dashboard-1280x720.png)
+
+La imagen anterior documenta la presentación 0.4.0. La 0.4.1 incorpora el rediseño y el perfil descritos en su nota de entrega.
 
 La 0.4.0 añade mapa nativo con zoom, desplazamiento, centrado y pantalla completa; lectura de portadas de contenido local; búsqueda de aplicaciones; ajustes propios y presentación uniforme. Conserva los controles CarPlay confirmados por el usuario en 0.3.6, sin teclas globales ni cambios en ZLink. [Funciones, primer uso y límites de integración](docs/RELEASE_040.md).
 

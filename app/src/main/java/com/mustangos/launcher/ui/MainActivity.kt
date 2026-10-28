@@ -259,7 +259,7 @@ class MainActivity : ComponentActivity() {
         binding.vehicleProfileTitle.text = profile.title
         binding.vehicleProfileSubtitle.text = profile.subtitle
         binding.vehicleProfileHeader.text = profile.header
-        binding.carImage.contentDescription = profile.description
+        bindReferenceImageLabels(profilePhoto != null)
         binding.carImage.lampOverlayEnabled = !referenceImageStore.hasImage()
         refreshProfilePhoto()
     }
@@ -273,8 +273,14 @@ class MainActivity : ComponentActivity() {
             binding.carImage.lampOverlayEnabled = photo == null
             if (photo == null) binding.carImage.setImageResource(R.drawable.mustang_2010)
             else binding.carImage.setImageBitmap(photo)
+            bindReferenceImageLabels(photo != null)
             model.vehicle.accessoryOn.value?.let { binding.carImage.setHeadlightsOn(it) }
         }
+    }
+
+    private fun bindReferenceImageLabels(custom: Boolean) {
+        binding.vehicleImageReference.setText(if (custom) R.string.vehicle_custom_image_caption else R.string.vehicle_stock_image_caption)
+        binding.carImage.contentDescription = getString(if (custom) R.string.vehicle_custom_image_caption else R.string.vehicle_description)
     }
 
     private fun showMustangProfile() {

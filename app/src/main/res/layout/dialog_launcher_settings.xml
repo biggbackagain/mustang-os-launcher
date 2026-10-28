@@ -12,8 +12,9 @@
                 <TextView style="@style/Muted" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="MUSTANG OS" android:letterSpacing="0.16" />
                 <TextView style="@style/Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Hecho para\ntu Mustang." android:textSize="@dimen/settings_hero_title_size" android:layout_marginTop="12dp" android:id="@+id/settingsProfileTagline" />
                 <ImageView android:layout_width="match_parent" android:layout_height="@dimen/settings_vehicle_height" android:src="@drawable/mustang_2010" android:scaleType="fitCenter" android:contentDescription="Mustang convertible rojo" android:id="@+id/settingsCarImage" />
+                <TextView android:id="@+id/settingsImageReference" style="@style/Muted" android:layout_width="match_parent" android:layout_height="16dp" android:textSize="10sp" android:maxLines="1" android:ellipsize="end" android:text="@string/vehicle_stock_image_caption" />
                 <TextView style="@style/Muted" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="2010 · V6 4.0 · Convertible\nConfigura tus preferencias estando estacionado." android:lineSpacingExtra="4dp" android:id="@+id/settingsCarProfile" />
-                <TextView style="@style/Muted" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Versión 0.4.0" android:layout_marginTop="16dp" />
+                <TextView style="@style/Muted" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Versión 0.4.1" android:layout_marginTop="16dp" />
             </LinearLayout>
             <ScrollView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="2" android:fillViewport="true" android:scrollbarStyle="outsideOverlay">
                 <LinearLayout android:id="@+id/settingsRows" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingEnd="8dp" android:paddingStart="0dp" />

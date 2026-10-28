@@ -1,6 +1,6 @@
-# Trabajo local sin publicar
+# Avances incorporados a 0.4.1 y trabajo pendiente
 
-Por instrucción del usuario no se genera ni entrega otra APK mientras sigan pendientes metadatos actuales y ruta/superficie CarPlay. La entrega publicada permanece 0.4.0 y su archivo congelado conserva SHA-256 `205FFCC228C6B923DF2BDA832608EFD66955917A5E4470637F1B6B02058D7399`.
+El usuario autorizó el 28 de octubre de 2026 una nueva APK para instalar y revisar los avances, revocando la retención anterior. Los cambios siguientes se incorporan a la [0.4.1](RELEASE_041.md). Los metadatos actuales y la ruta/superficie CarPlay continúan pendientes. El archivo histórico 0.4.0 conserva SHA-256 `205FFCC228C6B923DF2BDA832608EFD66955917A5E4470637F1B6B02058D7399`.
 
 Cambios implementados localmente:
 
@@ -13,6 +13,6 @@ Cambios implementados localmente:
 - Corrección de la selección de HOME exportables para conservar el launcher original y no llenar la cuota con auxiliares Android.
 - Consulta inicial del perfil MCU con la misma solicitud de lectura `266/255` observada en SystemUI/TWCore. Se realiza una vez por apertura correcta, sin polling; si falla se conservan las otras escuchas. Solo un evento real puede establecer el perfil.
 
-Verificación local tras la consulta MCU: 188 pruebas app/núcleo, cero fallos/errores/omitidas; lint debug cero errores y 116 advertencias. La regresión de consulta MCU se reprodujo antes de la corrección y pasó después. El servidor conserva sus ocho pruebas aprobadas de la revisión anterior y no cambió en esta revisión. Se ejecutaron tests/lint, no assemble/packaging de una nueva entrega. Los renders fueron revisados localmente, sin publicarlos como producto terminado. La página solo amplía la recepción de archivos APK; sigue sirviendo la entrega congelada anterior.
+Verificación integral de la 0.4.1: 188 pruebas app/núcleo y ocho del servidor, cero fallos/errores/omitidas; lint debug/release cero errores y 118 advertencias; ambos instaladores compilados. Firma anterior, actualización de versión, ausencia de depuración y permisos idénticos comprobados. La descarga local coincide con la APK firmada. [Registro de entrega](../TEST_RESULTS.md). La regresión de consulta MCU y la descripción incorrecta de la imagen stock se reprodujeron antes de sus correcciones y pasaron después.
 
 Después se recibieron nueve APK completos, incluido Tema. El análisis y las pruebas físicas posteriores están en [OEM_APPS_20261028.md](OEM_APPS_20261028.md): ni DashMate muestra la canción de CarPlay ni la ventana OEM permite ZLink. Hay formatos CP internos, pero el contrato utilizable desde otro launcher sigue pendiente. Se preparó una solicitud técnica para el fabricante, sin enviarla. Las mejoras de perfil/interfaz no se presentan como recuperación de metadatos ni mapa del iPhone.

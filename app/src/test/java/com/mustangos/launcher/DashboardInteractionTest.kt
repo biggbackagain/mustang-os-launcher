@@ -199,10 +199,14 @@ class DashboardInteractionTest {
         assertEquals(selected.title, activity.findViewById<TextView>(R.id.vehicleProfileTitle).text.toString())
         assertEquals(selected.subtitle, activity.findViewById<TextView>(R.id.vehicleProfileSubtitle).text.toString())
         assertFalse(activity.findViewById<TextView>(R.id.vehicleProfileSubtitle).text.contains("4.0"))
+        assertEquals(activity.getString(R.string.vehicle_description), activity.findViewById<View>(R.id.carImage).contentDescription)
+        assertEquals(activity.getString(R.string.vehicle_stock_image_caption), activity.findViewById<TextView>(R.id.vehicleImageReference).text)
         controller.pause().stop().start().resume().visible()
         activity.findViewById<View>(R.id.topSettings).performClick()
         val dialog = ShadowDialog.getLatestDialog()
         assertEquals("2020 · ${selected.subtitle}", dialog.findViewById<TextView>(R.id.settingsCarProfile).text.toString())
+        assertEquals(activity.getString(R.string.vehicle_description), dialog.findViewById<View>(R.id.settingsCarImage).contentDescription)
+        assertEquals(activity.getString(R.string.vehicle_stock_image_caption), dialog.findViewById<TextView>(R.id.settingsImageReference).text)
         dialog.dismiss(); controller.pause().stop().destroy()
     }
 

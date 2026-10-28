@@ -1,6 +1,21 @@
-# Registro de verificación · Mustang OS 0.4.0
+# Registro de verificación · Mustang OS 0.4.1
 
-## Resultado actual 0.4.0
+## Resultado actual 0.4.1
+
+**188 pruebas app/núcleo y ocho del servidor pasadas; cero fallos/errores/omitidas.** Verificación integral con `scripts/verify.ps1`: pruebas, lint debug/release y ambos instaladores; `BUILD SUCCESSFUL` en 1 minuto 7 segundos. Lint: cero errores y 118 advertencias en ambas variantes, sin baseline ni supresiones nuevas. Las dos advertencias añadidas frente a la revisión local anterior son las etiquetas de referencia de imagen de 10sp. Permanecen pendientes avisos de textos, layout/accesibilidad y APIs deprecadas.
+
+- Release: `output/MustangOS-0.4.1.apk`, alias `output/MustangOS.apk`, 2 040 214 bytes.
+- Paquete `com.mustangos.launcher`, versión 0.4.1 / código 10, min SDK 26 / target 35.
+- SHA-256 release: `62258D455C00E87168DD95877F9C6DC569BAD729F34847A58F41E64C1056DF8E`.
+- Firma v2 verificada, mismo certificado SHA-256 `ea344a9b8f345999a123c89eb450bb97a95aba40857febd43177282ab9a24117` que la 0.4.0. Sin depuración, sin permisos nuevos y sin generar/copiar llaves. La APK histórica 0.4.0 conserva su hash.
+- Debug: `output/MustangOS-0.4.1-debug.apk`, 2 780 316 bytes; SHA-256 `10B9B8524205C7A2F0F53D9C23354D4634E4901BC7966DD3A7FDC81F6935A042`.
+- Página HTTP 200 con versión 0.4.1; descarga por `http://192.168.100.2:8766/` idéntica por SHA-256 a la release firmada. La recepción APK/ZIP sigue habilitada; el ayudante caduca dos horas después de iniciarse. La instalación física corresponde al usuario.
+
+Regresiones verificadas: ranking/cambio de wrapper multimedia; perfil persistente e importación privada de foto; cancelación de importación al restaurar la imagen; exportación de HOME; consulta inicial MCU una vez por apertura, tolerante a rechazo. La etiqueta/descripción de imagen stock se reprodujo incorrecta al elegir un perfil distinto y se corrigió, manteniendo los datos del perfil separados de la referencia visual. Renders de dashboard 1280/853 y Ajustes 1280 revisados; no se detectó recorte material por la nueva etiqueta.
+
+Los controles CarPlay físicos confirmados anteriormente se conservan; metadata actual y superficie CarPlay siguen sin interfaz verificada. Esta entrega autoriza probar los avances y no acredita esas integraciones. No se ejecutaron los APK OEM recibidos. [Cambios y prueba en la pantalla](docs/RELEASE_041.md), [análisis de los APK completos](docs/OEM_APPS_20261028.md).
+
+## Historial 0.4.0
 
 **161 pruebas app/núcleo y siete del servidor pasadas; cero fallos/errores.** Verificación integral con `scripts/verify.ps1`: pruebas, lint debug/release y ambos instaladores; `BUILD SUCCESSFUL` en 1 minuto 16 segundos. Lint: cero errores y 115 advertencias en ambas variantes, sin baseline ni supresiones nuevas. Los avisos pendientes incluyen textos españoles, sugerencias de layout/accesibilidad y APIs deprecadas; no sustituyen la validación física.
 

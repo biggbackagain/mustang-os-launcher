@@ -12,28 +12,29 @@ import uuid
 
 PAGE = """<!doctype html><html lang="es"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mustang OS 0.4.0 · Cockpit</title>
-<style>body{background:#090b0f;color:#f4f5f7;font:20px system-ui;margin:0;padding:32px}
-main{max-width:760px;margin:24px auto;padding:32px;border:1px solid #303540;border-radius:24px;background:#11141a}
+<title>Mustang OS 0.4.1 · Mi Mustang</title>
+<style>body{background:#061b37;color:#f4f5f7;font:20px system-ui;margin:0;padding:32px}
+main{max-width:760px;margin:24px auto;padding:32px;border:1px solid #303e57;border-radius:24px;background:#0b2342}
 h1{font-size:36px;margin:0 0 12px}span{color:#93d8ff}p,li{line-height:1.6}small{color:#b0b5c0}
 a{display:block;background:#93d8ff;color:#07131c;text-decoration:none;padding:22px;text-align:center;border-radius:16px;font-weight:bold;margin:28px 0;font-size:22px}li{margin:12px 0}
 .badge{background:#1f2530;padding:4px 10px;border-radius:8px;font-size:14px;color:#93d8ff;font-weight:bold}summary{cursor:pointer;padding:16px 0}</style>
-<main><h1>MUSTANG <span>OS</span> <span class="badge">v0.4.0</span></h1>
-<small>Cockpit · interfaz grafito y azul hielo inspirada en el Mustang reciente</small>
-<a href="/MustangOS.apk" download="MustangOS.apk">Descargar Mustang OS 0.4.0</a>
+<main><h1>MUSTANG <span>OS</span> <span class="badge">v0.4.1</span></h1>
+<small>Mi Mustang · azul medianoche y ajustes con caballo tribar</small>
+<a href="/MustangOS.apk?v=0.4.1" download="MustangOS.apk">Descargar Mustang OS 0.4.1</a>
 <ol><li>Descarga <b>MustangOS.apk</b>.</li>
 <li>Abre el archivo y pulsa <b>Instalar / Actualizar</b>, conservando la aplicación anterior.</li>
 <li>Abre <b>MUSTANG OS</b> con el vehículo estacionado.</li></ol>
 <h2>Qué incluye</h2>
 <ul>
 <li><b>Mapa Android en el panel:</b> desplazar, zoom, centrar GPS y ampliar a pantalla completa. Pulsa <b>Centrar</b> para activar la cartografía por Internet; usa el receptor de la pantalla.</li>
-<li><b>Audio:</b> conserva los controles CarPlay confirmados y amplía la lectura de portadas locales. Título y portada dependen de lo que publique ZLink para cualquier app del iPhone.</li>
-<li><b>Tu Mustang:</b> foto, caballo, faros de bienvenida y lecturas OEM disponibles con su antigüedad.</li>
-<li><b>Apps y ajustes:</b> búsqueda, iconos uniformes, configuración propia y preferencia de pantalla encendida.</li>
+<li><b>Audio:</b> conserva los controles CarPlay confirmados y mejora la selección de sesiones de la fuente elegida. Los datos actuales de canción y portada de CarPlay siguen pendientes de una interfaz compatible de ZLink.</li>
+<li><b>Mi Mustang:</b> elige año, versión, carrocería, color y una foto de referencia en Ajustes. La foto se selecciona aparte; el perfil no transforma la imagen incluida.</li>
+<li><b>Apps y ajustes:</b> azul medianoche, pictogramas refinados y caballo grande tribar en Ajustes. Conserva búsqueda y preferencia de pantalla encendida.</li>
+<li><b>Lectura OEM:</b> consulta inicial del perfil MCU y lecturas recibidas con su antigüedad. La disponibilidad de datos depende del firmware.</li>
 </ul>
 <p><small>El mapa del panel es Android, independiente de la ruta del iPhone. Necesita Internet en la pantalla y una ubicación válida para centrarla. La superficie CarPlay sigue dentro de ZLink. La APK principal es release con depuración desactivada y la firma anterior para actualizar.</small></p>
 <details open><summary>Enviar diagnóstico o APK al PC</summary>
-<p>Para investigar la integración original también puedes enviar el APK extraído de <b>Tema (com.dofun.variety)</b>. El archivo se guarda para análisis; no se instala ni ejecuta en el PC.</p>
+<p>También puedes enviar el APK extraído de <b>CarInfoService (com.tw.carinfoservice)</b>, si aparece entre las apps del sistema. El archivo se guarda para análisis; no se instala ni ejecuta en el PC.</p>
 <p>Con CarPlay conectado, deja una canción reproduciéndose y regresa con Home. Abre <b>Ajustes → Diagnóstico y exportación → Compatibilidad OEM → Guardar ZIP</b> y selecciona aquí el archivo nuevo:</p>
 <input id="report" type="file" accept=".zip,.apk,application/zip,application/vnd.android.package-archive" style="font-size:18px;max-width:100%">
 <button id="send" style="font-size:20px;background:#1d222b;color:white;padding:20px;border:1px solid #4b5260;border-radius:12px;margin-top:16px">Enviar archivo al PC</button>
