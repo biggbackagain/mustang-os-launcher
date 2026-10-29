@@ -1,4 +1,24 @@
-# Registro de verificación · Mustang OS 0.7.0
+# Registro de verificación · Mustang OS 0.8.1
+
+## Resultado actual 0.8.1
+
+- `scripts/verify.ps1` completo: 60 pruebas de núcleo y 232 de app, cero fallos/errores; lint debug y release con 0 errores; APK debug y release compiladas.
+- Release: `output/MustangOS-0.8.1.apk`, alias `output/MustangOS.apk`, 8 397 881 bytes; versión 0.8.1 / código 17, sin depuración. SHA-256 `958788289C7FCF931C73CB7656E355FBD7EF6CD3DDD4D551F9B5652AF4C1E389`. Misma firma que 0.7.0/0.8.0.
+- Evidencia física (ZIP `20261029-044447-d550b8cd.zip`): música 1109/0, portadas 14 decodificadas de 15, guía de ruta 149 válidas y 0 rechazadas con tamaños de campo iAP2, GPS sin posición en vivo. [Análisis](docs/RELEASE_081.md).
+
+## Historial 0.8.0
+
+
+- `scripts/verify.ps1` completo: 59 pruebas de núcleo y 231 de app, cero fallos/errores/omitidas; lint debug y release con 0 errores (236 advertencias); APK debug y release compiladas.
+- Release: `output/MustangOS-0.8.0.apk`, alias `output/MustangOS.apk`, 8 397 249 bytes; versión 0.8.0 / código 16, paquete `com.mustangos.launcher`, target 35, sin depuración. SHA-256 `7AF60E73BB7061753A967003AF5B050DBB5822254923D42A5932DF0C7D1FA72E`.
+- Debug: `output/MustangOS-0.8.0-debug.apk`, 9 222 998 bytes.
+- Certificado de firma idéntico al de 0.7.0 (SHA-256 `ea344a9b…a24117`): instala encima conservando datos. Permisos sin cambios.
+- Nuevas pruebas: decodificador de guía iAP2 (tipos 8/9), ventana de portada, estado iAP2, JPEG con prefijo, préstamo de portada solo para la misma canción, geometría de todas las familias/carrocerías dentro de su envolvente con índices de 16 bits, y puertas/ruedas/luces independientes en cada fotograma.
+- El render OpenGL se revisó en una vista previa WebGL con los mismos shaders y la misma geometría (`docs/render-3d-*.png`). Robolectric no ejecuta OpenGL: en las pruebas se dibuja el respaldo Canvas.
+
+**Pendiente en el coche:** portada con cambios de canción y con ZLink al frente, guía de ruta (depende de que ZLink publique los tipos 8/9), rendimiento del render en la GPU de la unidad y la barra que se reduce sola. [Entrega 0.8.0](docs/RELEASE_080.md).
+
+## Historial 0.7.0
 
 ## Resultado actual 0.7.0
 

@@ -26,6 +26,9 @@ class CarPlayBarService : Service() {
     private var previous: ImageButton? = null
     private var next: ImageButton? = null
     private var song: TextView? = null
+    private val expandable = mutableListOf<View>()
+    private var expanded = true
+    private val collapse = Runnable { setExpanded(false) }
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
     override fun onBind(intent: Intent?) = null
     override fun onCreate() { super.onCreate(); windows = getSystemService(WindowManager::class.java) }
@@ -68,38 +71,46 @@ class CarPlayBarService : Service() {
             background=GradientDrawable().apply { setColor(0xf20a1422.toInt()); cornerRadius=dp(24).toFloat(); setStroke(dp(1),0xff6e8fb4.toInt()) }
             elevation=dp(6).toFloat()
         }
-        val handle=ImageView(styled).apply { setImageResource(R.drawable.ic_mustang_pony); contentDescription="Arrastrar barra Mustang"; setPadding(dp(6),dp(8),dp(6),dp(8)) }
+        val handle=ImageView(styled).apply { setImageResource(R.drawable.ic_mustang_pony); contentDescription="Barra Mustang: toca para mostrar u ocultar, arrastra para mover"; setPadding(dp(6),dp(8),dp(6),dp(8)) }
         row.addView(handle,LinearLayout.LayoutParams(dp(48),dp(48)))
         song=TextView(styled).apply {
             setTextColor(0xffe5f3ff.toInt()); textSize=13f; maxLines=2
             ellipsize=android.text.TextUtils.TruncateAt.END
             maxWidth=(resources.displayMetrics.widthPixels-dp(370)).coerceIn(0,dp(200))
             setPadding(dp(6),0,dp(10),0); visibility=View.GONE
-        }.also { row.addView(it,LinearLayout.LayoutParams(-2,dp(48))) }
+        }.also { row.addView(it,LinearLayout.LayoutParams(-2,dp(48))); expandable.add(it) }
         fun control(icon: Int,description: String,click: () -> Unit) = ImageButton(styled).apply {
             setImageResource(icon); contentDescription=description; background=GradientDrawable().apply { cornerRadius=dp(20).toFloat(); setColor(0xff14273e.toInt()) }
-            setPadding(dp(12),dp(12),dp(12),dp(12)); setOnClickListener { click() }
-        }.also { row.addView(it,LinearLayout.LayoutParams(dp(48),dp(48)).apply { marginStart=dp(3) }) }
+            setPadding(dp(12),dp(12),dp(12),dp(12)); setOnClickListener { click(); scheduleCollapse() }
+        }.also { row.addView(it,LinearLayout.LayoutParams(dp(48),dp(48)).apply { marginStart=dp(3) }); expandable.add(it) }
         control(R.drawable.ic_home,"Volver a Mustang OS") { onStartCommand(Intent().setAction(HOME),0,0) }
         previous=control(R.drawable.ic_previous,"Canción anterior") { send(MediaCommand.PREVIOUS) }
         play=control(R.drawable.ic_play_pause,"Pausar o reproducir CarPlay") { if(media?.togglePlayPause() != true) unavailable() }
         next=control(R.drawable.ic_next,"Canción siguiente") { send(MediaCommand.NEXT) }
         control(R.drawable.ic_close,"Cerrar barra Mustang") { stopSelf() }
         val screen=resources.displayMetrics
+        val prefs=getSharedPreferences("launcher",MODE_PRIVATE)
+        // Default: a small pony on the right edge, clear of CarPlay's dock and of the map's guidance banner.
         val params=WindowManager.LayoutParams(-2,-2,WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,PixelFormat.TRANSLUCENT).apply {
-            gravity=Gravity.TOP or Gravity.START; x=((screen.widthPixels-dp(320))/2).coerceAtLeast(0); y=dp(8)
+            gravity=Gravity.TOP or Gravity.START
+            x=prefs.getInt("bar_x",screen.widthPixels).coerceIn(0,screen.widthPixels); y=prefs.getInt("bar_y",(screen.heightPixels*.42f).toInt()).coerceIn(0,screen.heightPixels)
         }
-        var downX=0f; var downY=0f; var initialX=0; var initialY=0
+        var downX=0f; var downY=0f; var initialX=0; var initialY=0; var moved=false
         handle.setOnTouchListener { _,event ->
             when(event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> { downX=event.rawX; downY=event.rawY; initialX=params.x; initialY=params.y; true }
+                MotionEvent.ACTION_DOWN -> { downX=event.rawX; downY=event.rawY; initialX=params.x; initialY=params.y; moved=false; handler.removeCallbacks(collapse); true }
                 MotionEvent.ACTION_MOVE -> {
+                    if(kotlin.math.abs(event.rawX-downX)+kotlin.math.abs(event.rawY-downY)>dp(8)) moved=true
                     params.x=(initialX+event.rawX-downX).toInt().coerceIn(0,(screen.widthPixels-row.width).coerceAtLeast(0))
                     params.y=(initialY+event.rawY-downY).toInt().coerceIn(0,(screen.heightPixels-row.height-dp(24)).coerceAtLeast(0))
                     runCatching { windows.updateViewLayout(row,params) }; true
                 }
-                MotionEvent.ACTION_UP -> { handle.performClick(); true }
+                MotionEvent.ACTION_UP -> {
+                    if(moved) prefs.edit().putInt("bar_x",params.x).putInt("bar_y",params.y).apply()
+                    else { handle.performClick(); setExpanded(!expanded) }
+                    scheduleCollapse(); true
+                }
                 else -> false
             }
         }
@@ -113,6 +124,14 @@ class CarPlayBarService : Service() {
         windows.addView(row,params)
         (application as MustangApplication).zlinkHud.visible("bar",true)
         handler.post(refresh)
+        scheduleCollapse()
+    }
+    /** The bar folds into the pony after a few seconds so the CarPlay map stays fully visible. */
+    private fun scheduleCollapse() { handler.removeCallbacks(collapse); if(expanded) handler.postDelayed(collapse,6000) }
+    private fun setExpanded(value: Boolean) {
+        expanded=value
+        for(view in expandable) view.visibility=if(value && (view!==song || song?.text?.isNotEmpty()==true)) View.VISIBLE else View.GONE
+        (bar?.background as? GradientDrawable)?.alpha=if(value) 255 else 190
     }
     private val refresh=object : Runnable {
         override fun run() {
@@ -131,7 +150,7 @@ class CarPlayBarService : Service() {
                 val position=display.facts.positionMs
                 text=title?.let { listOfNotNull(it,display.displaySubtitle).joinToString("\n") }
                     ?: if(display.reportedPosition) "CarPlay\n%d:%02d".format(position/60000,position/1000%60) else ""
-                visibility=if(text.isNotEmpty() && maxWidth>=dp(90)) View.VISIBLE else View.GONE
+                visibility=if(expanded && text.isNotEmpty() && maxWidth>=dp(90)) View.VISIBLE else View.GONE
             }
             play?.setImageResource(if(state?.playbackStateKnown == true) { if(state.facts.playing) R.drawable.ic_pause else R.drawable.ic_play } else R.drawable.ic_play_pause)
             handler.postDelayed(this,1000)
@@ -143,7 +162,7 @@ class CarPlayBarService : Service() {
     override fun onDestroy() {
         (application as MustangApplication).zlinkHud.visible("bar",false)
         handler.removeCallbacksAndMessages(null); media?.stop(); media=null
-        bar?.let { runCatching { windows.removeViewImmediate(it) } }; bar=null; song=null
+        bar?.let { runCatching { windows.removeViewImmediate(it) } }; bar=null; song=null; expandable.clear()
         stopForeground(STOP_FOREGROUND_REMOVE)
         super.onDestroy()
     }

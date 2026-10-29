@@ -1,0 +1,6 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item><shape><solid android:color="#F20A2444"/><corners android:radius="16dp"/></shape></item>
+    <!-- Studio spotlight behind the car. -->
+    <item><shape><gradient android:type="radial" android:gradientRadius="70%p" android:centerX="0.5" android:centerY="0.52" android:startColor="#3A2F6EA8" android:centerColor="#14214D7A" android:endColor="#00061B37"/><corners android:radius="16dp"/></shape></item>
+    <item><shape><solid android:color="@android:color/transparent"/><stroke android:width="1dp" android:color="@color/ui_border"/><corners android:radius="16dp"/></shape></item>
+</layer-list>

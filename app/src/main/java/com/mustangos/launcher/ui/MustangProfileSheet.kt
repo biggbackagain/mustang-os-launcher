@@ -48,8 +48,16 @@ class MustangProfileSheet(
         val title = TextView(context).apply { setTextAppearance(R.style.Body); textSize = 23f; gravity = Gravity.CENTER }
         val car = MustangCarView(context).apply { scaleType = ImageView.ScaleType.FIT_CENTER; lampOverlayEnabled = true }
         val caption = TextView(context).apply { setTextAppearance(R.style.Muted); gravity = Gravity.CENTER; textSize = 13f }
+        // The same studio render as the dashboard; the canvas view stays underneath for photographs and as fallback.
+        val render = com.mustangos.launcher.render.MustangRenderView(context).apply { visibility = View.GONE; setActive(true) }
+        var renderFailed = false
+        render.onRendered = { car.sceneCovered = true }
+        render.onFailure = { renderFailed = true; render.visibility = View.GONE; car.sceneCovered = false }
+        val carFrame = android.widget.FrameLayout(context).apply {
+            addView(car, android.widget.FrameLayout.LayoutParams(-1,-1)); addView(render, android.widget.FrameLayout.LayoutParams(-1,-1))
+        }
         stage.addView(title,LinearLayout.LayoutParams(-1,-2))
-        stage.addView(car,LinearLayout.LayoutParams(-1,0,1f))
+        stage.addView(carFrame,LinearLayout.LayoutParams(-1,0,1f))
         stage.addView(caption,LinearLayout.LayoutParams(-1,-2))
         val controls = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(6),0,dp(6),dp(12)) }
         columns.addView(ScrollView(context).apply { addView(controls) },LinearLayout.LayoutParams(0,-1,1f))
@@ -71,7 +79,7 @@ class MustangProfileSheet(
         controls.addView(colorName)
         val useDigital = Switch(context).apply { text = "Vista 3D · color, puertas y luces"; isChecked = digitalMode; minHeight = dp(52); setTextAppearance(R.style.Body) }
         controls.addView(useDigital)
-        controls.addView(TextView(context).apply { setTextAppearance(R.style.Muted); textSize = 12f; text = "La vista digital representa la familia del Mustang y la pintura elegida; no reproduce cada pieza o edición exacta. La fotografía es una referencia aparte. Este perfil no modifica el vehículo ni el CAN." })
+        controls.addView(TextView(context).apply { setTextAppearance(R.style.Muted); textSize = 12f; text = "El render 3D representa la familia del Mustang y la pintura elegida con iluminación de estudio; no es un modelo CAD de cada edición. Las puertas y luces siguen las señales OEM. La fotografía es una referencia aparte. Este perfil no modifica el vehículo ni el CAN." })
         fun button(text: String) = Button(context,null,0,R.style.ActionButton).apply { this.text = text }.also { controls.addView(it,LinearLayout.LayoutParams(-1,dp(52)).apply { topMargin = dp(8) }) }
         val choose = button(if(hasPhoto) "Guardar y cambiar mi foto" else "Guardar y elegir mi foto")
         val clear = button("Usar fotografías del catálogo")
@@ -92,9 +100,12 @@ class MustangProfileSheet(
             car.sceneProfile = if(digitalMode) draft else null
             car.lampOverlayEnabled = digitalMode
             car.setHeadlightsOn(previewLights)
+            render.visibility = if(digitalMode && !renderFailed) View.VISIBLE else View.GONE
+            if(!digitalMode) car.sceneCovered = false
+            if(digitalMode) { render.setProfile(draft); render.setSignals(null,null,null,if(previewLights) 1f else 0f) }
             lights.isEnabled = digitalMode
             if(digitalMode) {
-                caption.text = "${MustangGeneration.forYear(draft.year).label} · modelo 3D aproximado"
+                caption.text = "${MustangGeneration.forYear(draft.year).label} · render 3D · arrastra para girar"
                 car.contentDescription = "Vista 3D · ${draft.description}"
             } else {
                 val selection = draft
@@ -145,7 +156,7 @@ class MustangProfileSheet(
             override fun afterTextChanged(s: Editable?) = Unit
         })
         useDigital.setOnCheckedChangeListener { _, checked -> digitalMode = checked; updatePreview() }
-        lights.setOnClickListener { previewLights = !previewLights; car.setHeadlightsOn(previewLights,animate = true) }
+        lights.setOnClickListener { previewLights = !previewLights; car.setHeadlightsOn(previewLights,animate = true); render.setSignals(null,null,null,if(previewLights) 1f else 0f) }
         val dialog = AlertDialog.Builder(context).setTitle("Mi Mustang · elige tu vehículo").setView(root)
             .setPositiveButton("Confirmar vehículo",null).setNegativeButton("Cancelar",null).create()
         fun save(): Boolean {
@@ -158,7 +169,7 @@ class MustangProfileSheet(
         val owner = context as? LifecycleOwner
         val observer = LifecycleEventObserver { _,event -> if(event == Lifecycle.Event.ON_DESTROY) dialog.dismiss() }
         owner?.lifecycle?.addObserver(observer)
-        dialog.setOnDismissListener { scope.cancel(); car.stopAnimation(); owner?.lifecycle?.removeObserver(observer); onDismiss() }
+        dialog.setOnDismissListener { scope.cancel(); car.stopAnimation(); render.setActive(false); owner?.lifecycle?.removeObserver(observer); onDismiss() }
         dialog.setOnShowListener {
             dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT)
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { if(save()) dialog.dismiss() }

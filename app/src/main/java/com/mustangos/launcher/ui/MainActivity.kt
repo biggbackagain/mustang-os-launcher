@@ -47,6 +47,8 @@ import com.mustangos.launcher.settings.PhotoPresentation
 import com.mustangos.launcher.navigation.OfflineMapStore
 import com.mustangos.launcher.radio.RadioIntegrationManager
 import com.mustangos.launcher.carplay.CarPlayBarService
+import com.mustangos.core.ManeuverGlyph
+import com.mustangos.core.ZLinkRouteGuidance
 import kotlinx.coroutines.*
 import kotlin.math.roundToInt
 
@@ -68,6 +70,8 @@ class MainActivity : ComponentActivity() {
     private var profilePhotoLoaded = false
     private var profilePhotoJob: Job? = null
     private var profileImportJob: Job? = null
+    private var renderUnavailable: String? = null
+    private var lastArtwork: Bitmap? = null
     private val overlayPermission = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         if(Settings.canDrawOverlays(this)) launchCarPlayBar()
         else toast("Android no concedió el permiso de la barra. CarPlay sigue disponible.")
@@ -150,6 +154,16 @@ class MainActivity : ComponentActivity() {
             binding.artHint.visibility = View.GONE
             binding.carImage.scaleType = ImageView.ScaleType.FIT_CENTER
         }
+        binding.carRender.onRendered = { binding.carImage.sceneCovered = true }
+        binding.carRender.onFailure = { reason ->
+            // A unit without a usable OpenGL ES 2.0 surface keeps the profile photograph instead.
+            ErrorJournal.record(this, "RENDER_FAILED")
+            renderUnavailable = reason
+            binding.carRender.visibility = View.GONE
+            binding.carImage.sceneCovered = false
+            refreshProfilePhoto(force = true)
+        }
+        binding.guidancePanel.setOnClickListener { openRole("zlink") }
 
         // Auto-request location permission on first launch if not granted
         if (!model.gps.hasPermission() && !model.settings.gpsPermissionPrompted) {
@@ -200,7 +214,8 @@ class MainActivity : ComponentActivity() {
                     }.collect { }
                 }
                 launch { model.media.state.collect { renderMedia(model.mediaPresentation()) } }
-                launch { model.zlinkHudProbe.state.collect { renderMedia(model.mediaPresentation()) } }
+                launch { model.zlinkHudProbe.state.collect { renderMedia(model.mediaPresentation()); renderGuidance(it.guidance) } }
+                launch { model.gps.state.collect { renderGuidance(model.zlinkHudProbe.state.value.guidance) } }
                 launch {
                     model.oem.state.collect { oem ->
                         binding.topDoorStatus.visibility = if (oem.doorMask?.let { it != 0 } == true) View.VISIBLE else View.GONE
@@ -247,6 +262,7 @@ class MainActivity : ComponentActivity() {
         stopService(Intent(this,CarPlayBarService::class.java))
         model.start()
         binding.carImage.setSceneActive(mapMenuDepth==0)
+        binding.carRender.setActive(mapMenuDepth==0)
         if (::nativeMap.isInitialized) nativeMap.setActive(mapMenuDepth == 0)
         val illumination = model.oem.state.value.illuminationOn
         if (illumination != null) binding.carImage.setHeadlightsOn(illumination)
@@ -257,6 +273,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         binding.carImage.stopAnimation()
+        binding.carRender.setActive(false)
         nativeMap.setActive(false)
         model.stop()
         super.onStop()
@@ -264,7 +281,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if(::binding.isInitialized) binding.carImage.setSceneActive(hasFocus && mapMenuDepth==0 && lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED))
+        if(::binding.isInitialized) {
+            val active = hasFocus && mapMenuDepth==0 && lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+            binding.carImage.setSceneActive(active); binding.carRender.setActive(active)
+        }
     }
 
     override fun onDestroy() {
@@ -293,12 +313,14 @@ class MainActivity : ComponentActivity() {
         profilePhotoJob?.cancel()
         profilePhotoJob = lifecycleScope.launch {
             val profile = model.settings.mustangProfile
-            if(model.settings.digitalVehicle) {
-                val caption = "Modelo 3D · ${profile.paint.label} · vista aproximada"
+            if(model.settings.digitalVehicle && renderUnavailable == null) {
+                val caption = "Render 3D · ${profile.paint.label} · arrastra para girar"
                 photoPresentation = PhotoPresentation(null,caption,"${profile.description} · modelo 3D aproximado",true,null,"digital")
                 profilePhoto = null; profilePhotoLoaded = true
                 binding.carImage.digitalProfile = null
                 binding.carImage.sceneProfile = profile
+                binding.carRender.visibility = View.VISIBLE
+                binding.carRender.setProfile(profile)
                 binding.carImage.lampOverlayEnabled = true
                 binding.carImage.contentDescription = photoPresentation!!.description
                 binding.vehicleImageReference.text = caption
@@ -308,6 +330,8 @@ class MainActivity : ComponentActivity() {
             }
             binding.carImage.digitalProfile = null
             binding.carImage.sceneProfile = null
+            binding.carImage.sceneCovered = false
+            binding.carRender.visibility = View.GONE
             val custom = referenceImageStore.load()
             val presentation = if (custom != null) PhotoPresentation(custom,
                 getString(R.string.vehicle_custom_image_caption), getString(R.string.vehicle_custom_image_caption),
@@ -330,13 +354,15 @@ class MainActivity : ComponentActivity() {
         val cachedLight=cached.illuminationSignal?.takeIf { cached.sourceActive && it.available }?.value
         binding.carImage.setHeadlightsOn((illumination ?: cachedLight)==true,animate=true)
         val (left,right)=model.settings.doorMapping.states(oem.doorMask.takeIf { oem.sourceActive })
-        binding.carImage.setSceneSignals(left,right,oem.speedKmh ?: model.gps.state.value.kmh)
+        val speed=oem.speedKmh ?: model.gps.state.value.kmh
+        binding.carImage.setSceneSignals(left,right,speed)
+        binding.carRender.setSignals(left,right,speed,if((illumination ?: cachedLight)==true) 1f else 0f)
         binding.vehicleRpm.text=oem.rpm?.let { "$it RPM · OEM" } ?: "— RPM · esperando datos OEM"
         if(model.settings.digitalVehicle) {
             val lightText=when { illumination!=null -> if(illumination) "luces activas" else "luces apagadas"
                 cachedLight!=null -> "luces · señal OEM guardada"; else -> "luces sin señal" }
             val doors=if(left==null || right==null) "asignar puertas" else "puertas OEM"
-            binding.vehicleImageReference.text="3D · $lightText · $doors"
+            binding.vehicleImageReference.text="3D · $lightText · $doors · arrastra para girar"
             binding.carImage.contentDescription="Modelo 3D · ${model.settings.mustangProfile.description}. $lightText. " +
                 "Puerta izquierda: ${left?.let { if(it) "abierta" else "sin apertura" } ?: "sin asignar"}. " +
                 "Puerta derecha: ${right?.let { if(it) "abierta" else "sin apertura" } ?: "sin asignar"}."
@@ -366,11 +392,12 @@ class MainActivity : ComponentActivity() {
         if (!model.gps.hasPermission()) requestGps()
     }
 
-    private fun pauseMapForMenu() { mapMenuDepth++; nativeMap.setActive(false); binding.carImage.setSceneActive(false) }
+    private fun pauseMapForMenu() { mapMenuDepth++; nativeMap.setActive(false); binding.carImage.setSceneActive(false); binding.carRender.setActive(false) }
     private fun restoreMapAfterMenu() {
         mapMenuDepth = (mapMenuDepth - 1).coerceAtLeast(0)
         nativeMap.setActive(mapMenuDepth == 0 && lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED))
         binding.carImage.setSceneActive(mapMenuDepth == 0 && lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED))
+        binding.carRender.setActive(mapMenuDepth == 0 && lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED))
     }
 
     private fun showMapScreen() {
@@ -424,7 +451,60 @@ class MainActivity : ComponentActivity() {
                 else model.media.canCommand(command)
             view.alpha = if (view.isEnabled) 1f else 0.3f
         }
+        if (ui.artwork !== lastArtwork) { lastArtwork = ui.artwork; tintMediaCard(ui.artwork) }
         updateProgress()
+    }
+
+    /** Light wash of the cover's average colour across the audio card. */
+    private fun tintMediaCard(art: Bitmap?) {
+        val density = resources.displayMetrics.density
+        val accent = art?.let { cover -> runCatching {
+            val pixel = Bitmap.createScaledBitmap(cover, 1, 1, true)
+            pixel.getPixel(0, 0).also { if (pixel !== cover) pixel.recycle() }
+        }.getOrNull() }
+        binding.mediaCard.background = if (accent == null) getDrawable(R.drawable.bg_card) else android.graphics.drawable.GradientDrawable(
+            android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
+            intArrayOf(Color.argb(150, Color.red(accent), Color.green(accent), Color.blue(accent)), getColor(R.color.ui_card_surface), getColor(R.color.ui_card_surface))
+        ).apply { cornerRadius = 16 * density; setStroke(density.toInt().coerceAtLeast(1), getColor(R.color.ui_border)) }
+    }
+
+    /** Turn-by-turn from CarPlay over the map card. Only what the iPhone published; nothing is computed here. */
+    private fun renderGuidance(guidance: ZLinkRouteGuidance) {
+        val maneuver = guidance.current
+        val show = guidance.active || guidance.arrived && SystemClock.elapsedRealtime() - guidance.updatedAtMs < 60_000
+        binding.guidancePanel.visibility = if (show) View.VISIBLE else View.GONE
+        (binding.mapControls.layoutParams as android.widget.FrameLayout.LayoutParams).let { params ->
+            val gravity = if (show) android.view.Gravity.BOTTOM or android.view.Gravity.END else android.view.Gravity.TOP or android.view.Gravity.END
+            if (params.gravity != gravity) { params.gravity = gravity; binding.mapControls.layoutParams = params }
+        }
+        if (!show) { binding.mapControls.visibility = View.VISIBLE; binding.navigationDescription.setText(R.string.navigation_carplay_explanation); return }
+        binding.guidanceIcon.glyph = if (guidance.arrived) ManeuverGlyph.ARRIVE else ManeuverGlyph.of(maneuver?.type, maneuver?.drivingSide)
+        binding.guidanceDistance.text = if (guidance.arrived) "Llegaste" else guidance.distanceToManeuver ?: guidance.stateLabel ?: "CarPlay"
+        binding.guidanceInstruction.text = if (guidance.arrived) guidance.destination ?: "Destino"
+            else listOfNotNull(maneuver?.description, maneuver?.afterRoad?.takeIf { road -> maneuver.description?.contains(road) != true })
+                .joinToString(" · ").ifEmpty { guidance.stateLabel ?: guidance.currentRoad ?: "Sigue la ruta de CarPlay" }
+        val eta = guidance.etaEpochSeconds?.takeIf { it in 1_600_000_000L..4_000_000_000L }?.let {
+            java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date(it * 1000))
+        }
+        val remaining = guidance.timeRemainingSeconds?.takeIf { it in 0..86_400L * 3 }?.let { t -> if (t >= 3600) "${t / 3600} h ${t % 3600 / 60} min" else "${(t + 59) / 60} min" }
+        binding.guidanceEta.text = listOfNotNull(eta?.let { "Llegada $it" }, remaining, guidance.distanceRemaining, guidance.destination).joinToString(" · ")
+        binding.guidanceEta.visibility = if (binding.guidanceEta.text.isEmpty()) View.GONE else View.VISIBLE
+        // Without a position from the unit the Android map is empty: the route takes the whole card instead.
+        val expanded = model.gps.state.value.latitude == null
+        (binding.guidancePanel.layoutParams as android.widget.FrameLayout.LayoutParams).let { params ->
+            val height = if (expanded) ViewGroup.LayoutParams.MATCH_PARENT else ViewGroup.LayoutParams.WRAP_CONTENT
+            if (params.height != height) { params.height = height; binding.guidancePanel.layoutParams = params }
+        }
+        binding.guidancePanel.gravity = if (expanded) android.view.Gravity.CENTER_VERTICAL else android.view.Gravity.TOP
+        binding.mapControls.visibility = if (expanded) View.GONE else View.VISIBLE
+        val next = guidance.next?.takeIf { expanded && !guidance.arrived }
+        binding.guidanceNext.text = next?.let { step ->
+            "Después: " + listOfNotNull(step.distanceText?.let { ZLinkRouteGuidance.format(it, step.distanceUnits, null) }, step.description ?: step.afterRoad).joinToString(" · ")
+        }
+        binding.guidanceNext.visibility = if (next == null) View.GONE else View.VISIBLE
+        binding.guidanceRoad.text = guidance.currentRoad?.let { "Vas por $it" }
+        binding.guidanceRoad.visibility = if (expanded && guidance.currentRoad != null) View.VISIBLE else View.GONE
+        binding.navigationDescription.text = "Guía de CarPlay en vivo · toca la tarjeta para ver el mapa"
     }
 
     private fun updateProgress() {
@@ -492,7 +572,7 @@ class MainActivity : ComponentActivity() {
     private fun openCarPlayBar() {
         if(Settings.canDrawOverlays(this)) { launchCarPlayBar(); return }
         AlertDialog.Builder(this).setTitle("CarPlay con barra Mustang")
-            .setMessage("ZLink mostrará sus mapas y música reales. Mustang añade una barra pequeña que puedes arrastrar y cerrar, con Inicio y controles musicales. Para mostrarla debes permitir a Mustang OS aparecer sobre otras aplicaciones. No captura la pantalla ni extrae la portada o ruta hacia las tarjetas.")
+            .setMessage("CarPlay se abre a pantalla completa para que veas su mapa sin recortes. Mustang añade una barra con Inicio y controles de música que se reduce sola a un pequeño caballo en el borde; tócalo para abrirla y arrástralo para moverlo. Para mostrarla debes permitir a Mustang OS aparecer sobre otras aplicaciones. La canción, portada y guía de ruta llegan a las tarjetas por el canal de datos de ZLink, no capturando la pantalla.")
             .setPositiveButton("Permitir barra") { _, _ ->
                 runCatching { overlayPermission.launch(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,android.net.Uri.parse("package:$packageName"))) }
                     .onFailure { toast("El equipo no ofrece el permiso de ventanas superpuestas") }
@@ -701,7 +781,7 @@ class MainActivity : ComponentActivity() {
             .action("CarPlay", "Aplicación de conexión del iPhone") { chooseApp("zlink", false) }
             .action("CarPlay con barra Mustang", "Mapas y música de ZLink con controles Mustang", ::openCarPlayBar)
             .action("Comprobar metadatos de ZLink", "Prueba manual de 8 segundos · diagnóstico de integración", ::showZLinkHudProbe)
-            .toggle("Datos musicales de CarPlay", "Experimental · lectura local mientras Mustang o su barra estén visibles", model.settings.zlinkHudEnabled) { model.zlinkHud.setEnabled(it) }
+            .toggle("Datos de CarPlay", "Canción, portada y guía de ruta · lectura local continua del canal de ZLink", model.settings.zlinkHudEnabled) { model.zlinkHud.setEnabled(it) }
             .toggle("Barra al abrir CarPlay", "Puedes arrastrarla o cerrarla; requiere permiso de Android", model.settings.carPlayBar) { model.settings.carPlayBar = it }
             .action("Audio", "Fuente de reproducción y acceso multimedia", ::mediaSources)
             .action("Radio del equipo", "Frecuencia, RDS y controles disponibles", ::showRadio)
@@ -758,14 +838,15 @@ class MainActivity : ComponentActivity() {
             }
             observer=lifecycleScope.launch {
                 model.zlinkHudProbe.state.collect { state ->
-                    details.text="Conecta el iPhone y cambia de canción durante la lectura. Activa «Datos musicales de CarPlay» para actualizar la tarjeta mientras Mustang o su barra estén visibles; desactivado, la muestra dura 8 segundos. El canal puede estar ocupado por otro cliente.\n\n"+
-                        "${state.status}\nConexión: ${state.connected}\nTramas completas: ${state.frames} · bytes recibidos: ${state.bytes}\n"+
+                    details.text="Conecta el iPhone, reproduce música y activa una ruta en CarPlay. Con «Datos de CarPlay» activo la lectura continúa mientras ZLink está al frente; desactivado, la muestra dura 8 segundos. El canal puede estar ocupado por otro cliente.\n\n"+
+                        "${state.status}\nConexión: ${state.connected} · conexiones: ${state.connections}\nTramas completas: ${state.frames} · bytes recibidos: ${state.bytes}\n"+
                         state.types.toSortedMap().entries.joinToString(" · ") { "tipo ${it.key}: ${it.value}" }+
                         "\nMúsica válida: ${state.validMusicFrames} · rechazada: ${state.invalidMusicFrames}\n"+
                         "Título: ${state.music.title!=null} · artista: ${state.music.artist!=null} · duración: ${state.music.durationMs!=null} · posición: ${state.music.elapsedMs!=null}\n"+
-                        "Campos: ${state.shapes.sorted().joinToString(", ")}\nPNG recibidos: ${state.pngFrames}\n\n"+
-                        "Portadas: ${state.artworkDecoded} decodificadas · ${state.artworkUnassigned} sin anuncio reciente · ${state.artworkInvalid} inválidas.\n"+
-                        "El informe omite canciones, imágenes y rutas. La lectura no activa HUD, no envía comandos ni cambia ZLink. Las imágenes requieren un anuncio de portada reciente; falta comprobar su correspondencia en el equipo. No extrae vídeo del mapa."
+                        "Campos: ${state.shapes.sorted().joinToString(", ")}\nImágenes recibidas: ${state.imageFrames}\n\n"+
+                        "Portadas: ${state.artworkDecoded} decodificadas · ${state.artworkCached} desde memoria · ${state.artworkUnassigned} fuera de ventana · ${state.artworkInvalid} no reconocidas ${state.imageSignatures.sorted().joinToString(",")}\n"+
+                        "Guía de ruta: ${state.guidanceFrames} válidas · ${state.invalidNavigation} rechazadas · ${if(state.guidance.active) "ruta activa" else "sin ruta"}\n\n"+
+                        "El informe omite canciones, imágenes y rutas. La lectura no activa HUD, no envía comandos ni cambia ZLink. La guía de ruta solo llega si ZLink la publica; el vídeo del mapa permanece en CarPlay."
                     dialog.getButton(AlertDialog.BUTTON_POSITIVE).text=if(state.running) "Detener lectura" else "Iniciar lectura"
                     dialog.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled=true
                 }

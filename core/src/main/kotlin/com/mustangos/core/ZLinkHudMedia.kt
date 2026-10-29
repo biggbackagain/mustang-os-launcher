@@ -53,11 +53,16 @@ data class ZLinkHudMusic(
     val durationMs: Long?=null,val elapsedMs: Long?=null,val rawStatus: Int?=null,val artworkId: Int?=null,
     val trackRevision: Long=0,val updatedAtMs: Long=0
 ) {
+    /** iAP2 PlaybackStatus: 0 stopped, 1 playing, 2 paused, 3/4 seeking. Anything else stays unknown. */
+    val playing: Boolean? get() = when(rawStatus) { 1,3,4 -> true; 0,2 -> false; else -> null }
+    /** Stable key for an in-memory artwork cache; null until the track is identified by text. */
+    val artworkKey: String? get() = title?.let { listOf(it,artist.orEmpty(),album.orEmpty()).joinToString("\u0001") { s -> s.lowercase() } }
     fun apply(delta: ZLinkHudMediaDelta,now: Long): ZLinkHudMusic {
         // A backwards clock without item attributes could be a skip or seek. Drop the old song conservatively.
         val backwards=delta.itemFields.isEmpty() && delta.elapsedMs!=null && elapsedMs!=null && delta.elapsedMs+2000<elapsedMs
         val changed=backwards || (0 in delta.itemFields && delta.itemId!=itemId) || (1 in delta.itemFields && delta.title!=title)
-        val base=if(changed) ZLinkHudMusic(trackRevision=trackRevision+1) else this
+        // Playback status belongs to the session, not the track: iAP2 only resends it when it changes.
+        val base=if(changed) ZLinkHudMusic(trackRevision=trackRevision+1,rawStatus=rawStatus) else this
         return base.copy(
             itemId=if(0 in delta.itemFields) delta.itemId else base.itemId,
             title=if(1 in delta.itemFields) delta.title else base.title,

@@ -7,18 +7,35 @@ import com.mustangos.launcher.media.MediaUiState
 import com.mustangos.launcher.media.ZLinkHudPresentation
 import org.junit.Assert.*
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk=[29])
 class ZLinkHudPresentationTest {
     private val pkg=ZLinkHudPresentation.PACKAGE
     private val hud=ZLinkHudProbeState(running=true,live=true,validMusicFrames=1,
         music=ZLinkHudMusic(title="HUD title",artist="HUD artist",durationMs=200000,elapsedMs=7000,rawStatus=1,updatedAtMs=100))
     private fun compose(base: MediaUiState=MediaUiState(MediaFacts(source=pkg)),preferred: String?=null,
         projection: String?=pkg,sample: ZLinkHudProbeState=hud,now: Long=100) = ZLinkHudPresentation.compose(base,sample,preferred,projection,now)
-    @Test fun hudValuesReachCardWithoutInventedPlaybackOrPositionInterpolation() {
+    @Test fun hudValuesReachCardAndIap2StatusDrivesPlayback() {
         val ui=compose()
         assertEquals("HUD title",ui.displayTitle); assertEquals("HUD artist",ui.displaySubtitle)
-        assertEquals(7000L,ui.facts.progress(100000)); assertTrue(ui.reportedPosition)
-        assertFalse(ui.playbackStateKnown); assertFalse(ui.facts.playing); assertNull(ui.artwork)
+        assertEquals(8000L,ui.facts.progress(1100)); assertTrue(ui.reportedPosition)
+        assertTrue(ui.playbackStateKnown); assertTrue(ui.facts.playing); assertNull(ui.artwork)
+        val paused=compose(sample=hud.copy(music=hud.music.copy(rawStatus=2)))
+        assertTrue(paused.playbackStateKnown); assertFalse(paused.facts.playing); assertEquals(7000L,paused.facts.progress(100000))
+        val unknown=compose(sample=hud.copy(music=hud.music.copy(rawStatus=77)))
+        assertFalse(unknown.playbackStateKnown); assertFalse(unknown.facts.playing)
+    }
+    @Test fun standardSessionBorrowsTheCoverOnlyForTheSameSong() {
+        val cover=android.graphics.Bitmap.createBitmap(4,4,android.graphics.Bitmap.Config.ARGB_8888)
+        val withCover=hud.copy(artwork=cover)
+        val same=MediaUiState(MediaFacts(source=pkg,title="hud TITLE",artist="session"))
+        assertSame(cover,compose(same,sample=withCover).artwork); assertEquals("hud TITLE",compose(same,sample=withCover).displayTitle)
+        val other=MediaUiState(MediaFacts(source=pkg,title="standard"))
+        assertSame(other,compose(other,sample=withCover))
     }
     @Test fun neverMixBluetoothOtherProjectionStandardTitleOrBoundedProbeWithHud() {
         val bt=MediaUiState(MediaFacts(source="com.tw.bt",artist="BT"))

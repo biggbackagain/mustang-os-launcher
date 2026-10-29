@@ -120,7 +120,11 @@ class MustangCarView @JvmOverloads constructor(
         invalidate()
     }
 
+    /** True while the OpenGL render covers this view; the state keeps updating for the render and accessibility. */
+    var sceneCovered=false
+        set(value) { field=value; invalidate() }
     override fun onDraw(canvas: Canvas) {
+        if(scene!=null && sceneCovered) return
         scene?.let { model ->
             model.setBounds(paddingLeft,paddingTop,width-paddingRight,height-paddingBottom)
             model.lights=lightLevel; model.leftDoor=leftLevel; model.rightDoor=rightLevel

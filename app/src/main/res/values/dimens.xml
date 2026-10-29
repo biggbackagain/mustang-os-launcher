@@ -36,4 +36,11 @@
     <dimen name="settings_outer_padding">16dp</dimen>
     <dimen name="settings_vehicle_height">112dp</dimen>
     <dimen name="settings_hero_title_size">26sp</dimen>
+    <dimen name="clock_size">22sp</dimen>
+    <dimen name="vehicle_stage_top">40dp</dimen>
+    <dimen name="vehicle_stage_bottom">62dp</dimen>
+    <dimen name="gauge_width">104dp</dimen>
+    <dimen name="gauge_height">74dp</dimen>
+    <dimen name="maneuver_size">44dp</dimen>
+    <dimen name="guidance_distance_size">22sp</dimen>
 </resources>

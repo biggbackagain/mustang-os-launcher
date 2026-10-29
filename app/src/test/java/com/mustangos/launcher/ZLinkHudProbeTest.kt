@@ -60,7 +60,7 @@ class ZLinkHudProbeTest {
         probe.start(); assertTrue(entered.await(2,TimeUnit.SECONDS))
         probe.stop(); assertTrue(socket.released)
         shadowOf(Looper.getMainLooper()).idle()
-        assertEquals("Prueba HUD detenida",probe.state.value.status)
+        assertEquals("Lectura HUD detenida",probe.state.value.status)
         assertEquals(0,probe.state.value.frames)
         probe.close()
     }

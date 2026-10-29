@@ -23,11 +23,11 @@
     <string name="vehicle_custom_image_caption">Foto de referencia propia</string>
     <string name="engine_label">V6 4.0L · CONVERTIBLE</string>
     <string name="gps_disclaimer">"Velocidad orientativa · fuente GPS"</string>
-    <string name="navigation_title">Mapa Android</string>
+    <string name="navigation_title">NAVEGACIÓN</string>
     <string name="navigation_carplay_title">"Tu ruta, en CarPlay"</string>
-    <string name="navigation_carplay_explanation">Mapa independiente de CarPlay</string>
+    <string name="navigation_carplay_explanation">La ruta de CarPlay aparece aquí cuando el iPhone guía</string>
     <string name="carplay_unknown_connection">CarPlay se abre en ZLink</string>
-    <string name="carplay_open">CarPlay</string>
+    <string name="carplay_open">Mapa CarPlay</string>
     <string name="android_maps">Ampliar mapa</string>
     <string name="navigation_no_route">El mapa Android no muestra la ruta del iPhone</string>
     <string name="dock_music">"Música"</string>
@@ -80,4 +80,6 @@
     <string name="close_plain">Cerrar</string>
     <string name="map_zoom_in_symbol" translatable="false">+</string>
     <string name="map_zoom_out_symbol" translatable="false">−</string>
+    <string name="media_caption">AUDIO</string>
+    <string name="guidance_description">Guía de ruta de CarPlay. Toca para abrir el mapa de CarPlay.</string>
 </resources>

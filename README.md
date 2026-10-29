@@ -1,4 +1,10 @@
-# MUSTANG OS · 0.7.0 · Vehículo dinámico
+# MUSTANG OS · 0.8.1 · Render 3D y CarPlay
+
+**Entrega 0.8.1:** el diagnóstico de la unidad confirmó música, 14 portadas y 149 tramas de ruta válidas. El mapa de Google Maps no puede incrustarse (ZLink no lo permite en Android 10) y la pantalla no tenía GPS en vivo; la guía de CarPlay ahora ocupa toda la tarjeta cuando no hay posición. [Hallazgos y cambios](docs/RELEASE_081.md).
+
+**Entrega 0.8.0:** render OpenGL ES del Mustang con pintura de estudio, puertas, faros y rines animados; portada de CarPlay en JPEG/PNG con lectura continua y reconexión; guía giro a giro de CarPlay en la tarjeta Navegación; barra sobre CarPlay que se reduce sola para dejar ver el mapa; tablero rediseñado. El vídeo del mapa de CarPlay sigue en la ventana de ZLink (no incrustable en Android 10). [Cambios, causas y prueba en el coche](docs/RELEASE_080.md).
+
+![Render 3D del Mustang 2010 convertible](docs/render-3d-s197.png)
 
 **Entrega 0.7.0:** el usuario confirmó canción y controles CarPlay. Se incorpora un modelo 3D estilizado con puertas asignables, faros, pintura y movimiento por velocidad real; lector PNG con asociación temporal limitada; solicitud optativa de telemetría RPM. Las funciones nuevas y la correspondencia de portada necesitan validación física. El mapa CarPlay dentro de una tarjeta continúa pendiente. [Configuración, prueba y límites](docs/RELEASE_070.md).
 
@@ -25,6 +31,8 @@ Se conservan las modificaciones del usuario de 0.3.5 y las correcciones de [0.3.
 **Motor** conserva lecturas con antigüedad y usa únicamente solicitudes fijas de lectura identificadas en el OEM para voltaje y temperatura. No modifica CANBUS, MCU o ZLink. [Datos que solicitar al proveedor para el mapa interno](docs/ZLINK_VENDOR_QUESTIONS.md).
 
 ## Instalar y empezar
+
+**¿Vas a instalarlo en tu coche?** Sigue la [guía de instalación para usuarios](docs/GUIA_INSTALACION.md). Lo que sigue es la referencia técnica.
 
 Para instalar **por enlace, sin memoria USB ni ADB**, sirve la APK desde un PC conectado a la misma red Wi-Fi. Se incluye `scripts/serve-apk.py`; consulta [la guía de descarga local](docs/LOCAL_DOWNLOAD.md). Abre su dirección en el navegador de la pantalla, descarga la APK y permite a ese navegador instalar aplicaciones cuando Android lo solicite. La autorización de instalación es independiente de las opciones de depuración protegidas por contraseña.
 

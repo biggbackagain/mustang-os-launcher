@@ -49,7 +49,8 @@ class DashboardInteractionTest {
     @Before fun reset() {
         // AndroidX caches the first process Application; Robolectric creates a fresh one per method.
         ReflectionHelpers.setStaticField(ViewModelProvider.AndroidViewModelFactory::class.java, "_instance", null)
-        app.getSharedPreferences("launcher", 0).edit().clear().commit()
+        // The real loopback reader would race the injected HUD fixtures; tests drive its state directly.
+        app.getSharedPreferences("launcher", 0).edit().clear().putBoolean("zlink_hud", false).commit()
         // Routing fixtures model an already-authorized installation, not the first-run permission activity.
         shadowOf(app).grantPermissions(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
     }
@@ -166,6 +167,32 @@ class DashboardInteractionTest {
         assertEquals(83,activity.findViewById<android.widget.ProgressBar>(R.id.progress).progress)
         val report=DiagnosticReporter(activity,model).create()
         assertFalse(report.contains("HUD fixture")); assertFalse(report.contains("Fixture artist"))
+        controller.pause().stop().destroy()
+    }
+
+    @Test fun carPlayRouteFillsTheNavigationCardWhenTheUnitHasNoPosition() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup().visible()
+        val activity=controller.get()
+        val model=ViewModelProvider(activity)[LauncherViewModel::class.java]
+        val now=android.os.SystemClock.elapsedRealtime()
+        val guidance=com.mustangos.core.ZLinkRouteGuidance(state=1,distanceToManeuverText="350",distanceToManeuverUnits=2,
+            currentRoad="Av. Fixture",destination="Destino fixture",timeRemainingSeconds=780,currentList=listOf(3,4),
+            maneuvers=mapOf(3 to com.mustangos.core.ZLinkManeuver(3,"Gira a la derecha",2,"Calle fixture"),
+                4 to com.mustangos.core.ZLinkManeuver(4,"Continúa recto",3,distanceText="1.2",distanceUnits=0)),updatedAtMs=now)
+        val flow=ReflectionHelpers.getField<kotlinx.coroutines.flow.MutableStateFlow<com.mustangos.launcher.carplay.ZLinkHudProbeState>>(model.zlinkHudProbe,"mutable")
+        flow.value=com.mustangos.launcher.carplay.ZLinkHudProbeState(running=true,live=true,guidance=guidance)
+        shadowOf(Looper.getMainLooper()).idle()
+        val panel=activity.findViewById<View>(R.id.guidancePanel)
+        assertEquals(View.VISIBLE,panel.visibility)
+        assertEquals(android.view.ViewGroup.LayoutParams.MATCH_PARENT,panel.layoutParams.height)
+        assertEquals("350 m",activity.findViewById<TextView>(R.id.guidanceDistance).text.toString())
+        assertTrue(activity.findViewById<TextView>(R.id.guidanceInstruction).text.contains("Gira a la derecha"))
+        assertEquals("Después: 1.2 km · Continúa recto",activity.findViewById<TextView>(R.id.guidanceNext).text.toString())
+        assertEquals("Vas por Av. Fixture",activity.findViewById<TextView>(R.id.guidanceRoad).text.toString())
+        assertEquals(View.GONE,activity.findViewById<View>(R.id.mapControls).visibility)
+        flow.value=com.mustangos.launcher.carplay.ZLinkHudProbeState(running=true,live=true,guidance=guidance.copy(state=0))
+        shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(View.GONE,panel.visibility); assertEquals(View.VISIBLE,activity.findViewById<View>(R.id.mapControls).visibility)
         controller.pause().stop().destroy()
     }
 

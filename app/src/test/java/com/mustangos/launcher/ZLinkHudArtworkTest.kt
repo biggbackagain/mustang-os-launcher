@@ -25,4 +25,17 @@ class ZLinkHudArtworkTest {
         assertNull(ZLinkHudArtwork.decode(attack)); assertNull(ZLinkHudArtwork.decode("not an image".toByteArray()))
         image.recycle(); source.recycle()
     }
+    @Test fun iphoneJpegCoversDecodeEvenBehindASmallVendorPrefix() {
+        val source=Bitmap.createBitmap(600,600,Bitmap.Config.ARGB_8888).apply { eraseColor(0xffd04020.toInt()) }
+        val jpeg=ByteArrayOutputStream().also { source.compress(Bitmap.CompressFormat.JPEG,90,it) }.toByteArray()
+        for(bytes in listOf(jpeg,byteArrayOf(0,0,0,7,1,2,3,4)+jpeg)) {
+            val image=ZLinkHudArtwork.decode(bytes)!!
+            assertTrue(image.width<=384 && image.height<=384)
+            val pixel=image.getPixel(20,20)
+            assertTrue(Math.abs(((pixel shr 16) and 255)-0xd0)<12 && Math.abs((pixel and 255)-0x20)<12)
+            image.recycle()
+        }
+        assertEquals(8,ZLinkHudArtwork.imageStart(byteArrayOf(0,0,0,7,1,2,3,4)+jpeg)); assertTrue(ZLinkHudArtwork.signature(jpeg).startsWith("ffd8ff"))
+        source.recycle()
+    }
 }

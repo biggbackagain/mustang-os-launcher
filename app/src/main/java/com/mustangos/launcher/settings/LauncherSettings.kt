@@ -40,7 +40,7 @@ class LauncherSettings(context: Context) {
         get() = prefs.getBoolean("carplay_bar", false)
         set(value) { prefs.edit().putBoolean("carplay_bar", value).apply() }
     var zlinkHudEnabled: Boolean
-        get() = prefs.getBoolean("zlink_hud", false)
+        get() = prefs.getBoolean("zlink_hud", true)
         set(value) { prefs.edit().putBoolean("zlink_hud", value).apply() }
     var doorMapping: VehicleDoorMapping
         get() {

@@ -13,35 +13,29 @@ import uuid
 
 PAGE = """<!doctype html><html lang="es"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mustang OS 0.7.0 · Vehículo dinámico</title>
+<title>Mustang OS 0.8.1 · Render 3D y CarPlay</title>
 <style>body{background:#061b37;color:#f4f5f7;font:20px system-ui;margin:0;padding:32px}
 main{max-width:760px;margin:24px auto;padding:32px;border:1px solid #303e57;border-radius:24px;background:#0b2342}
 h1{font-size:36px;margin:0 0 12px}span{color:#93d8ff}p,li{line-height:1.6}small{color:#b0b5c0}
 a{display:block;background:#93d8ff;color:#07131c;text-decoration:none;padding:22px;text-align:center;border-radius:16px;font-weight:bold;margin:28px 0;font-size:22px}li{margin:12px 0}
 .badge{background:#1f2530;padding:4px 10px;border-radius:8px;font-size:14px;color:#93d8ff;font-weight:bold}summary{cursor:pointer;padding:16px 0}</style>
-<main><h1>MUSTANG <span>OS</span> <span class="badge">v0.7.0</span></h1>
-<small>CarPlay con barra Mustang · selector visual · pintura y luces</small>
-<a href="/MustangOS.apk?v=0.7.0" download="MustangOS.apk">Descargar Mustang OS 0.7.0</a>
+<main><h1>MUSTANG <span>OS</span> <span class="badge">v0.8.1</span></h1>
+<small>Render 3D · portada y guía de CarPlay · tablero nuevo</small>
+<a href="/MustangOS.apk?v=0.8.1" download="MustangOS.apk">Descargar Mustang OS 0.8.1</a>
 <ol><li>Descarga <b>MustangOS.apk</b>.</li>
 <li>Abre el archivo y pulsa <b>Instalar / Actualizar</b>, conservando la aplicación anterior.</li>
 <li>Abre <b>MUSTANG OS</b> con el vehículo estacionado.</li></ol>
 OFFLINE_PACK
 <h2>Qué incluye</h2>
 <ul>
-<li><b>Mustang 3D:</b> en Mi Mustang activa <b>Vista 3D</b>, elige perfil/color y confirma. Las puertas se asignan en <b>Puertas del modelo 3D</b>: primero recibe un cierre de todas, luego abre y asigna solo un lado cada vez. Es un modelo estilizado aproximado. Las ruedas y el suelo solo avanzan con velocidad real disponible.</li>
-<li><b>Luces y RPM:</b> activa <b>Datos del vehículo y luces</b>. Puedes habilitar <b>Velocidad y RPM OEM</b> para solicitar el flujo temporal de telemetría que utiliza el fabricante. La solicitud no garantiza lecturas: sin eventos reales se conserva «—»; no se calculan RPM a partir de velocidad.</li>
-<li><b>Portada CarPlay:</b> conserva <b>Datos musicales de CarPlay</b> activo. La canción y los botones ya fueron confirmados por el usuario. El lector nuevo admite PNG del canal tras un anuncio reciente de portada, con límites y limpieza al cambiar de pista. La recepción y correspondencia de las imágenes todavía necesitan prueba física.</li>
-<li><b>Comprobar metadatos de ZLink:</b> muestra título/artista/duración/posición recibidos como indicadores, tipos y campos del canal. Exporta el diagnóstico antes de detener la lectura. No incluye el contenido de canciones, portadas o rutas. Sin la opción continua, la muestra manual conserva ocho segundos.</li>
-<li><b>CarPlay con barra Mustang:</b> en Ajustes, activa este modo y concede el permiso para aparecer sobre otras apps. ZLink conserva sus mapas y música reales; la barra se puede arrastrar y cerrar. No modifica ZLink ni extrae su vídeo.</li>
-<li><b>Mapa Android en el panel:</b> desplazar, zoom, centrar GPS y ampliar a pantalla completa. México offline permanece disponible; requiere una posición real del equipo para centrarla.</li>
-<li><b>Audio:</b> conserva los controles CarPlay confirmados. El lector nuevo admite título, artista, álbum, duración y tiempo si ZLink los publica; falta comprobar los campos reales en el equipo. No mezcla Bluetooth con CarPlay ni inventa progreso. La portada asociada sigue pendiente.</li>
-<li><b>Mi Mustang:</b> selección por familias y pintura, ahora con vista 3D estilizada. Las 30 fotografías y tu foto propia permanecen como modo estático independiente.</li>
-<li><b>Luces:</b> sincronización con la señal de iluminación TW 516, separada de ACC. Activa Ajustes → Datos del vehículo y luces. Sin evento no se afirma que las luces estén encendidas.</li>
-<li><b>Interfaz:</b> caballo tribar y azul medianoche en todas las pantallas y menús de Mustang OS.</li>
-<li><b>Radio:</b> panel propio con frecuencia, banda, RDS y controles disponibles cuando el equipo confirma radio activa. No cambia el audio de CarPlay automáticamente.</li>
-<li><b>Motor:</b> lecturas TW y valores guardados por CarInfoService con su origen. Velocidad y RPM solo aparecen si el equipo emite eventos vigentes.</li>
+<li><b>Render 3D del Mustang:</b> pintura con reflejos de estudio, faros y calaveras que se encienden, puertas animadas y rines que giran solo con velocidad real. Arrastra el coche para girarlo; doble toque para volver. Si el equipo no soporta OpenGL ES 2.0 se muestra la foto del perfil.</li>
+<li><b>Portada de CarPlay:</b> ahora acepta JPEG y PNG, espera hasta 20 s a que llegue la imagen y sigue leyendo mientras CarPlay está al frente. Mantén activo <b>Ajustes → Datos de CarPlay</b>.</li>
+<li><b>Guía de CarPlay:</b> con una ruta activa en el iPhone, la tarjeta Navegación muestra flecha, distancia, instrucción y llegada. Tócala para abrir el mapa de CarPlay. Depende de que ZLink publique la ruta.</li>
+<li><b>Barra sobre CarPlay:</b> se reduce sola a un caballo en el borde para dejar ver el mapa. Tócalo para abrirla, arrástralo para moverlo.</li>
+<li><b>Tablero:</b> portada grande teñida con su color, coche a sangre con velocidad y RPM, tarjeta de navegación más ancha.</li>
+<li><b>Si falta portada o guía:</b> abre <b>Ajustes → Comprobar metadatos de ZLink</b> y exporta el diagnóstico sin detener la lectura; envíalo con el formulario de abajo.</li>
 </ul>
-<p><small>El mapa del panel es Android, independiente de la ruta del iPhone; puede usar el archivo de México sin Internet. La superficie y ruta de CarPlay permanecen dentro de ZLink. El lector de portada nuevo necesita comprobar la recepción y correspondencia en tu equipo. La APK principal es release con depuración desactivada y la firma anterior para actualizar.</small></p>
+<p><small>El vídeo del mapa de CarPlay sigue en la ventana de ZLink. La APK es release sin depuración, con la misma firma de la versión anterior para actualizar sin perder datos.</small></p>
 <details open><summary>Enviar diagnóstico o APK al PC</summary>
 <p>Puedes enviar un diagnóstico nuevo o un APK del equipo. El archivo se guarda para análisis; no se instala ni ejecuta en el PC.</p>
 <p>Con CarPlay conectado, deja una canción reproduciéndose y regresa con Home. Abre <b>Ajustes → Diagnóstico y exportación → Compatibilidad OEM → Guardar ZIP</b> y selecciona aquí el archivo nuevo:</p>

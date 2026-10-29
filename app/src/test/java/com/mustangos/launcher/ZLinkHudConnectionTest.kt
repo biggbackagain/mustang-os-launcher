@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[29])
 class ZLinkHudConnectionTest {
-    @Test fun optInOwnsOneSocketAcrossHomeBarHandoffAndReleasesAfterLastOwner() {
+    @Test fun optInOwnsOneSocketAcrossHomeBarHandoffAndKeepsReadingWhileZLinkIsInFront() {
         val settings=LauncherSettings(RuntimeEnvironment.getApplication()); settings.zlinkHudEnabled=false
         val entered=CountDownLatch(1); val closed=CountDownLatch(1)
         var attempts=0
@@ -39,7 +39,9 @@ class ZLinkHudConnectionTest {
         assertEquals(1L,closed.count); assertEquals(1,attempts)
         connection.visible("bar",false)
         Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(600))
-        assertEquals(0L,closed.count); assertFalse(probe.state.value.running)
+        assertEquals(1L,closed.count); assertTrue(probe.state.value.running)
+        connection.setEnabled(false)
+        assertEquals(0L,closed.count); assertFalse(probe.state.value.running); assertFalse(settings.zlinkHudEnabled)
         probe.close()
     }
     @Test fun anotherProjectionAndDisabledPreferenceDoNotConnectAutomatically() {
