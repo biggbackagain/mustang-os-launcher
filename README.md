@@ -1,4 +1,6 @@
-# MUSTANG OS · 0.6.1 · Investigación ZLink
+# MUSTANG OS · 0.6.2 · Lector musical CarPlay
+
+**Entrega 0.6.2:** lector experimental de campos musicales del canal local, compartido entre tarjeta y barra Mustang, con diagnóstico de campos sin contenidos privados. La muestra física 0.6.1 recibió 17 mensajes tipo 10; los valores de canción/tiempo todavía requieren validar la nueva APK en la unidad. Portada asociada y mapa del iPhone continúan pendientes. [Instalación y prueba](docs/RELEASE_062.md).
 
 **Entrega 0.6.1:** investigación de capacidades y prueba manual de lectura del canal HUD identificado en ZLink, sin comandos ni cambios de configuración. El usuario confirmó la barra sobre CarPlay. La portada, música y ruta en tarjetas independientes continúan pendientes de recepción y contrato verificados. [Qué podemos integrar y cómo comprobarlo](docs/INVESTIGACION_ZLINK_20261028.md).
 

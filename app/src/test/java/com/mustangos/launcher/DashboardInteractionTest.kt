@@ -152,6 +152,22 @@ class DashboardInteractionTest {
         assertEquals("Reproducir o pausar", activity.findViewById<View>(R.id.playPause).contentDescription.toString())
         controller.pause().stop().destroy()
     }
+    @Test fun hudTimelineSurvivesThePeriodicAndroidPollWithoutInventingProgress() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup().visible()
+        val activity=controller.get()
+        val model=ViewModelProvider(activity)[LauncherViewModel::class.java]
+        val flow=ReflectionHelpers.getField<kotlinx.coroutines.flow.MutableStateFlow<com.mustangos.launcher.carplay.ZLinkHudProbeState>>(model.zlinkHudProbe,"mutable")
+        flow.value=com.mustangos.launcher.carplay.ZLinkHudProbeState(running=true,live=true,validMusicFrames=1,
+            music=com.mustangos.core.ZLinkHudMusic(title="HUD fixture",artist="Fixture artist",durationMs=180000,elapsedMs=15000,
+                updatedAtMs=android.os.SystemClock.elapsedRealtime()))
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(2))
+        assertEquals("HUD fixture",activity.findViewById<TextView>(R.id.songTitle).text.toString())
+        assertEquals("0:15 / 3:00",activity.findViewById<TextView>(R.id.songTime).text.toString())
+        assertEquals(83,activity.findViewById<android.widget.ProgressBar>(R.id.progress).progress)
+        val report=DiagnosticReporter(activity,model).create()
+        assertFalse(report.contains("HUD fixture")); assertFalse(report.contains("Fixture artist"))
+        controller.pause().stop().destroy()
+    }
 
     @Test fun displayOnlyMetadataReachesDashboardAndExportWithoutExportingSongContents() {
         install("com.zjinnova.zlink")

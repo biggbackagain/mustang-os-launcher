@@ -64,4 +64,32 @@ class ZLinkHudProbeTest {
         assertEquals(0,probe.state.value.frames)
         probe.close()
     }
+    @Test fun liveModePublishesDecodedFieldsInMemoryButNeverExportsTheirContents() {
+        fun tlv(id: Int,bytes: ByteArray)=ByteBuffer.allocate(bytes.size+4).putShort((bytes.size+4).toShort()).putShort(id.toShort()).put(bytes).array()
+        val body=tlv(0,tlv(1,"PRIVATE SONG".toByteArray())+tlv(12,"PRIVATE ARTIST".toByteArray()))+
+            tlv(1,tlv(1,ByteBuffer.allocate(4).putInt(12000).array()))
+        val bytes=ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putInt(10).putInt(body.size).array()+body
+        val atEnd=CountDownLatch(1); val closed=CountDownLatch(1)
+        val source=ByteArrayInputStream(bytes)
+        val input=object : InputStream() {
+            override fun read(): Int {
+                if(source.available()>0) return source.read()
+                atEnd.countDown(); closed.await(2,TimeUnit.SECONDS); return -1
+            }
+            override fun read(b: ByteArray,off: Int,len: Int): Int {
+                if(source.available()>0) return source.read(b,off,len)
+                return read()
+            }
+            override fun close() { closed.countDown() }
+        }
+        val socket=FixtureSocket(input); val probe=ZLinkHudProbe { socket }
+        probe.start(true); assertTrue(atEnd.await(2,TimeUnit.SECONDS))
+        assertTrue(probe.state.value.running); assertEquals("PRIVATE SONG",probe.state.value.music.title)
+        assertEquals(12000L,probe.state.value.music.elapsedMs); assertEquals(1,probe.state.value.validMusicFrames)
+        assertTrue(probe.report().contains("0/1:12")); assertFalse(probe.report().contains("PRIVATE"))
+        probe.start(true); assertEquals(1,socket.attempts)
+        probe.stop(); shadowOf(Looper.getMainLooper()).idle()
+        assertNull(probe.state.value.music.title); assertTrue(socket.released)
+        probe.close()
+    }
 }

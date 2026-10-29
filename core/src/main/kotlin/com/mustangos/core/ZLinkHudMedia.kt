@@ -29,6 +29,7 @@ object ZLinkHudMediaDecoder {
         require(body.size<=ZLinkHudFrameReader.MAX_PAYLOAD_BYTES)
         val outer=fields(body); val item=fields(outer.firstOrNull { it.id==0 }?.bytes ?: byteArrayOf())
         val playback=fields(outer.firstOrNull { it.id==1 }?.bytes ?: byteArrayOf())
+        require(item.isNotEmpty() || playback.isNotEmpty()) { "No music groups" }
         fun value(group: List<Field>,id: Int)=group.firstOrNull { it.id==id }?.bytes
         fun number(group: List<Field>,id: Int,length: Int): Long? = value(group,id)?.let { bytes ->
             require(bytes.size==length) { "Invalid numeric field" }
@@ -53,7 +54,9 @@ data class ZLinkHudMusic(
     val trackRevision: Long=0,val updatedAtMs: Long=0
 ) {
     fun apply(delta: ZLinkHudMediaDelta,now: Long): ZLinkHudMusic {
-        val changed=(0 in delta.itemFields && delta.itemId!=itemId) || (1 in delta.itemFields && delta.title!=title)
+        // A backwards clock without item attributes could be a skip or seek. Drop the old song conservatively.
+        val backwards=delta.itemFields.isEmpty() && delta.elapsedMs!=null && elapsedMs!=null && delta.elapsedMs+2000<elapsedMs
+        val changed=backwards || (0 in delta.itemFields && delta.itemId!=itemId) || (1 in delta.itemFields && delta.title!=title)
         val base=if(changed) ZLinkHudMusic(trackRevision=trackRevision+1) else this
         return base.copy(
             itemId=if(0 in delta.itemFields) delta.itemId else base.itemId,

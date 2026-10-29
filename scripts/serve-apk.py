@@ -13,25 +13,26 @@ import uuid
 
 PAGE = """<!doctype html><html lang="es"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mustang OS 0.6.1 · Investigación ZLink</title>
+<title>Mustang OS 0.6.2 · Lector CarPlay</title>
 <style>body{background:#061b37;color:#f4f5f7;font:20px system-ui;margin:0;padding:32px}
 main{max-width:760px;margin:24px auto;padding:32px;border:1px solid #303e57;border-radius:24px;background:#0b2342}
 h1{font-size:36px;margin:0 0 12px}span{color:#93d8ff}p,li{line-height:1.6}small{color:#b0b5c0}
 a{display:block;background:#93d8ff;color:#07131c;text-decoration:none;padding:22px;text-align:center;border-radius:16px;font-weight:bold;margin:28px 0;font-size:22px}li{margin:12px 0}
 .badge{background:#1f2530;padding:4px 10px;border-radius:8px;font-size:14px;color:#93d8ff;font-weight:bold}summary{cursor:pointer;padding:16px 0}</style>
-<main><h1>MUSTANG <span>OS</span> <span class="badge">v0.6.1</span></h1>
+<main><h1>MUSTANG <span>OS</span> <span class="badge">v0.6.2</span></h1>
 <small>CarPlay con barra Mustang · selector visual · pintura y luces</small>
-<a href="/MustangOS.apk?v=0.6.1" download="MustangOS.apk">Descargar Mustang OS 0.6.1</a>
+<a href="/MustangOS.apk?v=0.6.2" download="MustangOS.apk">Descargar Mustang OS 0.6.2</a>
 <ol><li>Descarga <b>MustangOS.apk</b>.</li>
 <li>Abre el archivo y pulsa <b>Instalar / Actualizar</b>, conservando la aplicación anterior.</li>
 <li>Abre <b>MUSTANG OS</b> con el vehículo estacionado.</li></ol>
 OFFLINE_PACK
 <h2>Qué incluye</h2>
 <ul>
-<li><b>Comprobar metadatos de ZLink:</b> nueva prueba manual de ocho segundos. En Ajustes, pulsa <b>Comprobar metadatos de ZLink → Probar en CarPlay</b>, cambia de canción y vuelve después de diez segundos. El diagnóstico guarda solo conteos, sin canciones, portadas o rutas. Es una investigación del canal interno, no metadatos integrados ya confirmados.</li>
+<li><b>Lector musical CarPlay experimental:</b> en <b>Fuentes</b> elige ZLink / CarPlay y activa <b>Ajustes → Datos musicales de CarPlay</b>. Abre <b>CarPlay con barra Mustang</b>, cambia dos veces de canción y vuelve después de 30 segundos. La tarjeta y la barra muestran solo los campos que reciban. El último diagnóstico confirmó 17 mensajes tipo 10, pero todavía no conservaba sus valores.</li>
+<li><b>Comprobar metadatos de ZLink:</b> muestra título/artista/duración/posición recibidos como indicadores, tipos y campos del canal. Exporta el diagnóstico antes de detener la lectura. No incluye el contenido de canciones, portadas o rutas. Sin la opción continua, la muestra manual conserva ocho segundos.</li>
 <li><b>CarPlay con barra Mustang:</b> en Ajustes, activa este modo y concede el permiso para aparecer sobre otras apps. ZLink conserva sus mapas y música reales; la barra se puede arrastrar y cerrar. No modifica ZLink ni extrae su vídeo.</li>
 <li><b>Mapa Android en el panel:</b> desplazar, zoom, centrar GPS y ampliar a pantalla completa. México offline permanece disponible; requiere una posición real del equipo para centrarla.</li>
-<li><b>Audio:</b> conserva los controles CarPlay confirmados y mejora la selección de sesiones de la fuente elegida. Los datos actuales de canción y portada de CarPlay siguen pendientes de una interfaz compatible de ZLink.</li>
+<li><b>Audio:</b> conserva los controles CarPlay confirmados. El lector nuevo admite título, artista, álbum, duración y tiempo si ZLink los publica; falta comprobar los campos reales en el equipo. No mezcla Bluetooth con CarPlay ni inventa progreso. La portada asociada sigue pendiente.</li>
 <li><b>Mi Mustang:</b> galería de siete familias, vista previa de color y confirmación. El convertible S197 usa una referencia de 2010 con pintura visual; las otras familias tienen una ilustración estilizada. Las 30 fotografías y tu foto propia permanecen como opción independiente.</li>
 <li><b>Luces:</b> sincronización con la señal de iluminación TW 516, separada de ACC. Activa Ajustes → Datos del vehículo y luces. Sin evento no se afirma que las luces estén encendidas.</li>
 <li><b>Interfaz:</b> caballo tribar y azul medianoche en todas las pantallas y menús de Mustang OS.</li>

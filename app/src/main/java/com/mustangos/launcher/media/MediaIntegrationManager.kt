@@ -30,7 +30,8 @@ data class MediaUiState(
     val playbackStateKnown: Boolean = false,
     val fallbackDisplayTitle: String? = null,
     val fallbackDisplaySubtitle: String? = null,
-    val coverStatus: String = "La fuente no publicó portada"
+    val coverStatus: String = "La fuente no publicó portada",
+    val reportedPosition: Boolean = false
 ) {
     // Presentation fields do not turn a display subtitle or generic description into artist metadata.
     val displayTitle: String? get() = facts.title ?: fallbackDisplayTitle

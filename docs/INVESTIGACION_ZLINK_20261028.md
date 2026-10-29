@@ -4,7 +4,15 @@
 
 La barra Mustang sobre ZLink está **confirmada por el usuario en la pantalla real**. Es la base disponible para una integración visual: mantener CarPlay como superficie original y añadir controles/paneles propios que puedan moverse o cerrarse. No equivale a una app del iPhone dentro del menú CarPlay, ni a extraer su vídeo.
 
-Además se identificó un **canal interno de metadatos concreto**, que merece una prueba limitada. No está validado en vivo y atiende un cliente a la vez; no debe conectarse automáticamente ni presentarse como API pública. La revisión no acredita todavía título, portada, instrucciones o mapa de CarPlay en tarjetas independientes.
+Además se identificó un **canal interno de metadatos concreto**. La primera muestra física recibió 17 mensajes tipo 10; todavía no conservaba sus cuerpos. Atiende un cliente a la vez y no debe presentarse como API pública. La revisión no acredita todavía título, portada, instrucciones o mapa de CarPlay en tarjetas independientes.
+
+## Resultado recibido y lector 0.6.2
+
+El 28 de octubre a las 18:08 se recibió el informe `20261029-000818-795c432d.zip` (nombre en UTC). La prueba de ocho segundos conectó, recibió 17 mensajes tipo 10 y descartó 204 bytes: 12 por cuerpo. Es una recepción física de cabeceras compatibles con multimedia CP, sin autenticar el proceso servidor. No hubo tipos 8, 9 ni 14. El tamaño sería compatible con un campo de tiempo transcurrido; al no conservarse los cuerpos, no se afirma que ese fuese su contenido.
+
+El análisis estático adicional identificó TLV anidados con longitud total y tipo de 16 bits big-endian. Grupo 0 contiene atributos de canción; grupo 1, atributos de reproducción. Campos relevantes: 0/0 identificador de 64 bits, 0/1 título, 0/4 duración en milisegundos de 32 bits, 0/6 álbum, 0/12 artista, 0/26 identificador de transferencia de imagen de un byte; 1/1 tiempo transcurrido en milisegundos de 32 bits y 1/0 estado bruto de un byte. La equivalencia de ese estado con pausa/reproducción no está verificada y no se utiliza para inventar estado.
+
+La 0.6.2 implementa lectura experimental optativa del canal y ese decodificador. Los campos se aplican de forma atómica y solo se muestran para la fuente ZLink compatible. Al cerrar el canal continuo se borra la canción en memoria. El diagnóstico registra presencia/tamaños sin contenido. El tipo 14 contiene bytes PNG sin un identificador externo de canción en el callback inspeccionado; se registra su firma inicial y se mantiene pendiente la asociación segura de portada. No se interpreta tipo 8/9 como un mapa completo ni como coordenadas del iPhone. [Uso y validación física requerida](RELEASE_062.md).
 
 Se descarta para este alcance la app complementaria del iPhone, la IPA y la compilación en la nube, por indicación del usuario. La base 0.6.0 permanece versionada y no se borra.
 

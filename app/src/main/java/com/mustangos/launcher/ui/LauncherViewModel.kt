@@ -5,7 +5,8 @@ import androidx.lifecycle.AndroidViewModel
 import com.mustangos.launcher.appintegration.AppIntegrationManager
 import com.mustangos.launcher.carplay.CarPlayIntegrationManager
 import com.mustangos.launcher.carplay.ZLinkServiceProbe
-import com.mustangos.launcher.carplay.ZLinkHudProbe
+import com.mustangos.launcher.MustangApplication
+import com.mustangos.launcher.media.ZLinkHudPresentation
 import com.mustangos.launcher.gps.GpsSpeedManager
 import com.mustangos.launcher.media.MediaIntegrationManager
 import com.mustangos.launcher.navigation.NavigationIntegrationManager
@@ -18,15 +19,18 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     val apps = AppIntegrationManager(application, settings)
     val carplay = CarPlayIntegrationManager(apps)
     val zlinkProbe = ZLinkServiceProbe(application)
-    val zlinkHudProbe = ZLinkHudProbe()
+    val zlinkHud = (application as MustangApplication).zlinkHud
+    val zlinkHudProbe get() = zlinkHud.probe
     val media = MediaIntegrationManager(application, settings)
     val gps = GpsSpeedManager(application)
     val navigation = NavigationIntegrationManager()
     val vehicle = VehicleTelemetryManager(application)
     val oem = OemReadOnlyManager(application, settings)
     var lastDiagnostic = ""
-    fun start() { vehicle.start(); media.start(); gps.start(); oem.start(); vehicle.startReadings() }
-    fun stop() { vehicle.stopReadings(); media.stop(); gps.stop(); oem.stop(); zlinkProbe.stop() }
+    fun mediaPresentation() = ZLinkHudPresentation.compose(media.state.value,zlinkHudProbe.state.value,settings.mediaPackage,
+        settings.component("zlink")?.packageName ?: ZLinkHudPresentation.PACKAGE,android.os.SystemClock.elapsedRealtime())
+    fun start() { vehicle.start(); media.start(); gps.start(); oem.start(); vehicle.startReadings(); zlinkHud.visible("home",true) }
+    fun stop() { vehicle.stopReadings(); media.stop(); gps.stop(); oem.stop(); zlinkProbe.stop(); zlinkHud.visible("home",false) }
     // Keep the passive ACC observer while ZLink is in front; it owns only the Application context.
-    override fun onCleared() { stop(); vehicle.stop(); zlinkHudProbe.close() }
+    override fun onCleared() { stop(); vehicle.stop() }
 }

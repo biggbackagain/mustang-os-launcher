@@ -199,7 +199,8 @@ class MainActivity : ComponentActivity() {
                         nativeMap.setLocation(state.latitude, state.longitude, state.accuracyMeters, state.bearingDegrees)
                     }.collect { }
                 }
-                launch { model.media.state.collect { renderMedia(it) } }
+                launch { model.media.state.collect { renderMedia(model.mediaPresentation()) } }
+                launch { model.zlinkHudProbe.state.collect { renderMedia(model.mediaPresentation()) } }
                 launch {
                     model.oem.state.collect { oem ->
                         binding.topDoorStatus.visibility = if (oem.doorMask?.let { it != 0 } == true) View.VISIBLE else View.GONE
@@ -231,7 +232,7 @@ class MainActivity : ComponentActivity() {
                 }
                 launch {
                     while (isActive) {
-                        updateProgress()
+                        renderMedia(model.mediaPresentation())
                         updateConnectivity()
                         model.media.poll()
                         model.vehicle.poll()
@@ -398,9 +399,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun updateProgress() {
-        val ui = model.media.state.value
+        val ui = model.mediaPresentation()
         val m = ui.facts
-        if (!ui.playbackStateKnown) {
+        if (!ui.playbackStateKnown && !ui.reportedPosition) {
             binding.progress.progress = 0
             binding.songTime.text = if (m.durationMs > 0) "— / ${formatTime(m.durationMs)}" else getString(R.string.media_unknown_time)
             return
@@ -409,6 +410,9 @@ class MainActivity : ComponentActivity() {
         if (m.durationMs > 0) {
             binding.progress.progress = ((position.toDouble() / m.durationMs) * 1000).roundToInt()
             binding.songTime.text = "${formatTime(position)} / ${formatTime(m.durationMs)}"
+        } else if (ui.reportedPosition) {
+            binding.progress.progress = 0
+            binding.songTime.text = "${formatTime(m.positionMs)} / —"
         } else if (m.playing) {
             binding.progress.progress = 0
             binding.songTime.text = if (m.positionMs > 0) "${formatTime(m.positionMs)} / —" else getString(R.string.media_playing_without_duration)
@@ -667,6 +671,7 @@ class MainActivity : ComponentActivity() {
             .action("CarPlay", "Aplicación de conexión del iPhone") { chooseApp("zlink", false) }
             .action("CarPlay con barra Mustang", "Mapas y música de ZLink con controles Mustang", ::openCarPlayBar)
             .action("Comprobar metadatos de ZLink", "Prueba manual de 8 segundos · diagnóstico de integración", ::showZLinkHudProbe)
+            .toggle("Datos musicales de CarPlay", "Experimental · lectura local mientras Mustang o su barra estén visibles", model.settings.zlinkHudEnabled) { model.zlinkHud.setEnabled(it) }
             .toggle("Barra al abrir CarPlay", "Puedes arrastrarla o cerrarla; requiere permiso de Android", model.settings.carPlayBar) { model.settings.carPlayBar = it }
             .action("Audio", "Fuente de reproducción y acceso multimedia", ::mediaSources)
             .action("Radio del equipo", "Frecuencia, RDS y controles disponibles", ::showRadio)
@@ -703,7 +708,7 @@ class MainActivity : ComponentActivity() {
         val details=TextView(this).apply { setTextAppearance(R.style.Body); setPadding(24,16,24,16) }
         val dialog=AlertDialog.Builder(this).setTitle("Comprobar canal de metadatos")
             .setView(ScrollView(this).apply { addView(details) })
-            .setPositiveButton("Leer 8 segundos",null)
+            .setPositiveButton("Iniciar lectura",null)
             .setNeutralButton("Probar en CarPlay",null)
             .setNegativeButton("Cerrar",null).create()
         var observer: Job?=null
@@ -712,21 +717,25 @@ class MainActivity : ComponentActivity() {
         dialog.setOnDismissListener { observer?.cancel(); lifecycle.removeObserver(ownerObserver); restoreMapAfterMenu() }
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                if(model.zlinkHudProbe.state.value.running) model.zlinkHudProbe.stop() else model.zlinkHudProbe.start()
+                if(model.zlinkHudProbe.state.value.running) model.zlinkHudProbe.stop() else model.zlinkHud.retryOrSample()
             }
             dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
-                model.zlinkHudProbe.start(); dialog.dismiss()
+                if(!model.zlinkHudProbe.state.value.running) model.zlinkHud.retryOrSample()
+                dialog.dismiss()
                 if(model.settings.carPlayBar && Settings.canDrawOverlays(this@MainActivity)) launchCarPlayBar()
                 else if(!model.carplay.open()) toast("No se pudo abrir la aplicación de CarPlay elegida")
             }
             observer=lifecycleScope.launch {
                 model.zlinkHudProbe.state.collect { state ->
-                    details.text="Conecta el iPhone, reproduce una canción y activa una ruta. Esta prueba experimental lee un canal local identificado en tu APK durante un máximo de 8 segundos. Puede estar ocupado por el HUD de ZLink; no se fuerzan ni desconectan otros clientes.\n\n"+
-                        "${state.status}\nConexión: ${state.connected}\nTramas completas: ${state.frames} · bytes descartados: ${state.bytes}\n"+
+                    details.text="Conecta el iPhone y cambia de canción durante la lectura. Activa «Datos musicales de CarPlay» para actualizar la tarjeta mientras Mustang o su barra estén visibles; desactivado, la muestra dura 8 segundos. El canal puede estar ocupado por otro cliente.\n\n"+
+                        "${state.status}\nConexión: ${state.connected}\nTramas completas: ${state.frames} · bytes recibidos: ${state.bytes}\n"+
                         state.types.toSortedMap().entries.joinToString(" · ") { "tipo ${it.key}: ${it.value}" }+
-                        "\n\nDespués de «Probar en CarPlay», espera 8 segundos y vuelve aquí. El informe exportado contiene solo conteos. Una conexión no acredita la identidad del servidor ni datos útiles de canción/mapa. No se guardan portadas, canciones o rutas ni se cambia configuración."
-                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).text=if(state.running) "Detener prueba" else "Leer 8 segundos"
-                    dialog.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled=!state.running
+                        "\nMúsica válida: ${state.validMusicFrames} · rechazada: ${state.invalidMusicFrames}\n"+
+                        "Título: ${state.music.title!=null} · artista: ${state.music.artist!=null} · duración: ${state.music.durationMs!=null} · posición: ${state.music.elapsedMs!=null}\n"+
+                        "Campos: ${state.shapes.sorted().joinToString(", ")}\nPNG recibidos: ${state.pngFrames}\n\n"+
+                        "El informe omite el contenido de canciones e imágenes. La lectura no activa HUD, no envía comandos ni cambia ZLink. Todavía no extrae vídeo del mapa ni asocia portadas a canciones."
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).text=if(state.running) "Detener lectura" else "Iniciar lectura"
+                    dialog.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled=true
                 }
             }
         }

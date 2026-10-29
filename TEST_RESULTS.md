@@ -1,6 +1,20 @@
-# Registro de verificación · Mustang OS 0.6.1
+# Registro de verificación · Mustang OS 0.6.2
 
-## Resultado actual 0.6.1
+## Resultado actual 0.6.2
+
+Verificación integral con `scripts/verify.ps1`: **268 pruebas app/núcleo, cero fallos/errores/omitidas**, lint debug/release y ambos instaladores; `BUILD SUCCESSFUL` en 1 minuto 40 segundos. Se añadió después una regresión de tarjeta HUD frente al polling Android y pasó toda `DashboardInteractionTest`: **269 casos únicos verificados**. Las once pruebas HTTP del servidor también pasaron. Lint: cero errores y 198 advertencias por variante, sin baseline ni nuevas supresiones.
+
+- Release: `output/MustangOS-0.6.2.apk`, alias `output/MustangOS.apk`, 8 308 925 bytes. Paquete `com.mustangos.launcher`, versión 0.6.2 / código 14, min SDK 26 / target 35, sin depuración.
+- SHA-256 release: `B8AA3012A9B4C44A5C3E5BD7A224B8EDDA370D621622CF145B535B1BACF7D6B2`.
+- Debug: `output/MustangOS-0.6.2-debug.apk`, 9 096 200 bytes; SHA-256 `427E495FF7B2E7B9343972C56C9BAF1434512221D66524E8ABE69F8D23CCFD42`.
+- Firma v2 y certificado anterior verificados; permisos idénticos a 0.6.1, cuya APK congelada conserva su SHA-256. No se generaron ni exportaron llaves.
+- Evidencia física de entrada: 17 tramas tipo 10 / 204 bytes en la muestra 0.6.1. Sus cuerpos fueron descartados; la prueba no acredita todavía valores de canción, tiempo, portada o ruta.
+
+Los casos nuevos cubren TLV big-endian, atributos completos, actualización de 12 bytes con solo tiempo, datos parciales, cambio de canción, retroceso de reloj, límites, duplicados, UTF-8 inválido y alineación entre mensajes retenidos/descartados. Los casos Android cubren memoria sin contenido en el informe, una conexión compartida Home/barra, opt-in, cierre del último propietario, incompatibilidad de otra proyección, aislamiento de Bluetooth, reloj sin interpolación, duración sin tiempo y tarjeta resistente al polling. Se usan fixtures sintéticos y sockets de prueba; no ejecutan ZLink ni contactan al coche.
+
+La nueva función debe validarse en la pantalla con [el procedimiento 0.6.2](docs/RELEASE_062.md). Portada asociada y mapa/ruta de CarPlay permanecen pendientes; la APK no los presenta como conseguidos.
+
+## Historial 0.6.1
 
 **254 pruebas app/núcleo y once del servidor pasadas; cero fallos/errores/omitidas.** Verificación integral con `scripts/verify.ps1`: pruebas, lint debug/release y ambos instaladores; `BUILD SUCCESSFUL` en 1 minuto 19 segundos. Lint: cero errores y 183 advertencias en ambas variantes, sin baseline ni supresiones nuevas.
 

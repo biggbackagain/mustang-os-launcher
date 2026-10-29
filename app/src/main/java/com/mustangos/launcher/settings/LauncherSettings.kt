@@ -35,6 +35,9 @@ class LauncherSettings(context: Context) {
     var carPlayBar: Boolean
         get() = prefs.getBoolean("carplay_bar", false)
         set(value) { prefs.edit().putBoolean("carplay_bar", value).apply() }
+    var zlinkHudEnabled: Boolean
+        get() = prefs.getBoolean("zlink_hud", false)
+        set(value) { prefs.edit().putBoolean("zlink_hud", value).apply() }
     var mustangProfile: MustangProfile
         get() = MustangProfile(
             prefs.getInt("profile_year", 2010).takeIf { it in 1964..2099 } ?: 2010,

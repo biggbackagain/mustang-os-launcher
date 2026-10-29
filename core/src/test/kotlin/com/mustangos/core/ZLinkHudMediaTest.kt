@@ -44,6 +44,11 @@ class ZLinkHudMediaTest {
         assertEquals("A",next.title); assertEquals(7L,next.trackRevision)
         assertNull(next.apply(ZLinkHudMediaDecoder.decode(tlv(0,tlv(12,byteArrayOf()))),3).artist)
     }
+    @Test fun backwardsClockWithoutItemDataDropsThePreviousSongConservatively() {
+        val first=ZLinkHudMusic(title="Previous",artist="artist",durationMs=100000,elapsedMs=45000)
+        val next=first.apply(ZLinkHudMediaDecoder.decode(tlv(1,tlv(1,u32(1000)))),100)
+        assertNull(next.title); assertNull(next.artist); assertNull(next.durationMs); assertEquals(1000L,next.elapsedMs)
+    }
     @Test fun malformedTlvDuplicateFieldsBadUtf8AndWrongNumberSizesAreRejectedAtomically() {
         val invalid=listOf(byteArrayOf(0,3,0,0),byteArrayOf(0,10,0,0),tlv(0,tlv(1,byteArrayOf(0xc3.toByte()))),
             tlv(0,tlv(1,byteArrayOf(1)),tlv(1,byteArrayOf(2))),tlv(1,tlv(1,byteArrayOf(1))),

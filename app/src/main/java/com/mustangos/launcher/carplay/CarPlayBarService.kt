@@ -11,6 +11,7 @@ import android.view.*
 import android.widget.*
 import com.mustangos.core.MediaCommand
 import com.mustangos.launcher.R
+import com.mustangos.launcher.MustangApplication
 import com.mustangos.launcher.media.MediaIntegrationManager
 import com.mustangos.launcher.settings.LauncherSettings
 import com.mustangos.launcher.ui.MainActivity
@@ -24,6 +25,7 @@ class CarPlayBarService : Service() {
     private var play: ImageButton? = null
     private var previous: ImageButton? = null
     private var next: ImageButton? = null
+    private var song: TextView? = null
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
     override fun onBind(intent: Intent?) = null
     override fun onCreate() { super.onCreate(); windows = getSystemService(WindowManager::class.java) }
@@ -68,6 +70,12 @@ class CarPlayBarService : Service() {
         }
         val handle=ImageView(styled).apply { setImageResource(R.drawable.ic_mustang_pony); contentDescription="Arrastrar barra Mustang"; setPadding(dp(6),dp(8),dp(6),dp(8)) }
         row.addView(handle,LinearLayout.LayoutParams(dp(48),dp(48)))
+        song=TextView(styled).apply {
+            setTextColor(0xffe5f3ff.toInt()); textSize=13f; maxLines=2
+            ellipsize=android.text.TextUtils.TruncateAt.END
+            maxWidth=(resources.displayMetrics.widthPixels-dp(370)).coerceIn(0,dp(200))
+            setPadding(dp(6),0,dp(10),0); visibility=View.GONE
+        }.also { row.addView(it,LinearLayout.LayoutParams(-2,dp(48))) }
         fun control(icon: Int,description: String,click: () -> Unit) = ImageButton(styled).apply {
             setImageResource(icon); contentDescription=description; background=GradientDrawable().apply { cornerRadius=dp(20).toFloat(); setColor(0xff14273e.toInt()) }
             setPadding(dp(12),dp(12),dp(12),dp(12)); setOnClickListener { click() }
@@ -96,9 +104,14 @@ class CarPlayBarService : Service() {
             }
         }
         bar=row
+        row.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_ ->
+            val x=params.x.coerceIn(0,(screen.widthPixels-row.width).coerceAtLeast(0))
+            if(x!=params.x) { params.x=x; runCatching { windows.updateViewLayout(row,params) } }
+        }
         // The window consumes touches only inside its own narrow bounds.
         // https://developer.android.com/reference/android/view/WindowManager.LayoutParams#TYPE_APPLICATION_OVERLAY
         windows.addView(row,params)
+        (application as MustangApplication).zlinkHud.visible("bar",true)
         handler.post(refresh)
     }
     private val refresh=object : Runnable {
@@ -110,6 +123,16 @@ class CarPlayBarService : Service() {
             next?.isEnabled=media?.canCommand(MediaCommand.NEXT) == true
             play?.isEnabled=media?.let { it.canCommand(MediaCommand.PLAY) || it.canCommand(MediaCommand.PAUSE) } == true
             val state=media?.state?.value
+            val projection=LauncherSettings(this@CarPlayBarService).component("zlink")?.packageName ?: "com.zjinnova.zlink"
+            val display=com.mustangos.launcher.media.ZLinkHudPresentation.compose(state ?: com.mustangos.launcher.media.MediaUiState(),
+                (application as MustangApplication).zlinkHud.probe.state.value,projection,projection,SystemClock.elapsedRealtime())
+            song?.apply {
+                val title=display.displayTitle
+                val position=display.facts.positionMs
+                text=title?.let { listOfNotNull(it,display.displaySubtitle).joinToString("\n") }
+                    ?: if(display.reportedPosition) "CarPlay\n%d:%02d".format(position/60000,position/1000%60) else ""
+                visibility=if(text.isNotEmpty() && maxWidth>=dp(90)) View.VISIBLE else View.GONE
+            }
             play?.setImageResource(if(state?.playbackStateKnown == true) { if(state.facts.playing) R.drawable.ic_pause else R.drawable.ic_play } else R.drawable.ic_play_pause)
             handler.postDelayed(this,1000)
         }
@@ -118,8 +141,9 @@ class CarPlayBarService : Service() {
     private fun send(command: MediaCommand) { if(media?.command(command) != true) unavailable() }
     override fun onTaskRemoved(rootIntent: Intent?) { stopSelf() }
     override fun onDestroy() {
+        (application as MustangApplication).zlinkHud.visible("bar",false)
         handler.removeCallbacksAndMessages(null); media?.stop(); media=null
-        bar?.let { runCatching { windows.removeViewImmediate(it) } }; bar=null
+        bar?.let { runCatching { windows.removeViewImmediate(it) } }; bar=null; song=null
         stopForeground(STOP_FOREGROUND_REMOVE)
         super.onDestroy()
     }
