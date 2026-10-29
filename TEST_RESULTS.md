@@ -8,6 +8,7 @@ Verificación integral con `scripts/verify.ps1`: **268 pruebas app/núcleo, cero
 - SHA-256 release: `B8AA3012A9B4C44A5C3E5BD7A224B8EDDA370D621622CF145B535B1BACF7D6B2`.
 - Debug: `output/MustangOS-0.6.2-debug.apk`, 9 096 200 bytes; SHA-256 `427E495FF7B2E7B9343972C56C9BAF1434512221D66524E8ABE69F8D23CCFD42`.
 - Firma v2 y certificado anterior verificados; permisos idénticos a 0.6.1, cuya APK congelada conserva su SHA-256. No se generaron ni exportaron llaves.
+- Descarga HTTP verificada en `http://192.168.100.2:8766/?v=0.6.2`: página 200, APK 200 con SHA-256 idéntico al anterior y mapa de México disponible por HEAD con 719 418 229 bytes. Servidor limitado a dos horas; registro privado en `output/http-verification-062.json`.
 - Evidencia física de entrada: 17 tramas tipo 10 / 204 bytes en la muestra 0.6.1. Sus cuerpos fueron descartados; la prueba no acredita todavía valores de canción, tiempo, portada o ruta.
 
 Los casos nuevos cubren TLV big-endian, atributos completos, actualización de 12 bytes con solo tiempo, datos parciales, cambio de canción, retroceso de reloj, límites, duplicados, UTF-8 inválido y alineación entre mensajes retenidos/descartados. Los casos Android cubren memoria sin contenido en el informe, una conexión compartida Home/barra, opt-in, cierre del último propietario, incompatibilidad de otra proyección, aislamiento de Bluetooth, reloj sin interpolación, duración sin tiempo y tarjeta resistente al polling. Se usan fixtures sintéticos y sockets de prueba; no ejecutan ZLink ni contactan al coche.
