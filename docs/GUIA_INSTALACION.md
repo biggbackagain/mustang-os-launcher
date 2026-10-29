@@ -19,7 +19,7 @@ Mustang OS es una pantalla de inicio (launcher) para estéreos Android de coche 
 
 **Versión actual: 0.8.1.** La forma más fácil es descargarla directo desde GitHub en el navegador del estéreo:
 
-**[Descargar MustangOS.apk](https://github.com/biggbackagain/mustang-os-launcher/raw/main/apk/MustangOS.apk)**
+**[Descargar MustangOS.apk](https://raw.githubusercontent.com/biggbackagain/mustang-os-launcher/main/apk/MustangOS.apk)**
 
 Si el estéreo no tiene internet, también puedes recibir el archivo **MustangOS.apk** de estas formas:
 
