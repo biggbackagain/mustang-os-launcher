@@ -17,11 +17,15 @@ Mustang OS es una pantalla de inicio (launcher) para estéreos Android de coche 
 
 ## 2. Descargar la aplicación
 
-Te van a pasar el archivo **MustangOS.apk** de una de estas formas:
+**Versión actual: 0.8.1.** La forma más fácil es descargarla directo desde GitHub en el navegador del estéreo:
+
+**[Descargar MustangOS.apk](https://github.com/biggbackagain/mustang-os-launcher/raw/main/apk/MustangOS.apk)**
+
+Si el estéreo no tiene internet, también puedes recibir el archivo **MustangOS.apk** de estas formas:
 
 - **Enlace por Wi-Fi:** quien te lo comparte abre un enlace del tipo `http://192.168.x.x:8765/` desde su computadora. Conecta el estéreo a la **misma red Wi-Fi**, abre ese enlace en el navegador del estéreo y pulsa **Descargar Mustang OS**.
 - **Memoria USB:** copia `MustangOS.apk` a la memoria, conéctala al estéreo y abre el archivo desde el administrador de archivos.
-- **Enlace de descarga** (Drive, Telegram, etc.): ábrelo en el navegador del estéreo y descarga el archivo.
+- **Desde una computadora o celular:** descarga el archivo con el enlace de arriba y pásalo al estéreo por memoria USB, Drive o Telegram.
 
 ## 3. Instalar
 

@@ -32,7 +32,7 @@ Se conservan las modificaciones del usuario de 0.3.5 y las correcciones de [0.3.
 
 ## Instalar y empezar
 
-**¿Vas a instalarlo en tu coche?** Sigue la [guía de instalación para usuarios](docs/GUIA_INSTALACION.md). Lo que sigue es la referencia técnica.
+**¿Vas a instalarlo en tu coche?** [Descarga la APK 0.8.1](https://github.com/biggbackagain/mustang-os-launcher/raw/main/apk/MustangOS.apk) y sigue la [guía de instalación para usuarios](docs/GUIA_INSTALACION.md). Lo que sigue es la referencia técnica.
 
 Para instalar **por enlace, sin memoria USB ni ADB**, sirve la APK desde un PC conectado a la misma red Wi-Fi. Se incluye `scripts/serve-apk.py`; consulta [la guía de descarga local](docs/LOCAL_DOWNLOAD.md). Abre su dirección en el navegador de la pantalla, descarga la APK y permite a ese navegador instalar aplicaciones cuando Android lo solicite. La autorización de instalación es independiente de las opciones de depuración protegidas por contraseña.
 
