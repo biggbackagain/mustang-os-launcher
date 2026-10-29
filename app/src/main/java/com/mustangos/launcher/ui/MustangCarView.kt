@@ -23,6 +23,41 @@ class MustangCarView @JvmOverloads constructor(
     private var lightLevel = 0f
     private var animator: ValueAnimator? = null
     private var digital: DigitalMustangDrawable? = null
+    private var scene: MustangSceneDrawable? = null
+    var sceneProfile: MustangProfile? = null
+        set(value) { field=value; scene=value?.let(::MustangSceneDrawable); invalidate(); scheduleScene() }
+    private var sceneActive=false
+    private var leftLevel=0f; private var rightLevel=0f
+    private var leftTarget=0f; private var rightTarget=0f
+    var motionSpeedKmh: Float?=null; private set
+    private var lastSceneFrame=0L
+    private val sceneFrame=object : Runnable {
+        override fun run() {
+            if(!sceneActive || !isShown || scene==null) return
+            val now=android.os.SystemClock.elapsedRealtime()
+            val seconds=if(lastSceneFrame==0L) .033f else ((now-lastSceneFrame)/1000f).coerceIn(0f,.1f)
+            lastSceneFrame=now
+            fun approach(value: Float,target: Float): Float {
+                val delta=target-value; val step=seconds*2.5f
+                return if(kotlin.math.abs(delta)<=step) target else value+if(delta>0) step else -step
+            }
+            leftLevel=approach(leftLevel,leftTarget); rightLevel=approach(rightLevel,rightTarget)
+            scene?.let { it.travelMeters=(it.travelMeters+(motionSpeedKmh ?: 0f)/3.6f*seconds)%1000f }
+            invalidate(); scheduleScene()
+        }
+    }
+    fun setSceneSignals(leftOpen: Boolean?,rightOpen: Boolean?,speedKmh: Float?) {
+        leftTarget=leftOpen?.let { if(it) 1f else 0f } ?: leftLevel
+        rightTarget=rightOpen?.let { if(it) 1f else 0f } ?: rightLevel
+        motionSpeedKmh=speedKmh?.takeIf { it.isFinite() && it in 0f..350f }
+        scheduleScene(); invalidate()
+    }
+    fun setSceneActive(active: Boolean) { sceneActive=active; lastSceneFrame=0; scheduleScene() }
+    private fun scheduleScene() {
+        removeCallbacks(sceneFrame)
+        if(sceneActive && scene!=null && isShown && ((motionSpeedKmh ?: 0f)>.5f || leftLevel!=leftTarget || rightLevel!=rightTarget))
+            postDelayed(sceneFrame,33)
+    }
     var digitalProfile: MustangProfile? = null
         set(value) { field = value; digital = value?.let(::DigitalMustangDrawable); invalidate() }
     var lampOverlayEnabled: Boolean = true
@@ -72,6 +107,7 @@ class MustangCarView @JvmOverloads constructor(
         animator?.cancel()
         animator = null
         setLightLevel(0f)
+        setSceneActive(false)
     }
 
     private fun setLightLevel(level: Float) {
@@ -80,6 +116,11 @@ class MustangCarView @JvmOverloads constructor(
     }
 
     override fun onDraw(canvas: Canvas) {
+        scene?.let { model ->
+            model.setBounds(paddingLeft,paddingTop,width-paddingRight,height-paddingBottom)
+            model.lights=lightLevel; model.leftDoor=leftLevel; model.rightDoor=rightLevel
+            model.draw(canvas); return
+        }
         digital?.let { illustration ->
             illustration.setBounds(paddingLeft, paddingTop, width-paddingRight, height-paddingBottom)
             illustration.lights = lightLevel
@@ -108,4 +149,6 @@ class MustangCarView @JvmOverloads constructor(
         stopAnimation()
         super.onDetachedFromWindow()
     }
+    override fun onAttachedToWindow() { super.onAttachedToWindow(); scheduleScene() }
+    override fun onWindowVisibilityChanged(visibility: Int) { super.onWindowVisibilityChanged(visibility); scheduleScene() }
 }
