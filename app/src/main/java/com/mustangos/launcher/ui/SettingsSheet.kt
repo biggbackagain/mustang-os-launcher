@@ -25,6 +25,7 @@ class SettingsSheet(private val context: Context, onDismiss: () -> Unit) {
     private val rows = view.findViewById<LinearLayout>(R.id.settingsRows)
     init {
         dialog.setContentView(view)
+        view.findViewById<TextView>(R.id.settingsAppVersion).text="Versión "+runCatching { context.packageManager.getPackageInfo(context.packageName,0).versionName }.getOrDefault("—")
         view.findViewById<Button>(R.id.closeSettings).setOnClickListener { dialog.dismiss() }
         val owner = context as? LifecycleOwner
         val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_DESTROY) dialog.dismiss() }
@@ -40,7 +41,7 @@ class SettingsSheet(private val context: Context, onDismiss: () -> Unit) {
             contentDescription = context.getString(if (photo != null) R.string.vehicle_custom_image_caption else R.string.vehicle_description)
             description?.let { contentDescription = it }
             if (photo != null) setImageBitmap(photo)
-            if (digital && photo == null) setImageDrawable(DigitalMustangDrawable(profile))
+            if (digital && photo == null) setImageDrawable(MustangSceneDrawable(profile))
         }
     }
     fun section(title: String): SettingsSheet = apply {

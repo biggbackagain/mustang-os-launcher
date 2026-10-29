@@ -33,8 +33,8 @@ class VehicleSelectorTest {
         all.first { it.contentDescription?.startsWith("S650,") == true }.performClick()
         all.first { it.contentDescription == "Pintura Azul" }.performClick()
         val preview=all.filterIsInstance<MustangCarView>().single()
-        assertEquals(2024,preview.digitalProfile!!.year)
-        assertEquals(MustangPaint.BLUE,preview.digitalProfile!!.paint)
+        assertEquals(2024,preview.sceneProfile!!.year)
+        assertEquals(MustangPaint.BLUE,preview.sceneProfile!!.paint)
         assertNull(saved)
         val decor=dialog.window!!.decorView
         decor.measure(View.MeasureSpec.makeMeasureSpec(1280,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(720,View.MeasureSpec.EXACTLY)); decor.layout(0,0,1280,720)

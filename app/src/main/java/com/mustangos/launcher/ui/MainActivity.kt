@@ -62,7 +62,6 @@ class MainActivity : ComponentActivity() {
     private val mediaLabels = mutableMapOf<String, String>()
     private val referenceImageStore by lazy { ReferenceImageStore(applicationContext) }
     private val photoCatalog by lazy { CarPhotoCatalog(applicationContext) }
-    private val calibratedPreview by lazy { com.mustangos.launcher.settings.CalibratedVehiclePreview(applicationContext) }
     private val radio by lazy { RadioIntegrationManager(applicationContext) }
     private var photoPresentation: PhotoPresentation? = null
     private var profilePhoto: Bitmap? = null
@@ -188,7 +187,7 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    kotlinx.coroutines.flow.combine(model.gps.state, model.oem.state) { state, oem ->
+                    kotlinx.coroutines.flow.combine(model.gps.state, model.oem.state, model.vehicle.carInfo.state) { state, oem, _ ->
                         binding.gauge.setSpeed(oem.speedKmh ?: state.kmh, if (oem.speedKmh != null) "OEM" else "GPS")
                         binding.gpsStatus.text = when {
                             oem.speedKmh != null -> "Velocidad OEM · GPS para el mapa"
@@ -197,6 +196,7 @@ class MainActivity : ComponentActivity() {
                             else -> state.status
                         }
                         nativeMap.setLocation(state.latitude, state.longitude, state.accuracyMeters, state.bearingDegrees)
+                        updateVehicleScene()
                     }.collect { }
                 }
                 launch { model.media.state.collect { renderMedia(model.mediaPresentation()) } }
@@ -216,7 +216,6 @@ class MainActivity : ComponentActivity() {
                             append("\n")
                             append(if (oem.voltage != null || oem.temperatureC != null) oem.ageSummary else "Consulta las lecturas en Motor")
                         }
-                        binding.carImage.setHeadlightsOn(oem.illuminationOn == true && oem.sourceActive, animate = true)
                     }
                 }
                 launch {
@@ -247,6 +246,7 @@ class MainActivity : ComponentActivity() {
         super.onStart()
         stopService(Intent(this,CarPlayBarService::class.java))
         model.start()
+        binding.carImage.setSceneActive(mapMenuDepth==0)
         if (::nativeMap.isInitialized) nativeMap.setActive(mapMenuDepth == 0)
         val illumination = model.oem.state.value.illuminationOn
         if (illumination != null) binding.carImage.setHeadlightsOn(illumination)
@@ -260,6 +260,11 @@ class MainActivity : ComponentActivity() {
         nativeMap.setActive(false)
         model.stop()
         super.onStop()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if(::binding.isInitialized) binding.carImage.setSceneActive(hasFocus && mapMenuDepth==0 && lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED))
     }
 
     override fun onDestroy() {
@@ -289,20 +294,20 @@ class MainActivity : ComponentActivity() {
         profilePhotoJob = lifecycleScope.launch {
             val profile = model.settings.mustangProfile
             if(model.settings.digitalVehicle) {
-                val bitmap=calibratedPreview.load(profile)
-                val caption = if(bitmap != null) "Vista de pintura · referencia 2010 · ${profile.paint.label}"
-                    else "Vista digital · ${com.mustangos.core.MustangGeneration.forYear(profile.year).label} · ${profile.paint.label}"
-                photoPresentation = PhotoPresentation(bitmap,caption,"${profile.description} · representación visual aproximada",true,null,"digital")
-                profilePhoto = bitmap; profilePhotoLoaded = true
-                binding.carImage.digitalProfile = profile.takeIf { bitmap == null }
-                if(bitmap != null) binding.carImage.setImageBitmap(bitmap)
+                val caption = "Modelo 3D · ${profile.paint.label} · vista aproximada"
+                photoPresentation = PhotoPresentation(null,caption,"${profile.description} · modelo 3D aproximado",true,null,"digital")
+                profilePhoto = null; profilePhotoLoaded = true
+                binding.carImage.digitalProfile = null
+                binding.carImage.sceneProfile = profile
                 binding.carImage.lampOverlayEnabled = true
                 binding.carImage.contentDescription = photoPresentation!!.description
                 binding.vehicleImageReference.text = caption
-                binding.carImage.setHeadlightsOn(model.oem.state.value.let { it.sourceActive && it.illuminationOn == true })
+                binding.carImage.setSceneActive(lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED) && mapMenuDepth==0)
+                updateVehicleScene()
                 return@launch
             }
             binding.carImage.digitalProfile = null
+            binding.carImage.sceneProfile = null
             val custom = referenceImageStore.load()
             val presentation = if (custom != null) PhotoPresentation(custom,
                 getString(R.string.vehicle_custom_image_caption), getString(R.string.vehicle_custom_image_caption),
@@ -318,6 +323,29 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun updateVehicleScene() {
+        val oem=model.oem.state.value
+        val cached=model.vehicle.carInfo.state.value
+        val illumination=if(oem.sourceActive) oem.illuminationOn else null
+        val cachedLight=cached.illuminationSignal?.takeIf { cached.sourceActive && it.available }?.value
+        binding.carImage.setHeadlightsOn((illumination ?: cachedLight)==true,animate=true)
+        val (left,right)=model.settings.doorMapping.states(oem.doorMask.takeIf { oem.sourceActive })
+        binding.carImage.setSceneSignals(left,right,oem.speedKmh ?: model.gps.state.value.kmh)
+        binding.vehicleRpm.text=oem.rpm?.let { "$it RPM · OEM" } ?: "— RPM · esperando datos OEM"
+        if(model.settings.digitalVehicle) {
+            val lightText=when { illumination!=null -> if(illumination) "luces activas" else "luces apagadas"
+                cachedLight!=null -> "luces · señal OEM guardada"; else -> "luces sin señal" }
+            val doors=if(left==null || right==null) "asignar puertas" else "puertas OEM"
+            binding.vehicleImageReference.text="3D · $lightText · $doors"
+            binding.carImage.contentDescription="Modelo 3D · ${model.settings.mustangProfile.description}. $lightText. " +
+                "Puerta izquierda: ${left?.let { if(it) "abierta" else "sin apertura" } ?: "sin asignar"}. " +
+                "Puerta derecha: ${right?.let { if(it) "abierta" else "sin apertura" } ?: "sin asignar"}."
+        }
+    }
+    private fun showDoorCalibration() {
+        pauseMapForMenu()
+        DoorCalibrationSheet(this,model.oem,model.settings) { updateVehicleScene(); restoreMapAfterMenu() }.show()
+    }
     private fun showMustangProfile() {
         pauseMapForMenu()
         MustangProfileSheet(this, model.settings.mustangProfile, referenceImageStore.hasImage(),
@@ -338,10 +366,11 @@ class MainActivity : ComponentActivity() {
         if (!model.gps.hasPermission()) requestGps()
     }
 
-    private fun pauseMapForMenu() { mapMenuDepth++; nativeMap.setActive(false) }
+    private fun pauseMapForMenu() { mapMenuDepth++; nativeMap.setActive(false); binding.carImage.setSceneActive(false) }
     private fun restoreMapAfterMenu() {
         mapMenuDepth = (mapMenuDepth - 1).coerceAtLeast(0)
         nativeMap.setActive(mapMenuDepth == 0 && lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED))
+        binding.carImage.setSceneActive(mapMenuDepth == 0 && lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED))
     }
 
     private fun showMapScreen() {
@@ -666,6 +695,7 @@ class MainActivity : ComponentActivity() {
                 photoPresentation?.description, model.settings.digitalVehicle)
             .section("MI MUSTANG")
             .action("Mi Mustang", "Año, versión, carrocería, color e imagen", ::showMustangProfile)
+            .action("Puertas del modelo 3D", "Asignar la señal de apertura de cada lado", ::showDoorCalibration)
             .action("Créditos de fotografías", "Referencias del catálogo y sus autores", ::showPhotoCredits)
             .section("CONEXIONES")
             .action("CarPlay", "Aplicación de conexión del iPhone") { chooseApp("zlink", false) }
@@ -691,6 +721,7 @@ class MainActivity : ComponentActivity() {
                 if(it) model.vehicle.startReadings() else model.vehicle.stopReadings()
             }
             .action("Motor", "Voltaje, temperatura y lecturas disponibles", ::showVehicleData)
+            .toggle("Velocidad y RPM OEM", "Solicitar telemetría mientras Mustang está visible · requiere datos del vehículo", model.settings.powertrainReadEnabled) { model.oem.setPowertrainEnabled(it) }
             .action("Aplicaciones predeterminadas", "Teléfono, radio y launcher original", ::showAdvancedSettings)
             .action("Interfaz original", "Volver al launcher del fabricante") { openRole("home") }
             .action("Diagnóstico y exportación", "Información de compatibilidad y soporte", ::showDiagnostics)
@@ -733,7 +764,8 @@ class MainActivity : ComponentActivity() {
                         "\nMúsica válida: ${state.validMusicFrames} · rechazada: ${state.invalidMusicFrames}\n"+
                         "Título: ${state.music.title!=null} · artista: ${state.music.artist!=null} · duración: ${state.music.durationMs!=null} · posición: ${state.music.elapsedMs!=null}\n"+
                         "Campos: ${state.shapes.sorted().joinToString(", ")}\nPNG recibidos: ${state.pngFrames}\n\n"+
-                        "El informe omite el contenido de canciones e imágenes. La lectura no activa HUD, no envía comandos ni cambia ZLink. Todavía no extrae vídeo del mapa ni asocia portadas a canciones."
+                        "Portadas: ${state.artworkDecoded} decodificadas · ${state.artworkUnassigned} sin anuncio reciente · ${state.artworkInvalid} inválidas.\n"+
+                        "El informe omite canciones, imágenes y rutas. La lectura no activa HUD, no envía comandos ni cambia ZLink. Las imágenes requieren un anuncio de portada reciente; falta comprobar su correspondencia en el equipo. No extrae vídeo del mapa."
                     dialog.getButton(AlertDialog.BUTTON_POSITIVE).text=if(state.running) "Detener lectura" else "Iniciar lectura"
                     dialog.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled=true
                 }
@@ -950,6 +982,7 @@ class MainActivity : ComponentActivity() {
                         dashMcuStatus.text = "${oem.status} · Eventos: ${oem.frames}\n${oem.ageSummary}\n" +
                             "${oem.voltageRequestStatus}\n${oem.temperatureRequestStatus}\n$profile · $accessoryText\n" +
                             "Velocidad OEM: ${oem.speedKmh?.let { "%.1f km/h".format(it) } ?: "—"} · RPM OEM: ${oem.rpm ?: "—"}\n" +
+                            "${oem.powertrainRequestStatus}\n"+
                             "La velocidad OEM y las RPM solo aparecen con eventos vigentes del equipo."
                     }.collect { }
                 } finally { sm?.unregisterListener(listener) }

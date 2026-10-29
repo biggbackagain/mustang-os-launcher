@@ -6,6 +6,7 @@ import com.mustangos.core.MustangProfile
 import com.mustangos.core.MustangVersion
 import com.mustangos.core.MustangBody
 import com.mustangos.core.MustangPaint
+import com.mustangos.core.VehicleDoorMapping
 
 class LauncherSettings(context: Context) {
     private val prefs = context.getSharedPreferences("launcher", Context.MODE_PRIVATE)
@@ -17,6 +18,9 @@ class LauncherSettings(context: Context) {
     var oemReadEnabled: Boolean
         get() = prefs.getBoolean("oem_read", false)
         set(value) { prefs.edit().putBoolean("oem_read", value).apply() }
+    var powertrainReadEnabled: Boolean
+        get() = prefs.getBoolean("powertrain_read", false)
+        set(value) { prefs.edit().putBoolean("powertrain_read", value).apply() }
     var oemInterrupted: Boolean
         get() = prefs.getBoolean("oem_interrupted", false)
         set(value) { prefs.edit().putBoolean("oem_interrupted", value).commit() }
@@ -38,6 +42,13 @@ class LauncherSettings(context: Context) {
     var zlinkHudEnabled: Boolean
         get() = prefs.getBoolean("zlink_hud", false)
         set(value) { prefs.edit().putBoolean("zlink_hud", value).apply() }
+    var doorMapping: VehicleDoorMapping
+        get() {
+            val left=prefs.getInt("door_left_bit",0).takeIf(VehicleDoorMapping::singleBit)
+            val right=prefs.getInt("door_right_bit",0).takeIf { VehicleDoorMapping.singleBit(it) && it!=left }
+            return VehicleDoorMapping(left,right)
+        }
+        set(value) { prefs.edit().putInt("door_left_bit",value.left ?: 0).putInt("door_right_bit",value.right ?: 0).apply() }
     var mustangProfile: MustangProfile
         get() = MustangProfile(
             prefs.getInt("profile_year", 2010).takeIf { it in 1964..2099 } ?: 2010,

@@ -28,4 +28,11 @@ class ZLinkHudFrameReaderTest {
         }
         try { ZLinkHudFrameReader.read(ByteArrayInputStream(header(10,0))) { false }; fail("Deadline ignored") } catch(_: InterruptedIOException) {}
     }
+    @Test fun artworkHasItsOwnBoundAndDoesNotDisconnectTheFollowingMusicFrame() {
+        val image=ByteArray(300000)
+        val input=ByteArrayInputStream(header(14,image.size)+image+header(10,0))
+        assertEquals(image.size,ZLinkHudFrameReader.readFrame(input,setOf(14)).payload!!.size)
+        assertEquals(ZLinkHudFrameHeader(10,0),ZLinkHudFrameReader.read(input))
+        try { ZLinkHudFrameReader.read(ByteArrayInputStream(header(14,ZLinkHudFrameReader.MAX_ARTWORK_BYTES+1))); fail("Oversize image accepted") } catch(_: ZLinkHudHeaderException) { }
+    }
 }

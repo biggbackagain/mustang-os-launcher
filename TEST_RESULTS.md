@@ -1,6 +1,21 @@
-# Registro de verificación · Mustang OS 0.6.2
+# Registro de verificación · Mustang OS 0.7.0
 
-## Resultado actual 0.6.2
+## Resultado actual 0.7.0
+
+**282 pruebas app/núcleo y once del servidor pasadas, cero fallos/errores/omitidas.** Verificación integral final con `scripts/verify.ps1`: 1 minuto 11 segundos, pruebas, lint debug/release y ambos instaladores. Lint: cero errores y 217 advertencias por variante; sin nuevos baseline o supresiones. Las capturas de prueba se revisaron visualmente, incluidas puertas, faros, color y dashboard.
+
+- Release: `output/MustangOS-0.7.0.apk`, alias `output/MustangOS.apk`, 8 330 661 bytes; versión 0.7.0 / código 15, paquete `com.mustangos.launcher`, min SDK 26 / target 35, sin depuración.
+- SHA-256 release: `42396197A98C74350921DD14F37A61C3031D7EBD55CDBDCB5535D4781269EAA5`.
+- Debug: `output/MustangOS-0.7.0-debug.apk`, 9 310 344 bytes; SHA-256 `3B8D419431ECDCCE6EEBC83B4D0DFC10E7022270E2B255D96B1279226B373CAD`.
+- Firma v2/certificado anterior y ausencia de permisos nuevos verificados; APK histórica 0.6.2 sin modificar. No se generaron ni exportaron llaves.
+
+Regresiones nuevas: aprendizaje de bits independientes de puerta y rechazo de aperturas ambiguas; geometría 3D de puerta izquierda/derecha, faros, color y ruedas; inicio/pausa de movimiento con velocidad válida; iluminación de caché y prioridad de TW directo; RPM de eventos reales con caducidad; inicio optativo/único y cierre del flujo 1291; tuplas exactas de solicitud/cierre reflejadas en un vendor de prueba; PNG con dimensiones/tamaño acotados; ventana de anuncio y rechazo de imágenes sin propietario, duplicadas o tardías; transporte de una portada de más de 256 KiB sin perder el mensaje musical siguiente. La regresión de selector se actualizó del perfil 2D al 3D manteniendo las comprobaciones de borrador/confirmación/cancelación.
+
+Durante las pruebas de animación se identificó una limitación del Activity vacío de Robolectric: AttachInfo conservaba ventana GONE aunque la vista estaba adjunta. Se corrigió la fixture para representar una ventana realmente visible; no se retiró la protección de visibilidad del código de producción.
+
+**Evidencia física:** el usuario confirmó los datos de canción y controles de la 0.6.2. No hay todavía un ZIP posterior al diagnóstico del 28 de octubre, 18:08. Portada/asociación, señales del modelo y RPM nuevas deben validarse en el coche; el mapa CarPlay dentro del panel sigue pendiente. [Procedimiento y límites de la entrega](docs/RELEASE_070.md).
+
+## Historial 0.6.2
 
 Verificación integral con `scripts/verify.ps1`: **268 pruebas app/núcleo, cero fallos/errores/omitidas**, lint debug/release y ambos instaladores; `BUILD SUCCESSFUL` en 1 minuto 40 segundos. Se añadió después una regresión de tarjeta HUD frente al polling Android y pasó toda `DashboardInteractionTest`: **269 casos únicos verificados**. Las once pruebas HTTP del servidor también pasaron. Lint: cero errores y 198 advertencias por variante, sin baseline ni nuevas supresiones.
 

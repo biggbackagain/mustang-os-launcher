@@ -30,6 +30,9 @@ class OemReadOnlyTest {
         var temperatureQueries = 0
         var voltageQueries = 0
         var protocolQueries = 0
+        var powerStarts=0; var powerStops=0
+        override fun startPowertrainRead(): Int { powerStarts++; return 0 }
+        override fun stopPowertrainRead(): Int { powerStops++; return 0 }
         override fun requestMcuProtocol(): Int {
             protocolQueries++
             if (rejectProtocol) throw SecurityException("fixture unsupported protocol read")
@@ -52,6 +55,20 @@ class OemReadOnlyTest {
     @Test fun disabledDoesNotOpenAnything() {
         val feed = Feed(); val reader = OemReadOnlyManager(app, settings) { feed }
         reader.start(); assertEquals(0, feed.calls); assertNull(reader.state.value.voltage)
+    }
+    @Test fun powertrainStreamIsOptInPairedAndNeverCreatesValuesFromTheRequest() {
+        settings.oemReadEnabled=true
+        val feed=Feed(); val reader=OemReadOnlyManager(app,settings) { feed }
+        reader.start(); assertEquals(0,feed.powerStarts)
+        reader.setPowertrainEnabled(true); reader.setPowertrainEnabled(true)
+        assertEquals(1,feed.powerStarts); assertNull(reader.state.value.rpm); assertNull(reader.state.value.speedKmh)
+        feed.send(1291,1250,second=850)
+        assertEquals(850,reader.state.value.rpm); assertEquals(12.5f,reader.state.value.speedKmh)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6)); assertNull(reader.state.value.rpm)
+        reader.stop(); reader.stop(); assertEquals(1,feed.powerStops)
+        reader.start(); assertEquals(2,feed.powerStarts)
+        reader.setPowertrainEnabled(false); assertEquals(2,feed.powerStops)
+        reader.stop(); assertEquals(2,feed.powerStops)
     }
     @Test fun actualIlluminationEventsAreIndependentFromAccessoryPower() {
         settings.oemReadEnabled = true
@@ -281,6 +298,10 @@ class OemReadOnlyTest {
             calls.add(when (code) { 266 -> "protocol-query"; 1288 -> "temperature-query"; 1292 -> "voltage-query"; else -> error("Unverified OEM query $code") })
             return 0
         }
+        fun write(code: Int, mode: Int, reserved: Int): Int {
+            assertEquals(1291,code); assertEquals(0,reserved); assertTrue(mode==0 || mode==3)
+            calls.add("powertrain-$mode"); return 0
+        }
     }
     @Test fun reflectiveAdapterUsesOnlySubscriptionLifecycle() {
         PublicVendorApi.calls.clear()
@@ -288,6 +309,15 @@ class OemReadOnlyTest {
         assertTrue(subscription.open(shortArrayOf(1292), Handler(Looper.getMainLooper())))
         subscription.close()
         assertEquals(listOf("open","add","remove","stop","close"), PublicVendorApi.calls)
+    }
+    @Test fun reflectivePowertrainStreamUsesOnlyTheObservedStartAndStopTuples() {
+        PublicVendorApi.calls.clear()
+        val subscription=TwReadOnlySubscription { PublicVendorApi::class.java }
+        assertNull(subscription.startPowertrainRead())
+        subscription.open(shortArrayOf(1291),Handler(Looper.getMainLooper()))
+        assertEquals(0,subscription.startPowertrainRead()); assertEquals(0,subscription.stopPowertrainRead())
+        subscription.close(); assertNull(subscription.stopPowertrainRead())
+        assertEquals(listOf("open","add","powertrain-3","powertrain-0","remove","stop","close"),PublicVendorApi.calls)
     }
     @Test fun reflectiveTemperatureQueryUsesOnlyVerifiedTwoArgumentRequest() {
         PublicVendorApi.calls.clear()

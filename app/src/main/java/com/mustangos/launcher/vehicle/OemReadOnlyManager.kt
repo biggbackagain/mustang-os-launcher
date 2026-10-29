@@ -20,6 +20,8 @@ interface OemSubscription {
     fun requestMcuProtocol(): Int? = null
     fun requestIllumination(): Int? = null
     fun requestAmbientTemperature(): Int? = null
+    fun startPowertrainRead(): Int? = null
+    fun stopPowertrainRead(): Int? = null
     fun pollMcu() = Unit
     fun close()
 }
@@ -60,6 +62,17 @@ class TwReadOnlySubscription(private val loadClass: () -> Class<*> = { Class.for
         return type?.getMethod("write", Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
             ?.invoke(value, 1288, 255) as? Int
     }
+    // Exact temporary telemetry stream requests used by CarInfoService 251014 u0(boolean).
+    // These are opt-in and paired; never change the CAN type or other MCU settings.
+    override fun startPowertrainRead(): Int? = powertrain(3)
+    override fun stopPowertrainRead(): Int? = powertrain(0)
+    private fun powertrain(mode: Int): Int? {
+        require(mode==0 || mode==3)
+        val value=instance ?: return null
+        val method=type?.getMethod("write",Int::class.javaPrimitiveType,Int::class.javaPrimitiveType,Int::class.javaPrimitiveType) ?: return null
+        check(method.returnType==Int::class.javaPrimitiveType)
+        return method.invoke(value,1291,mode,0) as? Int
+    }
     override fun pollMcu() {
         val value = instance ?: return
         type?.getMethod("write", Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
@@ -99,7 +112,8 @@ data class OemReadings(
     val voltageRequestStatus: String = "Voltaje OEM sin solicitar",
     val temperatureQueryAvailable: Boolean = false,
     val speedKmh: Float? = null, val rpm: Int? = null, val lastPowertrainMs: Long? = null,
-    val illuminationOn: Boolean? = null, val lastIlluminationMs: Long? = null
+    val illuminationOn: Boolean? = null, val lastIlluminationMs: Long? = null,
+    val powertrainRequestStatus: String="Lectura activa de RPM desactivada"
 )
 
 class OemReadOnlyManager(
@@ -110,6 +124,7 @@ class OemReadOnlyManager(
     private var subscription: OemSubscription? = null
     private var subscriptionHandler: Handler? = null
     private var running = false
+    private var ownsPowertrainRead=false
     private var temperatureRequested = false
     private var temperatureReceivedAfterRequest = false
     private var lastTemperatureQueryMs: Long? = null
@@ -196,6 +211,7 @@ class OemReadOnlyManager(
             catch (_: LinkageError) { /* Optional fixed read is unavailable on this firmware. */ }
             pollVoltage()
             requestAmbientTemperature()
+            if(settings.powertrainReadEnabled) requestPowertrain()
             // Guard only initialization. A normal power cut after success must not disable the next ignition.
             settings.oemInterrupted = false
             handler.postDelayed(expiry, 1000)
@@ -215,6 +231,8 @@ class OemReadOnlyManager(
         subscriptionHandler = null
         handler.removeCallbacksAndMessages(null)
         val owned = subscription
+        if(ownsPowertrainRead) runCatching { owned?.stopPowertrainRead() }
+        ownsPowertrainRead=false
         subscription = null
         diagnostics.clear()
         owned?.let { runCatching { it.close() }; settings.oemInterrupted = false }
@@ -223,6 +241,21 @@ class OemReadOnlyManager(
     fun setEnabled(enabled: Boolean) {
         stop(); settings.oemReadEnabled = enabled; settings.oemInterrupted = false
         if (enabled) start()
+    }
+    fun setPowertrainEnabled(enabled: Boolean) {
+        settings.powertrainReadEnabled=enabled
+        if(enabled && running) requestPowertrain()
+        if(!enabled && ownsPowertrainRead) {
+            runCatching { subscription?.stopPowertrainRead() }; ownsPowertrainRead=false
+            publish(mutable.value.copy(speedKmh=null,rpm=null,lastPowertrainMs=null,powertrainRequestStatus="Lectura activa de RPM desactivada"))
+        }
+    }
+    private fun requestPowertrain() {
+        if(ownsPowertrainRead || !running) return
+        val result=runCatching { subscription?.startPowertrainRead() }.getOrNull()
+        ownsPowertrainRead=result!=null && result>=0
+        publish(mutable.value.copy(powertrainRequestStatus=if(ownsPowertrainRead)
+            "Flujo OEM 1291 solicitado; esperando velocidad y RPM reales" else "El firmware no aceptó la lectura de RPM"))
     }
     fun requestAmbientTemperature() {
         if (!canRequestAmbientTemperature) return

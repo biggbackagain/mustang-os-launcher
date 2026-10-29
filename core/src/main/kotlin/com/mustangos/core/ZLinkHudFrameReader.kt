@@ -12,6 +12,7 @@ class ZLinkHudHeaderException(val frameType: Int,val declaredBytes: Int) : Illeg
 /** Observed wire framing: two little-endian int32s. Retain only explicitly requested, bounded bodies. */
 object ZLinkHudFrameReader {
     const val MAX_PAYLOAD_BYTES = 256 * 1024
+    const val MAX_ARTWORK_BYTES = 2 * 1024 * 1024
     fun read(input: InputStream, active: () -> Boolean = { true }): ZLinkHudFrameHeader {
         return readFrame(input, emptySet(), active).header
     }
@@ -29,7 +30,8 @@ object ZLinkHudFrameReader {
         val header=ByteArray(8); exact(header,8)
         fun intAt(index: Int) = (0..3).fold(0) { value,i -> value or ((header[index+i].toInt() and 255) shl (8*i)) }
         val type=intAt(0); val length=intAt(4)
-        if(type !in 0..65535 || length !in 0..MAX_PAYLOAD_BYTES) throw ZLinkHudHeaderException(type,length)
+        val limit=if(type==14) MAX_ARTWORK_BYTES else MAX_PAYLOAD_BYTES
+        if(type !in 0..65535 || length !in 0..limit) throw ZLinkHudHeaderException(type,length)
         if(type in retainTypes) {
             val body=ByteArray(length); exact(body,length)
             return ZLinkHudFrame(ZLinkHudFrameHeader(type,length),body)

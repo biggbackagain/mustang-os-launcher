@@ -22,6 +22,7 @@ class MustangCarView @JvmOverloads constructor(
 ) : ImageView(context, attrs, defStyleAttr) {
     private var lightLevel = 0f
     private var animator: ValueAnimator? = null
+    private var requestedLight: Boolean? = null
     private var digital: DigitalMustangDrawable? = null
     private var scene: MustangSceneDrawable? = null
     var sceneProfile: MustangProfile? = null
@@ -33,7 +34,7 @@ class MustangCarView @JvmOverloads constructor(
     private var lastSceneFrame=0L
     private val sceneFrame=object : Runnable {
         override fun run() {
-            if(!sceneActive || !isShown || scene==null) return
+            if(!sceneActive || !isShown || windowVisibility!=VISIBLE || scene==null) return
             val now=android.os.SystemClock.elapsedRealtime()
             val seconds=if(lastSceneFrame==0L) .033f else ((now-lastSceneFrame)/1000f).coerceIn(0f,.1f)
             lastSceneFrame=now
@@ -55,7 +56,7 @@ class MustangCarView @JvmOverloads constructor(
     fun setSceneActive(active: Boolean) { sceneActive=active; lastSceneFrame=0; scheduleScene() }
     private fun scheduleScene() {
         removeCallbacks(sceneFrame)
-        if(sceneActive && scene!=null && isShown && ((motionSpeedKmh ?: 0f)>.5f || leftLevel!=leftTarget || rightLevel!=rightTarget))
+        if(sceneActive && scene!=null && isShown && windowVisibility==VISIBLE && ((motionSpeedKmh ?: 0f)>.5f || leftLevel!=leftTarget || rightLevel!=rightTarget))
             postDelayed(sceneFrame,33)
     }
     var digitalProfile: MustangProfile? = null
@@ -79,9 +80,11 @@ class MustangCarView @JvmOverloads constructor(
 
     fun setHeadlightsOn(on: Boolean, animate: Boolean = false) {
         if (!lampOverlayEnabled) { stopAnimation(); return }
+        val target = if (on) 1f else 0f
+        if(requestedLight==on && (animator?.isRunning==true || lightLevel==target)) return
+        requestedLight=on
         animator?.cancel()
         animator = null
-        val target = if (on) 1f else 0f
         if (animate && lightLevel != target) {
             animator = ValueAnimator.ofFloat(lightLevel, target).apply {
                 duration = 450
@@ -96,6 +99,7 @@ class MustangCarView @JvmOverloads constructor(
     fun playWelcomeLights() {
         if (!lampOverlayEnabled) return
         animator?.cancel()
+        requestedLight=null
         animator = ValueAnimator.ofFloat(0f, .9f, .9f, 0f).apply {
             duration = 1600
             addUpdateListener { setLightLevel(it.animatedValue as Float) }
@@ -106,6 +110,7 @@ class MustangCarView @JvmOverloads constructor(
     fun stopAnimation() {
         animator?.cancel()
         animator = null
+        requestedLight=null
         setLightLevel(0f)
         setSceneActive(false)
     }

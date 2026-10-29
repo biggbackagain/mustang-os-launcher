@@ -13,9 +13,8 @@ class MustangSceneDrawable(val profile: MustangProfile) : Drawable() {
     var travelMeters=0f
     private data class V(val x: Float,val y: Float,val z: Float)
     private data class Face(val points: List<V>,val color: Int,val emissive: Boolean=false)
+    private data class RenderFace(val path: Path,val depth: Double,val color: Int,val body: Boolean)
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
-    private val outline=Paint(Paint.ANTI_ALIAS_FLAG).apply { style=Paint.Style.STROKE; strokeWidth=.65f; color=0x284fc4ff }
-    private val path=Path()
     private val yaw=.72f
     private val cy=cos(yaw); private val sy=sin(yaw)
     private val cp=cos(.32f); private val sp=sin(.32f)
@@ -25,7 +24,7 @@ class MustangSceneDrawable(val profile: MustangProfile) : Drawable() {
     private val classic=MustangGeneration.forYear(profile.year).ordinal<=MustangGeneration.FOX.ordinal
     private val modern=MustangGeneration.forYear(profile.year).ordinal>=MustangGeneration.S550.ordinal
     private val roofHeight=if(classic) 1.57f else 1.52f
-    private val staticFaces=buildBody()
+    private val staticFaces=(buildBody()+wheels()).map(::prepare)
     private fun face(color: Int,vararg points: V,emissive: Boolean=false)=Face(points.toList(),color,emissive)
     private fun project(v: V)=PointF(450+(v.x*cy+v.z*sy)*140,335-(v.y*cp-(-v.x*sy+v.z*cy)*sp)*140)
     private fun depth(v: V)=(-v.x*sy+v.z*cy)*cp+v.y*sp
@@ -96,7 +95,6 @@ class MustangSceneDrawable(val profile: MustangProfile) : Drawable() {
             face(trim,v(-.72f,1.02f,side*.97f),v(.83f,1.02f,side*.97f),v(.83f,1.12f,side*.8f),v(-.72f,1.12f,side*.8f)))
     }
     private fun wheels(): List<Face> = buildList {
-        val theta=travelMeters/.34f
         for(x in listOf(-1.55f,1.55f)) for(side in listOf(-1f,1f)) {
             val z=side*1.01f
             for(i in 0 until 24) {
@@ -107,28 +105,45 @@ class MustangSceneDrawable(val profile: MustangProfile) : Drawable() {
                 add(face(0xffa4b5c6.toInt(),point(.35f,a,z+side*.01f),point(.35f,b,z+side*.01f),point(.31f,b,z+side*.01f),point(.31f,a,z+side*.01f)))
                 add(face(trim,V(x,.47f,z+side*.012f),point(.31f,a,z+side*.012f),point(.31f,b,z+side*.012f)))
             }
+        }
+    }
+    private fun spokes(): List<Face> = buildList {
+        val theta=travelMeters/.34f
+        for(x in listOf(-1.55f,1.55f)) for(side in listOf(-1f,1f)) {
+            val z=side*1.01f
             for(i in 0 until 5) {
                 val a=i*2f*PI.toFloat()/5-theta; val b=a+.15f
                 add(face(0xffd7e2ed.toInt(),V(x,.47f,z+side*.025f),V(x+cos(a)*.32f,.47f+sin(a)*.32f,z+side*.025f),V(x+cos(b)*.32f,.47f+sin(b)*.32f,z+side*.025f)))
             }
         }
     }
+    private fun prepare(face: Face): RenderFace {
+        val path=Path()
+        face.points.forEachIndexed { i,v -> val p=project(v); if(i==0) path.moveTo(p.x,p.y) else path.lineTo(p.x,p.y) }; path.close()
+        return RenderFace(path,face.points.sumOf { depth(it).toDouble() }/face.points.size,shade(face),face.color==bodyColor)
+    }
     override fun draw(canvas: Canvas) {
         val saved=canvas.save(); val scale=min(bounds.width()/900f,bounds.height()/510f)
         canvas.translate(bounds.left+(bounds.width()-900*scale)/2,bounds.top+(bounds.height()-510*scale)/2); canvas.scale(scale,scale)
         // A studio floor, not a navigation map. Movement advances only with a valid vehicle speed.
-        paint.shader=null; paint.color=0x304a83ae; paint.strokeWidth=1f
+        paint.shader=null; paint.color=0x174a83ae; paint.strokeWidth=1f
         for(i in -5..7) {
             val x=i.toFloat()+(travelMeters%1f)
             val a=project(V(x,0f,-3f)); val b=project(V(x,0f,3f)); canvas.drawLine(a.x,a.y,b.x,b.y,paint)
         }
         paint.color=0x65000000; canvas.drawOval(115f,285f,810f,449f,paint)
-        val faces=staticFaces+door(1f,leftDoor)+door(-1f,rightDoor)+wheels()+lamps()
-        for(face in faces.sortedBy { f -> f.points.sumOf { depth(it).toDouble() }/f.points.size }) {
-            path.reset()
-            face.points.forEachIndexed { i,v -> val p=project(v); if(i==0) path.moveTo(p.x,p.y) else path.lineTo(p.x,p.y) }; path.close()
-            paint.shader=null; paint.color=shade(face); canvas.drawPath(path,paint); canvas.drawPath(path,outline)
+        val faces=staticFaces+(door(1f,leftDoor)+door(-1f,rightDoor)+spokes()).map(::prepare)
+        for(face in faces.sortedBy { it.depth }) {
+            paint.shader=null; paint.color=face.color
+            if(face.body) {
+                fun tone(f: Float)=Color.rgb((Color.red(face.color)*f).toInt().coerceIn(0,255),
+                    (Color.green(face.color)*f).toInt().coerceIn(0,255),(Color.blue(face.color)*f).toInt().coerceIn(0,255))
+                paint.shader=LinearGradient(0f,180f,0f,430f,intArrayOf(tone(1.15f),tone(1f),tone(.82f)),null,Shader.TileMode.CLAMP)
+            }
+            canvas.drawPath(face.path,paint)
         }
+        paint.shader=null
+        for(lamp in lamps().map(::prepare)) { paint.color=lamp.color; canvas.drawPath(lamp.path,paint) }
         if(lights>.01f) for(side in listOf(-1f,1f)) {
             val p=project(V(-2.43f,.88f,side*.77f)); val radius=38f
             paint.shader=RadialGradient(p.x,p.y,radius,Color.argb((125*lights).toInt(),187,224,255),Color.TRANSPARENT,Shader.TileMode.CLAMP)

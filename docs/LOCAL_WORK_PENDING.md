@@ -1,5 +1,7 @@
 # Avances incorporados y trabajo pendiente
 
+**Actualización 0.7.0:** el usuario confirmó canción, datos y controles de CarPlay de la 0.6.2. Se añadió modelo 3D con asignación física de las señales de puerta, faros y ruedas por velocidad válida; lector PNG tipo 14 y solicitud optativa del flujo TW 1291 observado en CarInfoService. Portada/puertas/luces/RPM nuevas siguen requiriendo prueba en el coche. El mapa de CarPlay dentro del panel sigue pendiente. Aún no se ha recibido un diagnóstico posterior al ZIP del 28 de octubre, 18:08. [Entrega actual](RELEASE_070.md).
+
 **Actualización 0.6.2:** el ZIP recibido el 28 de octubre a las 18:08 contiene 17 tramas tipo 10 (204 bytes), sin contenido conservado por la 0.6.1. Se implementó un lector multimedia TLV con opt-in y una conexión compartida entre Home y barra. La tarjeta muestra solo los campos efectivamente recibidos y mantiene separados Bluetooth y CarPlay. Falta validar esos campos en la unidad; portada asociada y vídeo/ruta de mapa siguen sin integración demostrada. [Procedimiento y límites](RELEASE_062.md).
 
 **Actualización 0.6.1:** el usuario confirmó la barra encima de ZLink y descartó la app de iPhone/compilación en nube. Se identificó estáticamente un canal de metadatos y se preparó una observación manual, acotada y sin escrituras. La APK y su descarga están verificadas; falta la muestra física de tramas para decidir si implementar un lector musical/de maniobras. [Investigación actual](INVESTIGACION_ZLINK_20261028.md). La superficie de mapa completa continúa sin contrato externo verificado.

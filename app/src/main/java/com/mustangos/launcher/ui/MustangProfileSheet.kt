@@ -32,7 +32,6 @@ class MustangProfileSheet(
     fun show() {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
         val catalog = CarPhotoCatalog(context)
-        val calibratedPreview = com.mustangos.launcher.settings.CalibratedVehiclePreview(context)
         var previewJob: Job? = null
         var draft = profile
         var digitalMode = digital
@@ -70,7 +69,7 @@ class MustangProfileSheet(
         controls.addView(HorizontalScrollView(context).apply { addView(paints) },LinearLayout.LayoutParams(-1,dp(60)))
         val colorName = TextView(context).apply { setTextAppearance(R.style.Muted) }
         controls.addView(colorName)
-        val useDigital = Switch(context).apply { text = "Vista digital · color y luces"; isChecked = digitalMode; minHeight = dp(52); setTextAppearance(R.style.Body) }
+        val useDigital = Switch(context).apply { text = "Vista 3D · color, puertas y luces"; isChecked = digitalMode; minHeight = dp(52); setTextAppearance(R.style.Body) }
         controls.addView(useDigital)
         controls.addView(TextView(context).apply { setTextAppearance(R.style.Muted); textSize = 12f; text = "La vista digital representa la familia del Mustang y la pintura elegida; no reproduce cada pieza o edición exacta. La fotografía es una referencia aparte. Este perfil no modifica el vehículo ni el CAN." })
         fun button(text: String) = Button(context,null,0,R.style.ActionButton).apply { this.text = text }.also { controls.addView(it,LinearLayout.LayoutParams(-1,dp(52)).apply { topMargin = dp(8) }) }
@@ -89,21 +88,14 @@ class MustangProfileSheet(
             colorName.text = "${draft.paint.label} · ${draft.body.label}"
             generationTiles.forEach { (family,tile) -> tile.alpha = if(family == MustangGeneration.forYear(draft.year)) 1f else .55f; tile.isSelected = family == MustangGeneration.forYear(draft.year) }
             colorButtons.forEach { (paint, control) -> control.text = if(paint == draft.paint) "✓" else ""; control.isSelected = paint == draft.paint }
-            car.digitalProfile = if(digitalMode) draft else null
+            car.digitalProfile = null
+            car.sceneProfile = if(digitalMode) draft else null
             car.lampOverlayEnabled = digitalMode
             car.setHeadlightsOn(previewLights)
             lights.isEnabled = digitalMode
             if(digitalMode) {
-                caption.text = "${MustangGeneration.forYear(draft.year).label} · representación digital estilizada"
-                car.contentDescription = "Vista digital · ${draft.description}"
-                val selected=draft
-                if(calibratedPreview.supports(selected)) previewJob=scope.launch {
-                    calibratedPreview.load(selected)?.let { bitmap ->
-                        car.digitalProfile=null; car.setImageBitmap(bitmap)
-                        caption.text="Vista de pintura · referencia 2010 · ${selected.paint.label}"
-                        car.setHeadlightsOn(previewLights)
-                    }
-                }
+                caption.text = "${MustangGeneration.forYear(draft.year).label} · modelo 3D aproximado"
+                car.contentDescription = "Vista 3D · ${draft.description}"
             } else {
                 val selection = draft
                 caption.text = "Cargando referencia…"

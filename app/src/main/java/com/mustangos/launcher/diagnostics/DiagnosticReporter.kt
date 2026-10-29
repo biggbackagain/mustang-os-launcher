@@ -12,7 +12,8 @@ class DiagnosticReporter(private val context: Context, private val model: Launch
         val mem = ActivityManager.MemoryInfo().also { context.getSystemService(ActivityManager::class.java).getMemoryInfo(it) }
         val d = context.resources.displayMetrics
         return buildString {
-            appendLine("MUSTANG OS 0.6.1 · diagnóstico básico")
+            val version=runCatching { context.packageManager.getPackageInfo(context.packageName,0).versionName }.getOrNull() ?: "sin versión"
+            appendLine("MUSTANG OS $version · diagnóstico básico")
             appendLine("SDK real: ${Build.VERSION.SDK_INT}; etiqueta RELEASE: ${Build.VERSION.RELEASE}")
             appendLine("Identificación declarada del equipo: fabricante=${Build.MANUFACTURER}; marca=${Build.BRAND}; modelo=${Build.MODEL}; placa=${Build.BOARD}; hardware=${Build.HARDWARE}")
             appendLine("API 29 corresponde a Android 10; API 32 a Android 12L; API 33 a Android 13. La etiqueta del fabricante puede diferir.")
@@ -43,6 +44,9 @@ class DiagnosticReporter(private val context: Context, private val model: Launch
             appendLine("Valores OEM recibidos: voltaje=${oem.voltage ?: "sin evento"}; temperatura_C=${oem.temperatureC ?: "sin evento"}; máscara de puertas=${oem.doorMask ?: "sin evento"}")
             appendLine("Perfil MCU recibido: ${oem.protocol?.let { "modelo=${it.model}; tipo=${it.type}" } ?: "sin evento; no se presupone a partir del coche"}")
             appendLine(oem.eventReport)
+            appendLine("Modelo 3D: ${model.settings.digitalVehicle}; puerta izquierda asignada=${model.settings.doorMapping.left}; derecha=${model.settings.doorMapping.right}")
+            appendLine("Motor TW 1291: velocidad=${oem.speedKmh ?: "sin evento vigente"}; RPM=${oem.rpm ?: "sin evento vigente"}")
+            appendLine("RPM habilitadas por el usuario=${model.settings.powertrainReadEnabled}; ${oem.powertrainRequestStatus}")
             appendLine(oem.temperatureRequestStatus)
             appendLine("Eventos de aperturas: máscara no cero=${oem.doorOpenEvents}; máscara cero=${oem.doorZeroEvents}")
             appendLine(model.vehicle.carInfo.report())

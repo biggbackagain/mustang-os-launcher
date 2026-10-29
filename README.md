@@ -1,4 +1,6 @@
-# MUSTANG OS · 0.6.2 · Lector musical CarPlay
+# MUSTANG OS · 0.7.0 · Vehículo dinámico
+
+**Entrega 0.7.0:** el usuario confirmó canción y controles CarPlay. Se incorpora un modelo 3D estilizado con puertas asignables, faros, pintura y movimiento por velocidad real; lector PNG con asociación temporal limitada; solicitud optativa de telemetría RPM. Las funciones nuevas y la correspondencia de portada necesitan validación física. El mapa CarPlay dentro de una tarjeta continúa pendiente. [Configuración, prueba y límites](docs/RELEASE_070.md).
 
 **Entrega 0.6.2:** lector experimental de campos musicales del canal local, compartido entre tarjeta y barra Mustang, con diagnóstico de campos sin contenidos privados. La muestra física 0.6.1 recibió 17 mensajes tipo 10; los valores de canción/tiempo todavía requieren validar la nueva APK en la unidad. Portada asociada y mapa del iPhone continúan pendientes. [Instalación y prueba](docs/RELEASE_062.md).
 

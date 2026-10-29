@@ -14,7 +14,7 @@ object ZLinkHudPresentation {
         val old=now-music.updatedAtMs>10_000
         return base.copy(facts=base.facts.copy(source=PACKAGE,title=music.title,artist=music.artist,album=music.album,
             durationMs=music.durationMs ?: 0,positionMs=music.elapsedMs ?: 0,updatedAtMs=music.updatedAtMs,speed=0f),
-            artwork=null,coverStatus="CarPlay no ha publicado una portada asociable",
+            artwork=hud.artwork,coverStatus=if(hud.artwork!=null) "Imagen recibida de CarPlay" else "CarPlay no ha publicado una portada asociable",
             playbackStateKnown=false,
             status=if(old) "CarPlay · últimos datos recibidos" else if(music.title==null) "CarPlay · tiempo recibido; canción sin publicar" else "CarPlay · datos de la canción",
             fallbackDisplayTitle=null,fallbackDisplaySubtitle=null,reportedPosition=music.elapsedMs!=null)
